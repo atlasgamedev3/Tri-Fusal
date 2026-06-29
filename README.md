@@ -11,3 +11,11 @@ Communication is the key to success. Each player has access to unique clues, too
 - Increasing puzzle complexity and difficulty
 - Engaging UI
 - Leaderboard / ranking system
+
+## Bomb Prototype
+- The first bomb setup uses a 15-minute timer and two required puzzles.
+- The bomb is displayed as a persistent top HUD with the active puzzle board below it.
+- Completing both puzzle modules calls the defused state.
+- Running out of time, or pressing the demo detonation button, triggers the explosion-to-black failure state.
+
+Open index.html in a browser to try the current prototype screen.
