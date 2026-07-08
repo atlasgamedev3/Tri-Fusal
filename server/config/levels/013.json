@@ -1,0 +1,871 @@
+{
+	"version": 1,
+	"seed": 2967123,
+	"target_score_override": -1,
+	"max_stage": 8,
+	"custom_target_scores": [ 50, 195, 290, 500, 720, 1040, 1400 ],
+	"clues_to_spawn": [
+		{
+			"clue_type": "EClueType::Equilibrium",
+			"first_stage": 1,
+			"num_initial": 3,
+			"num_subsequent": 2,
+			"subsequent_increment": 0
+		},
+		{
+			"clue_type": "EClueType::Vantage",
+			"first_stage": 2,
+			"num_initial": 1,
+			"num_subsequent": 2,
+			"subsequent_increment": 0
+		},
+		{
+			"clue_type": "EClueType::Network",
+			"first_stage": 3,
+			"num_initial": 8,
+			"num_subsequent": 4,
+			"subsequent_increment": 0
+		}
+	],
+	"clues_per_stage": [
+		[
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -3,
+				"y": -1
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -3,
+				"y": 1
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 3,
+				"y": 1
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -3,
+				"y": -2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 2,
+				"y": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 2,
+				"y": 1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 5,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 1,
+				"y": -3,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": 3,
+				"y": 4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": 4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 0,
+				"y": -1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 4,
+				"y": 4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": 2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -2,
+				"y": -2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": -3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 2,
+				"y": 2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 4,
+				"y": -4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 2,
+				"y": -1,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 1,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -2,
+				"y": -4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 1,
+				"y": -5,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 0,
+				"y": -2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": 0,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 2,
+				"y": -2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 3,
+				"y": -1,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 2,
+				"y": -5,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": 4,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 3,
+				"y": 0,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": 0,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 3,
+				"y": -4,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 3,
+				"y": 5,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -4,
+				"y": -4,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -5,
+				"y": 4
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -2,
+				"y": -3
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -4,
+				"y": 2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -6,
+				"y": -1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -1,
+				"y": -1,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 5,
+				"y": -3,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 0,
+				"y": -3,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -1,
+				"y": 1,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": 4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -4,
+				"y": 5,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 3,
+				"y": -2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": -2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": 6,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -4,
+				"y": 6,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": -3,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 0,
+				"y": 5,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": -5,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -6,
+				"y": 1,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": -6,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": 0,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 5,
+				"y": -1
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 0,
+				"y": -3
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -4,
+				"y": -2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -4,
+				"y": 4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -7,
+				"y": -2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -6,
+				"y": 0,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -5,
+				"y": 6,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 2,
+				"y": -4,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": -8,
+				"y": -6,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": 6,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 2,
+				"y": -6,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 8,
+				"y": -1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 4,
+				"y": 7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -8,
+				"y": -3,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": 1,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": 7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -7,
+				"y": 3,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": -7,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": -1,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 5,
+				"y": 3,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -6,
+				"y": -4
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -4,
+				"y": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 8,
+				"y": -4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 7,
+				"y": -1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 0,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 6,
+				"y": -2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 3,
+				"y": 3,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -8,
+				"y": 4,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": -6,
+				"y": -8,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -8,
+				"y": -7,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -7,
+				"y": -7,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -6,
+				"y": 0,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -4,
+				"y": 8,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": 9,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 1,
+				"y": 8,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 4,
+				"y": 5,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -9,
+				"y": 9,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": 5,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": 3,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 9,
+				"y": 6,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 0,
+				"y": -5
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -8,
+				"y": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 8,
+				"y": -5,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -6,
+				"y": 4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 9,
+				"y": -5,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -1,
+				"y": 7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 2,
+				"y": -8,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 5,
+				"y": 0,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": 1,
+				"y": 7,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -4,
+				"y": -8,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": 9,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -8,
+				"y": 7,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 5,
+				"y": -5,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": -7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": 7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 10,
+				"y": -2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -8,
+				"y": 3,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 8,
+				"y": -2,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 8,
+				"y": 0,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": -9,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 10,
+				"y": 4
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 5,
+				"y": 8
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -8,
+				"y": -4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 10,
+				"y": 7,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -8,
+				"y": -9,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 10,
+				"y": -5,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -4,
+				"y": 7,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -9,
+				"y": 0,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": -9,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -9,
+				"y": 5,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -9,
+				"y": 1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 12,
+				"y": 7,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 1,
+				"y": -7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -10,
+				"y": 2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -11,
+				"y": 0,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 8,
+				"y": -7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 5,
+				"y": 9,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 12,
+				"y": 2,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": -6,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -8,
+				"y": -2,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 9,
+				"y": -3
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -8,
+				"y": -9
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -1,
+				"y": -7,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -10,
+				"y": 5,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -4,
+				"y": -6,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 9,
+				"y": 10,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -4,
+				"y": -8,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -10,
+				"y": -4,
+				"color": 2
+			}
+		]
+	]
+}

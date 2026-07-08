@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "seed": 12345,
+  "custom_target_scores": [50, 130, 250, 400, 600, 870, 1200],
+  "stages": [
+    {
+      "clues": [
+        { "type": "network", "x": 4, "y": -2, "color": "RED" },
+        { "type": "network", "x": -1, "y": -1, "color": "RED" },
+        { "type": "network", "x": 2, "y": 0, "color": "RED" },
+        { "type": "network", "x": 1, "y": -1, "color": "GREEN" },
+        { "type": "network", "x": -1, "y": 4, "color": "GREEN" },
+        { "type": "network", "x": 0, "y": -2, "color": "GREEN" },
+        { "type": "network", "x": 4, "y": 2, "color": "BLUE" },
+        { "type": "network", "x": -2, "y": 2, "color": "BLUE" },
+        { "type": "network", "x": -1, "y": 1, "color": "BLUE" },
+        {
+          "type": "polyomino",
+          "x": 3,
+          "y": -1,
+          "color": "RED",
+          "shape": [
+            { "x": 0, "y": 0 },
+            { "x": 1, "y": 0 },
+            { "x": 2, "y": 0 },
+            { "x": 0, "y": 1 },
+            { "x": 1, "y": 1 }
+          ]
+        },
+        { "type": "equilibrium", "x": 0, "y": 0, "color": "NEUTRAL" },
+        { "type": "box", "x": 2.5, "y": 1.5, "color": "GREEN", "orientation": 90 }
+      ],
+      "enemies": []
+    },
+    {
+      "clues": [
+        { "type": "network", "x": -1, "y": -3, "color": "RED" },
+        { "type": "network", "x": 5, "y": -2, "color": "GREEN" },
+        { "type": "network", "x": -2, "y": -1, "color": "BLUE" },
+        { "type": "vantage", "x": 3.5, "y": 2.5, "color": "RED" }
+      ],
+      "enemies": [
+        { "x": 3, "y": 3, "personality": "red-avoiding" }
+      ]
+    },
+    {
+      "clues": [
+        { "type": "clone", "x": -3.5, "y": 0.5, "color": "NEUTRAL" }
+      ],
+      "enemies": []
+    }
+  ]
+}

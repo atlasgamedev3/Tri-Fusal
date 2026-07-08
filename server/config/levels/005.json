@@ -1,0 +1,373 @@
+{
+	"version": 0,
+	"seed": 28397,
+	"target_score_override": 100,
+	"score_scaling": "EScoreScaling::Triangular",
+	"max_stage": 8,
+	"custom_target_scores": [ 50, 120, 220, 350, 600, 900, 1300 ],
+	"clues_to_spawn": [
+		{
+			"clue_type": "EClueType::Galaxy",
+			"first_stage": 1,
+			"num_initial": 1,
+			"num_subsequent": 1,
+			"subsequent_increment": 0
+		},
+		{
+			"clue_type": "EClueType::Clone",
+			"first_stage": 5,
+			"num_initial": 15,
+			"num_subsequent": 0,
+			"subsequent_increment": 0
+		},
+		{
+			"clue_type": "EClueType::Equilibrium",
+			"first_stage": 8,
+			"num_initial": 15,
+			"num_subsequent": 0,
+			"subsequent_increment": 0
+		}
+	],
+	"clues_per_stage": [
+		[
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 3,
+				"y": -1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 1,
+				"y": -1,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": -1,
+				"y": 2,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 4,
+				"y": 1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": -3,
+				"y": 2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 3,
+				"y": 0,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 4,
+				"y": 3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": -4,
+				"y": 1,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": -3,
+				"y": -2,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": -3,
+				"y": -1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": -2,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 3,
+				"y": 5,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -2,
+				"y": 4,
+				"rotations": 2,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -2,
+				"y": 7,
+				"rotations": 0,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 0,
+				"y": 6,
+				"rotations": 2,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -6,
+				"y": -4,
+				"rotations": 1,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 8,
+				"y": -2,
+				"rotations": 1,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -5,
+				"y": -2,
+				"rotations": 3,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 5,
+				"y": -1,
+				"rotations": 0,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -5,
+				"y": -7,
+				"rotations": 0,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -8,
+				"y": 5,
+				"rotations": 0,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 4,
+				"y": 6,
+				"rotations": 1,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 5,
+				"y": 6,
+				"rotations": 2,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -8,
+				"y": 0,
+				"rotations": 2,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -8,
+				"y": -3,
+				"rotations": 3,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -8,
+				"y": -7,
+				"rotations": 3,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -1,
+				"y": 3,
+				"rotations": 2,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 5,
+				"y": 6,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 4,
+				"y": -2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": -5,
+				"y": 4,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 4,
+				"y": 4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 7,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": -6,
+				"y": -4,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 8,
+				"y": -5,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": -7,
+				"y": 8,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": -8,
+				"y": -3,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 9,
+				"y": -8
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -10,
+				"y": 2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 9,
+				"y": 2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -9,
+				"y": -4
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -7,
+				"y": 2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 8,
+				"y": 10
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 0,
+				"y": 10
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -7,
+				"y": -5
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 11,
+				"y": 8
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 10,
+				"y": -8
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -10,
+				"y": 5
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -10,
+				"y": 10
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 7,
+				"y": 10
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -7,
+				"y": 9
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -10,
+				"y": -7
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 10,
+				"y": 5,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 9,
+				"y": 5,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Galaxy",
+				"x": 7,
+				"y": 9,
+				"color": 2
+			}
+		]
+	]
+}

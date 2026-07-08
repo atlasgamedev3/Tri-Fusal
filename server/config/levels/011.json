@@ -1,0 +1,738 @@
+{
+	"version": 1,
+	"seed": 79111,
+	"target_score_override": -1,
+	"max_stage": 8,
+	"custom_target_scores": [ 150, 250, 350, 450, 600, 800, 1000 ],
+	"clues_to_spawn": [
+		{
+			"clue_type": "EClueType::Vantage",
+			"first_stage": 1,
+			"num_initial": 3,
+			"num_subsequent": 2,
+			"subsequent_increment": 0
+		},
+		{
+			"clue_type": "EClueType::Clone",
+			"first_stage": 1,
+			"num_initial": 4,
+			"num_subsequent": 4,
+			"subsequent_increment": 0
+		},
+		{
+			"clue_type": "EClueType::Equilibrium",
+			"first_stage": 1,
+			"num_initial": 4,
+			"num_subsequent": 4,
+			"subsequent_increment": 0
+		}
+	],
+	"clues_per_stage": [
+		[
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -4,
+				"y": -2,
+				"rotations": 0,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -2,
+				"y": -2,
+				"rotations": 0,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 4,
+				"y": -3,
+				"rotations": 3,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -4,
+				"y": 2,
+				"rotations": 3,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 0,
+				"y": 2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -1,
+				"y": -1
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 3,
+				"y": 2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 0,
+				"y": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -3,
+				"y": 2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -4,
+				"y": -1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -4,
+				"y": 0,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 4,
+				"y": 3,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 3,
+				"y": 1,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 4,
+				"y": -1,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -1,
+				"y": -2,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 0,
+				"y": -2,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -1,
+				"y": -3,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -2,
+				"y": -4,
+				"rotations": 0,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -5,
+				"y": -4,
+				"rotations": 0,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 0,
+				"y": -3,
+				"rotations": 3,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -2,
+				"y": 0,
+				"rotations": 2,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 4,
+				"y": -2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -2,
+				"y": -3
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 2,
+				"y": 0
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -1,
+				"y": -2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 3,
+				"y": -3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 5,
+				"y": -3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 1,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 5,
+				"y": 2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 1,
+				"y": -1,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -1,
+				"y": 4,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 2,
+				"y": -2,
+				"rotations": 0,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -2,
+				"y": 2,
+				"rotations": 2,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -3,
+				"y": -4,
+				"rotations": 1,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -3,
+				"y": 0,
+				"rotations": 2,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 4,
+				"y": -4
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -3,
+				"y": -2
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 1,
+				"y": -1
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -1,
+				"y": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -4,
+				"y": 1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 3,
+				"y": 3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -2,
+				"y": 3,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -5,
+				"y": 2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 6,
+				"y": -5,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -3,
+				"y": 1,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -4,
+				"y": -3,
+				"rotations": 3,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 0,
+				"y": 6,
+				"rotations": 2,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 0,
+				"y": 5,
+				"rotations": 0,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -1,
+				"y": 2,
+				"rotations": 3,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -3,
+				"y": -5
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 3,
+				"y": -4
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 6,
+				"y": 6
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 4,
+				"y": 4
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 7,
+				"y": 0,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 0,
+				"y": -6,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 6,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 3,
+				"y": -5,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -7,
+				"y": -4,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -5,
+				"y": -5,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -2,
+				"y": 4,
+				"rotations": 1,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 2,
+				"y": -4,
+				"rotations": 3,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 8,
+				"y": 4,
+				"rotations": 2,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 6,
+				"y": 7,
+				"rotations": 3,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 5,
+				"y": -4
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -7,
+				"y": -6
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 0,
+				"y": 6
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 7,
+				"y": 6
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 5,
+				"y": -4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 6,
+				"y": 2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -5,
+				"y": -6,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 1,
+				"y": -4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -5,
+				"y": 1,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 5,
+				"y": 4,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 7,
+				"y": -5,
+				"rotations": 3,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -9,
+				"y": 6,
+				"rotations": 3,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -4,
+				"y": -7,
+				"rotations": 3,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -7,
+				"y": 3,
+				"rotations": 0,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 7,
+				"y": -4
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -6,
+				"y": 7
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -3,
+				"y": -4
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 8,
+				"y": 4
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 7,
+				"y": -2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -8,
+				"y": -8,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 6,
+				"y": -8,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 6,
+				"y": 6,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -9,
+				"y": -1,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -8,
+				"y": 8,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -8,
+				"y": -1,
+				"rotations": 0,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -8,
+				"y": -6,
+				"rotations": 2,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 10,
+				"y": 9,
+				"rotations": 0,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 10,
+				"y": -3,
+				"rotations": 2,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -3,
+				"y": 7
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -1,
+				"y": -8
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -5,
+				"y": -8
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -3,
+				"y": 9
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -4,
+				"y": -9,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 4,
+				"y": -6,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 10,
+				"y": 1,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -6,
+				"y": -5,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -8,
+				"y": 6,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 6,
+				"y": -9,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Clone",
+				"x": 9,
+				"y": -3,
+				"rotations": 3,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -11,
+				"y": -4,
+				"rotations": 1,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -9,
+				"y": -5,
+				"rotations": 3,
+				"is_mirrored": false
+			},
+			{
+				"clue_type": "EClueType::Clone",
+				"x": -1,
+				"y": -10,
+				"rotations": 3,
+				"is_mirrored": true
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 2,
+				"y": -8
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -4,
+				"y": 9
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": -5,
+				"y": -6
+			},
+			{
+				"clue_type": "EClueType::Equilibrium",
+				"x": 7,
+				"y": 9
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 8,
+				"y": -6,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -10,
+				"y": 9,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 1,
+				"y": 10,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -9,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": -4,
+				"y": -6,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Vantage",
+				"x": 11,
+				"y": 4,
+				"color": 2
+			}
+		]
+	]
+}

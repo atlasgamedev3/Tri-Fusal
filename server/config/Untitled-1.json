@@ -1,0 +1,21 @@
+{
+  "seed": 42,
+  "custom_target_scores": [
+    50,
+    130,
+    250,
+    400,
+    600,
+    870,
+    1200
+  ],
+  "collectible_spawn_rules": [
+    {
+      "clue_type": "network",
+      "first_stage": 1,
+      "num_initial": 7,
+      "num_subsequent": 5
+    }
+  ]
+]
+} 

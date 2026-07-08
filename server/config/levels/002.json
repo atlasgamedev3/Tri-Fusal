@@ -1,0 +1,754 @@
+{
+	"version": 1,
+	"seed": 11015409,
+	"target_score_override": -1,
+	"max_stage": 8,
+	"custom_target_scores": [ 50, 160, 420, 770, 1200, 1750, 2400 ],
+	"clues_to_spawn": [
+		{
+			"clue_type": "EClueType::Network",
+			"first_stage": 1,
+			"num_initial": 5,
+			"num_subsequent": 5,
+			"subsequent_increment": 0
+		}
+	],
+	"clues_per_stage": [
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": 3,
+				"y": -3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -2,
+				"y": 3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 3,
+				"y": 3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 2,
+				"y": -2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": -1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 2,
+				"y": 2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": 2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 1,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 4,
+				"y": 0,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 4,
+				"y": 2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 0,
+				"y": 1,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -2,
+				"y": -3,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 4,
+				"y": 1,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": 3,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 1,
+				"y": 3,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": -3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 1,
+				"y": -3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 4,
+				"y": -3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 2,
+				"y": 4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": 0,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": 1,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 0,
+				"y": -2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 5,
+				"y": -2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 4,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 1,
+				"y": 1,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -2,
+				"y": -4,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 3,
+				"y": 2,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -2,
+				"y": -2,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": 1,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -2,
+				"y": 1,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": 5,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 4,
+				"y": -1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": -3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -2,
+				"y": 0,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -4,
+				"y": -1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 3,
+				"y": 6,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": -2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -2,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": -4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 0,
+				"y": -4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 5,
+				"y": -5,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": 5,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 5,
+				"y": 2,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 0,
+				"y": 4,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 0,
+				"y": 3,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": 6,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": -4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 5,
+				"y": -6,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": -3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -6,
+				"y": 1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": 6,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -2,
+				"y": 7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 1,
+				"y": -4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": 5,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": -4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -2,
+				"y": -5,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -6,
+				"y": 6,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": 5,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 2,
+				"y": -3,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": 6,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": 0,
+				"y": -5,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -6,
+				"y": 8,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": 7,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": 7,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 5,
+				"y": -3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": -4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -4,
+				"y": -7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -7,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": 6,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 9,
+				"y": 4,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": 4,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -6,
+				"y": -1,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": 3,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 0,
+				"y": 5,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": -8,
+				"y": 3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -9,
+				"y": 4,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 9,
+				"y": -2,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -5,
+				"y": 3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -7,
+				"y": -5,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 5,
+				"y": 8,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 3,
+				"y": 9,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -7,
+				"y": -6,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": 4,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -6,
+				"y": 3,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -9,
+				"y": -5,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -8,
+				"y": 8,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": -4,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -8,
+				"y": 5,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": 6,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": -9,
+				"y": -9,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -9,
+				"y": 6,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": 1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -1,
+				"y": 9,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": -6,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -9,
+				"y": 9,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 2,
+				"y": -5,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 6,
+				"y": -7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 9,
+				"y": -7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": 7,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -8,
+				"y": 0,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -6,
+				"y": -8,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 1,
+				"y": 9,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 7,
+				"y": -8,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": 10,
+				"color": 2
+			}
+		],
+		[
+			{
+				"clue_type": "EClueType::Network",
+				"x": -10,
+				"y": 3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 10,
+				"y": -9,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": -8,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -11,
+				"y": -1,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 10,
+				"y": 3,
+				"color": 0
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 11,
+				"y": 8,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -3,
+				"y": 9,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 10,
+				"y": 6,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -11,
+				"y": 2,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -4,
+				"y": 9,
+				"color": 1
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 11,
+				"y": -8,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 8,
+				"y": -4,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 8,
+				"y": -1,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": -10,
+				"y": 4,
+				"color": 2
+			},
+			{
+				"clue_type": "EClueType::Network",
+				"x": 4,
+				"y": 8,
+				"color": 2
+			}
+		]
+	]
+}
