@@ -1,150 +1,167 @@
-// Small prototype wiring for the 15-minute, two-puzzle bomb round.
-// Later, real puzzle boards can replace these placeholder cards and still use the same BombSystem.
-
 import soundManager, { SOUND_KEYS } from "./audio/soundManager.js";
-import { BOMB_EVENTS, BOMB_STATUS, BombSystem, TWO_PUZZLE_BOMB_CONFIG } from "./game/bombSystem.js";
+import { BOMB_EVENTS, BOMB_STATUS, BombSystem, SINGLE_PUZZLE_BOMB_CONFIG } from "./game/bombSystem.js";
+import { WIRE_PUZZLE_EVENTS, WirePuzzleSystem } from "./game/wirePuzzleSystem.js";
 import { createBombOverlay } from "./ui/bombOverlay.js";
+import { createWirePuzzleBoard } from "./ui/wirePuzzleBoard.js";
 
 const puzzleLabels = {
-  "puzzle-1": "Puzzle One",
-  "puzzle-2": "Puzzle Two",
+  "puzzle-1": "Fusebreak Relay",
 };
 
 const appRoot = document.querySelector("#app");
-const bombSystem = new BombSystem(TWO_PUZZLE_BOMB_CONFIG);
+const bombSystem = new BombSystem(SINGLE_PUZZLE_BOMB_CONFIG);
+const wirePuzzle = new WirePuzzleSystem();
 const bombOverlay = createBombOverlay(bombSystem, {
   root: appRoot,
   puzzleLabels,
+  onOutcomeReset: resetRound,
 });
 
-bombOverlay.setPuzzleContent(createDemoBoard());
+const wirePuzzleBoard = createWirePuzzleBoard({
+  bombSystem,
+  wirePuzzle,
+  onStartRound: startRound,
+  onResetRound: resetRound,
+  onTestDetonation: triggerDetonation,
+  onRoleChange: (roleLabel) => syncOverlayStatus({ activeRoleLabel: roleLabel }),
+});
+
+bombOverlay.setPuzzleContent(wirePuzzleBoard.element);
 wireBombEvents();
-syncDemoButtons();
-
-function createDemoBoard() {
-  const board = document.createElement("div");
-  board.className = "demo-board";
-  board.innerHTML = [
-    "<div class=\"demo-board-header\">",
-    "  <h1>Bomb Defusal Board</h1>",
-    "  <div class=\"demo-actions\">",
-    "    <button class=\"command-button\" type=\"button\" data-start-round>Start Round</button>",
-    "    <button class=\"command-button secondary\" type=\"button\" data-reset-round>Reset</button>",
-    "    <button class=\"command-button secondary\" type=\"button\" data-test-detonation>Test Detonation</button>",
-    "  </div>",
-    "</div>",
-    "<div class=\"demo-puzzles\">",
-    createPuzzleCard("puzzle-1", "Signal Locks", "Placeholder for the first puzzle board."),
-    createPuzzleCard("puzzle-2", "Wire Sequence", "Placeholder for the second puzzle board."),
-    "</div>",
-  ].join("");
-
-  board.addEventListener("click", handleDemoClick);
-
-  return board;
-}
-
-function createPuzzleCard(puzzleId, title, body) {
-  return [
-    "<article class=\"demo-puzzle\" data-puzzle-card=\"" + puzzleId + "\">",
-    "  <h2>" + title + "</h2>",
-    "  <p>" + body + "</p>",
-    "  <button class=\"solve-button\" type=\"button\" data-solve-puzzle=\"" + puzzleId + "\">Mark Solved</button>",
-    "</article>",
-  ].join("");
-}
-
-function handleDemoClick(event) {
-  const startButton = event.target.closest("[data-start-round]");
-  const resetButton = event.target.closest("[data-reset-round]");
-  const detonationButton = event.target.closest("[data-test-detonation]");
-  const solveButton = event.target.closest("[data-solve-puzzle]");
-
-  if (startButton) {
-    startRound();
-    return;
-  }
-
-  if (resetButton) {
-    resetRound();
-    return;
-  }
-
-  if (detonationButton) {
-    triggerDetonation();
-    return;
-  }
-
-  if (solveButton) {
-    solvePuzzle(solveButton.dataset.solvePuzzle);
-  }
-}
+wirePuzzleEvents();
+syncOverlayStatus({ activeRoleLabel: "Player 1 - Wire Panel" });
 
 function startRound() {
-  // Browser audio needs a player gesture before sounds can play, so Start unlocks the sound manager.
+  const bombState = bombSystem.getState();
+
   soundManager.unlock();
+
+  if (bombState.status === BOMB_STATUS.DEFUSED || bombState.status === BOMB_STATUS.DETONATED) {
+    wirePuzzle.reset();
+  }
+
   bombSystem.start();
-  syncDemoButtons();
 }
 
 function resetRound() {
   bombSystem.reset();
-  syncDemoButtons();
 }
 
 function solvePuzzle(puzzleId) {
   soundManager.queueSoundEffect(SOUND_KEYS.MODULE_SOLVED);
   bombSystem.completePuzzle(puzzleId);
-  syncDemoButtons();
 }
 
 function triggerDetonation() {
   soundManager.queueSoundEffect(SOUND_KEYS.DETONATION);
   bombSystem.detonate();
-  syncDemoButtons();
 }
 
 function wireBombEvents() {
-  bombSystem.on(BOMB_EVENTS.STARTED, syncDemoButtons);
-  bombSystem.on(BOMB_EVENTS.PUZZLE_COMPLETED, syncDemoButtons);
-  bombSystem.on(BOMB_EVENTS.RESET, syncDemoButtons);
-  bombSystem.on(BOMB_EVENTS.DEFUSED, () => {
-    soundManager.queueSoundEffect(SOUND_KEYS.DEFUSE_SUCCESS);
-    syncDemoButtons();
+  bombSystem.on(BOMB_EVENTS.STARTED, () => {
+    wirePuzzle.arm();
+    syncOverlayStatus();
   });
+
+  bombSystem.on(BOMB_EVENTS.RESET, () => {
+    wirePuzzle.reset();
+    syncOverlayStatus();
+  });
+
+  bombSystem.on(BOMB_EVENTS.STOPPED, () => {
+    wirePuzzle.disarm();
+    syncOverlayStatus();
+  });
+
+  bombSystem.on(BOMB_EVENTS.DEFUSED, () => {
+    wirePuzzle.disarm();
+    soundManager.queueSoundEffect(SOUND_KEYS.DEFUSE_SUCCESS);
+    syncOverlayStatus();
+  });
+
   bombSystem.on(BOMB_EVENTS.DETONATED, () => {
+    wirePuzzle.disarm();
     soundManager.queueSoundEffect(SOUND_KEYS.DETONATION);
-    syncDemoButtons();
+    syncOverlayStatus();
   });
 }
 
-function syncDemoButtons() {
-  const state = bombSystem.getState();
-  const isRunning = state.status === BOMB_STATUS.RUNNING;
-  const isFinished = state.status === BOMB_STATUS.DEFUSED || state.status === BOMB_STATUS.DETONATED;
+function wirePuzzleEvents() {
+  wirePuzzle.on(WIRE_PUZZLE_EVENTS.SOLVED, () => {
+    solvePuzzle("puzzle-1");
+    syncOverlayStatus();
+  });
 
-  const startButton = document.querySelector("[data-start-round]");
-  const detonationButton = document.querySelector("[data-test-detonation]");
+  wirePuzzle.on(WIRE_PUZZLE_EVENTS.STRIKE, () => {
+    soundManager.queueSoundEffect(SOUND_KEYS.MODULE_FAILED);
+    bombSystem.applyTimePenalty(Math.ceil(bombSystem.durationMs / 3));
+    syncOverlayStatus();
+  });
 
-  if (startButton) {
-    startButton.disabled = isRunning;
+  wirePuzzle.on(WIRE_PUZZLE_EVENTS.ARMED, syncOverlayStatus);
+  wirePuzzle.on(WIRE_PUZZLE_EVENTS.DISARMED, syncOverlayStatus);
+  wirePuzzle.on(WIRE_PUZZLE_EVENTS.RESET, syncOverlayStatus);
+  wirePuzzle.on(WIRE_PUZZLE_EVENTS.UPDATED, syncOverlayStatus);
+  wirePuzzle.on(WIRE_PUZZLE_EVENTS.TESTED, syncOverlayStatus);
+  wirePuzzle.on(WIRE_PUZZLE_EVENTS.REROUTED, syncOverlayStatus);
+  wirePuzzle.on(WIRE_PUZZLE_EVENTS.SAFE_WINDOW_OPENED, syncOverlayStatus);
+}
+
+function syncOverlayStatus(overrides = {}) {
+  const puzzleState = wirePuzzle.getState();
+
+  bombOverlay.setStatusDetails({
+    safeWindowLabel: getSafeWindowLabel(puzzleState),
+    safeWindowTone: getSafeWindowTone(puzzleState),
+    moduleStateLabel: puzzleState.statusLabel,
+    ...overrides,
+  });
+}
+
+function getSafeWindowLabel(puzzleState) {
+  if (puzzleState.hasSafeWindow) {
+    return formatTenths(puzzleState.safeWindowRemainingMs);
   }
 
-  if (detonationButton) {
-    detonationButton.disabled = isFinished;
+  if (puzzleState.lastStrike) {
+    return "Fault";
   }
 
-  for (const puzzle of state.puzzles) {
-    const solveButton = document.querySelector("[data-solve-puzzle=\"" + puzzle.id + "\"]");
-    const puzzleCard = document.querySelector("[data-puzzle-card=\"" + puzzle.id + "\"]");
-
-    if (solveButton) {
-      solveButton.disabled = !isRunning || puzzle.isSolved || isFinished;
-      solveButton.textContent = puzzle.isSolved ? "Solved" : "Mark Solved";
-    }
-
-    if (puzzleCard) {
-      puzzleCard.dataset.solved = String(puzzle.isSolved);
-    }
+  if (puzzleState.status === "rerouted") {
+    return "Charging";
   }
+
+  if (puzzleState.status === "solved") {
+    return "Secured";
+  }
+
+  return "Locked";
+}
+
+function getSafeWindowTone(puzzleState) {
+  if (puzzleState.hasSafeWindow) {
+    return "safe";
+  }
+
+  if (puzzleState.lastStrike) {
+    return "danger";
+  }
+
+  if (puzzleState.status === "rerouted") {
+    return "charging";
+  }
+
+  return "idle";
+}
+
+function formatTenths(milliseconds) {
+  const clamped = Math.max(0, milliseconds);
+  const seconds = Math.floor(clamped / 1000);
+  const tenths = Math.floor((clamped % 1000) / 100);
+  const minutes = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const remainingSeconds = (seconds % 60).toString().padStart(2, "0");
+
+  return minutes + ":" + remainingSeconds + "." + tenths;
 }

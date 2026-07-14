@@ -19,6 +19,7 @@ const BOMB_STATUS = Object.freeze({
 const BOMB_EVENTS = Object.freeze({
   STARTED: "started",
   TICK: "tick",
+  TIME_PENALIZED: "timePenalized",
   PUZZLE_COMPLETED: "puzzleCompleted",
   PUZZLE_RESET: "puzzleReset",
   DEFUSED: "defused",
@@ -27,10 +28,10 @@ const BOMB_EVENTS = Object.freeze({
   STOPPED: "stopped",
 });
 
-// Shared config for the current plan: two puzzles, 15 minutes, no difficulty levels yet.
-const TWO_PUZZLE_BOMB_CONFIG = Object.freeze({
+// Shared config for the current local prototype: one puzzle, 15 minutes, no difficulty levels yet.
+const SINGLE_PUZZLE_BOMB_CONFIG = Object.freeze({
   durationMs: DEFAULT_BOMB_DURATION_MS,
-  puzzleIds: ["puzzle-1", "puzzle-2"],
+  puzzleIds: ["puzzle-1"],
 });
 
 class BombSystem {
@@ -39,10 +40,13 @@ class BombSystem {
     this.durationMs = config.durationMs ?? DEFAULT_BOMB_DURATION_MS;
 
     // Puzzle IDs are the required modules the players must solve before time runs out.
-    this.puzzleIds = [...(config.puzzleIds ?? TWO_PUZZLE_BOMB_CONFIG.puzzleIds)];
+    this.puzzleIds = [...(config.puzzleIds ?? SINGLE_PUZZLE_BOMB_CONFIG.puzzleIds)];
 
     // Tick rate controls how often the system checks the countdown.
     this.tickRateMs = config.tickRateMs ?? DEFAULT_TICK_RATE_MS;
+
+    // Strike tracking lets the HUD visualize major mistakes without changing the timer rules.
+    this.maxStrikes = config.maxStrikes ?? 3;
 
     // listeners stores callbacks registered with on().
     this.listeners = new Map();
@@ -120,6 +124,7 @@ class BombSystem {
     this.startedAt = null;
     this.endsAt = null;
     this.remainingMs = options.durationMs ?? this.durationMs;
+    this.strikeCount = 0;
 
     if (options.puzzleIds) {
       this.puzzleIds = [...options.puzzleIds];
@@ -193,6 +198,32 @@ class BombSystem {
     this.emit(BOMB_EVENTS.PUZZLE_RESET, { puzzleId });
 
     return true;
+  }
+
+  /**
+   * Removes time from the active round.
+   * Puzzle modules can call this when a team makes a costly mistake.
+   */
+  applyTimePenalty(penaltyMs, now = Date.now()) {
+    const penaltyAmount = Math.max(0, Number(penaltyMs) || 0);
+
+    if (penaltyAmount <= 0 || this.status !== BOMB_STATUS.RUNNING) {
+      return this.getState();
+    }
+
+    this.strikeCount = Math.min(this.maxStrikes, this.strikeCount + 1);
+    this.remainingMs = Math.max(0, this.getRemainingMs(now) - penaltyAmount);
+    this.endsAt = now + this.remainingMs;
+
+    if (this.remainingMs <= 0) {
+      this.detonate();
+      return this.getState();
+    }
+
+    this.emit(BOMB_EVENTS.TIME_PENALIZED, { penaltyMs: penaltyAmount });
+    this.emit(BOMB_EVENTS.TICK);
+
+    return this.getState();
   }
 
   /**
@@ -272,6 +303,8 @@ class BombSystem {
       status: this.status,
       durationMs: this.durationMs,
       remainingMs,
+      strikeCount: this.strikeCount,
+      maxStrikes: this.maxStrikes,
       formattedTime: formatBombTime(remainingMs),
       solvedCount,
       requiredPuzzleCount,
@@ -354,6 +387,6 @@ export {
   BombSystem,
   DEFAULT_BOMB_DURATION_MS,
   DEFAULT_TICK_RATE_MS,
-  TWO_PUZZLE_BOMB_CONFIG,
+  SINGLE_PUZZLE_BOMB_CONFIG,
   formatBombTime,
 };
