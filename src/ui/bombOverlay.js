@@ -208,6 +208,7 @@ function renderOutcome(container, state) {
       "<div class=\"outcome-card success\">",
       "  <span class=\"outcome-kicker\">Bomb Defused</span>",
       "  <strong>Mission complete</strong>",
+      "  <p>All modules secured. Excellent work, operators.</p>",
       "</div>",
     ].join("");
     return;

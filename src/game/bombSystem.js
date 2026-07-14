@@ -28,10 +28,15 @@ const BOMB_EVENTS = Object.freeze({
   STOPPED: "stopped",
 });
 
-// Shared config for the current local prototype: one puzzle, 15 minutes, no difficulty levels yet.
+// Shared configs for the local prototype.
 const SINGLE_PUZZLE_BOMB_CONFIG = Object.freeze({
   durationMs: DEFAULT_BOMB_DURATION_MS,
   puzzleIds: ["puzzle-1"],
+});
+
+const TWO_PUZZLE_BOMB_CONFIG = Object.freeze({
+  durationMs: DEFAULT_BOMB_DURATION_MS,
+  puzzleIds: ["puzzle-1", "puzzle-2"],
 });
 
 class BombSystem {
@@ -388,5 +393,6 @@ export {
   DEFAULT_BOMB_DURATION_MS,
   DEFAULT_TICK_RATE_MS,
   SINGLE_PUZZLE_BOMB_CONFIG,
+  TWO_PUZZLE_BOMB_CONFIG,
   formatBombTime,
 };
