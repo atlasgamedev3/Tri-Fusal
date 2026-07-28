@@ -32,11 +32,21 @@ try {
   await waitFor(() => rooms.every((room) => room.state.gameStarted), "mission start");
 
   rooms[0].send("puzzleAction", { action: "frequency", value: 156.8 });
+  await waitFor(() => rooms.every((room) => room.state.frequencySolved), "frequency handoff");
   rooms[0].send("puzzleAction", { action: "pattern", value: ["△", "○", "□", "○"] });
-  rooms[1].send("puzzleAction", { action: "wire", value: "A" });
-  rooms[1].send("puzzleAction", { action: "wire", value: "B" });
-  rooms[1].send("puzzleAction", { action: "wire", value: "C" });
+  await waitFor(() => rooms.every((room) => room.state.patternSolved), "pattern handoff");
   rooms[2].send("puzzleAction", { action: "auth", value: "DELTA-7-ECHO" });
+  await waitFor(() => rooms.every((room) => room.state.authSolved), "authorization handoff");
+  rooms[2].send("puzzleAction", { action: "order", value: "B" });
+  await waitFor(() => rooms.every((room) => room.state.orderSolved), "standing order handoff");
+  rooms[1].send("puzzleAction", { action: "wire", value: "B" });
+  await waitFor(() => rooms.every((room) => room.state.cutWireIds.includes("B")), "safe wire isolation");
+  rooms[1].send("puzzleAction", { action: "relaySet", value: { relay1: true, relay2: true } });
+  rooms[1].send("puzzleAction", { action: "relay", value: { relay1: true, relay2: true } });
+  await waitFor(() => rooms.every((room) => room.state.relaySolved), "relay handoff");
+  rooms[0].send("puzzleAction", { action: "ack", value: "analyst" });
+  rooms[1].send("puzzleAction", { action: "ack", value: "technician" });
+  rooms[2].send("puzzleAction", { action: "ack", value: "operator" });
 
   await waitFor(() => rooms.every((room) => room.state.bombStatus === "defused"), "shared defusal");
   console.log(JSON.stringify({
@@ -67,11 +77,21 @@ try {
   solo.send("startMission");
   await waitFor(() => solo.state.gameStarted, "solo mission start");
   solo.send("puzzleAction", { action: "frequency", value: 156.8 });
+  await waitFor(() => solo.state.frequencySolved, "solo frequency handoff");
   solo.send("puzzleAction", { action: "pattern", value: ["△", "○", "□", "○"] });
-  solo.send("puzzleAction", { action: "wire", value: "A" });
-  solo.send("puzzleAction", { action: "wire", value: "B" });
-  solo.send("puzzleAction", { action: "wire", value: "C" });
+  await waitFor(() => solo.state.patternSolved, "solo pattern handoff");
   solo.send("puzzleAction", { action: "auth", value: "DELTA-7-ECHO" });
+  await waitFor(() => solo.state.authSolved, "solo authorization handoff");
+  solo.send("puzzleAction", { action: "order", value: "B" });
+  await waitFor(() => solo.state.orderSolved, "solo standing order handoff");
+  solo.send("puzzleAction", { action: "wire", value: "B" });
+  await waitFor(() => solo.state.cutWireIds.includes("B"), "solo safe wire isolation");
+  solo.send("puzzleAction", { action: "relaySet", value: { relay1: true, relay2: true } });
+  solo.send("puzzleAction", { action: "relay", value: { relay1: true, relay2: true } });
+  await waitFor(() => solo.state.relaySolved, "solo relay handoff");
+  solo.send("puzzleAction", { action: "ack", value: "analyst" });
+  solo.send("puzzleAction", { action: "ack", value: "technician" });
+  solo.send("puzzleAction", { action: "ack", value: "operator" });
   await waitFor(() => solo.state.bombStatus === "defused", "solo shared-role defusal");
   console.log(JSON.stringify({
     mode: "solo-demo",

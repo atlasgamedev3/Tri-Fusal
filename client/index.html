@@ -31,6 +31,7 @@
     ::placeholder { opacity: 0.5; }
     [data-clickable]:hover { filter: brightness(1.35); }
     .menu-option:hover { background: rgba(216,163,74,0.08) !important; border-left-color: #D8A34A !important; color: #E8DFC4 !important; }
+    .wire-scissors:hover { color: #FF6B58 !important; transform: scale(1.16) rotate(-8deg); text-shadow: 0 0 10px rgba(224,90,62,0.7); }
     .scanlines-off [style*="repeating-linear-gradient(0deg"] { background: none !important; }
     .motion-off * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition: none !important; }
   </style>
@@ -372,7 +373,7 @@
             <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">// PATTERN LOCK</div>
             <div style="font-size: 9px; color: rgba(77,219,122,0.5); margin-bottom: 4px;">TARGET: △ ○ □ ○</div>
             <div style="font-size: 8px; color: rgba(77,219,122,0.3); margin-bottom: 8px;">{{ techProgressText }}</div>
-            <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+            <div style="display: flex; gap: 4px; margin-bottom: 8px; opacity: {{ patternControlOpacity }};">
               <sc-for list="{{ patternSlots }}" as="slot" hint-placeholder-count="4">
                 <div style="width: 24px; height: 24px; border: 1px solid rgba(77,219,122,0.3); display: flex; align-items: center; justify-content: center; font-size: 13px;">{{ slot.filled }}</div>
               </sc-for>
@@ -384,6 +385,11 @@
               <div onclick="{{ pressDiamond }}" style="flex: 1; border: 1px solid #4DDB7A; text-align: center; padding: 5px 0; cursor: pointer; font-size: 14px; transition: background 0.15s;" style-hover="background:rgba(77,219,122,0.2);">◇</div>
             </div>
             <div style="font-size: 9px; letter-spacing: 0.1em; color: {{ patternStatusColor }};">{{ patternStatusText }}</div>
+          </div>
+          <div style="margin: 8px 0; padding: 7px; border: 1px solid {{ ackPanelBorder }}; background: {{ ackPanelBg }}; flex-shrink: 0;">
+            <div style="font-size: 8px; color: rgba(77,219,122,0.5); letter-spacing: 0.16em; margin-bottom: 5px;">// FINAL TRI-LOCK</div>
+            <div style="display:flex;gap:4px;margin-bottom:5px;"><span style="flex:1;text-align:center;border:1px solid {{ analystAckColor }};color:{{ analystAckColor }};font-size:7px;padding:2px;">A {{ analystAckMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ technicianAckColor }};color:{{ technicianAckColor }};font-size:7px;padding:2px;">T {{ technicianAckMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ operatorAckColor }};color:{{ operatorAckColor }};font-size:7px;padding:2px;">O {{ operatorAckMark }}</span></div>
+            <div onclick="{{ acknowledgeRole }}" style="text-align:center;border:1px solid {{ ackActionColor }};color:{{ ackActionColor }};padding:4px;font-size:8px;letter-spacing:0.08em;cursor:{{ ackCursor }};">{{ ackButtonText }}</div>
           </div>
           <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(77,219,122,0.18); flex-shrink: 0;">
             <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 4px;">// TEAM STATUS</div>
@@ -471,26 +477,26 @@
           </sc-if>
           <div style="padding: 12px; display: flex; flex-direction: column; gap: 8px;">
             <sc-for list="{{ wires }}" as="wire" hint-placeholder-count="3">
-              <div onclick="{{ wire.onCut }}" style="border: 1px solid {{ wire.rowBorder }}; padding: 12px; display: flex; align-items: center; gap: 14px; opacity: {{ wire.rowOpacity }}; background: {{ wire.rowBg }}; cursor: {{ wire.cursor }}; transition: border-color 0.15s, background 0.15s;" style-hover="border-color:{{ wire.hoverBorder }};background:{{ wire.hoverBg }};">
-                <span style="color: rgba(126,200,227,0.4); font-size: 10px; width: 16px;">{{ wire.id }}</span>
+              <div style="border: 1px solid {{ wire.rowBorder }}; padding: 10px 12px; display: grid; grid-template-columns: 18px minmax(0,1fr) auto; column-gap: 9px; row-gap: 8px; align-items: center; opacity: {{ wire.rowOpacity }}; background: {{ wire.rowBg }};">
+                <span style="grid-column: 1; grid-row: 1; color: rgba(126,200,227,0.4); font-size: 10px;">{{ wire.id }}</span>
                 <sc-if value="{{ wire.cut }}" hint-placeholder-val="{{ false }}">
-                  <div style="width: 104px; height: 24px; display: flex; align-items: center; gap: 7px;">
+                  <div style="grid-column: 1 / 3; grid-row: 2; width: 104px; height: 24px; margin-left: 27px; display: flex; align-items: center; gap: 7px;">
                     <div style="position: relative; flex: 1; height: 8px; background: {{ wire.color }}; border-radius: 5px 0 0 5px; opacity: 0.48; box-shadow: 0 0 7px {{ wire.color }};"><div style="position:absolute;right:-3px;top:-2px;width:5px;height:12px;background:#B87333;"></div></div>
                     <span style="color: {{ wire.color }}; font-size: 15px; line-height: 1;">✂</span>
                     <div style="position: relative; flex: 1; height: 8px; background: {{ wire.color }}; border-radius: 0 5px 5px 0; opacity: 0.48; box-shadow: 0 0 7px {{ wire.color }};"><div style="position:absolute;left:-3px;top:-2px;width:5px;height:12px;background:#B87333;"></div></div>
                   </div>
                 </sc-if>
                 <sc-if value="{{ wire.intact }}" hint-placeholder-val="{{ true }}">
-                  <div style="width: 104px; height: 24px; position: relative; display: flex; align-items: center;">
+                  <div style="grid-column: 1 / 3; grid-row: 2; width: 104px; height: 24px; margin-left: 27px; position: relative; display: flex; align-items: center;">
                     <div style="position:absolute;left:0;right:0;height:10px;border-radius:6px;background:{{ wire.color }};box-shadow:0 0 9px {{ wire.color }}, inset 0 2px rgba(255,255,255,0.22), inset 0 -2px rgba(0,0,0,0.35);"></div>
                     <div style="position:absolute;left:-3px;width:9px;height:16px;border:1px solid rgba(126,200,227,0.55);background:#15243A;"></div>
                     <div style="position:absolute;right:-3px;width:9px;height:16px;border:1px solid rgba(126,200,227,0.55);background:#15243A;"></div>
                   </div>
                 </sc-if>
-                <div style="flex: 1;"><div style="font-family: 'Oswald', sans-serif; font-size: 12px; letter-spacing: 0.1em;">{{ wire.label }}</div><div style="font-size: 9px; color: rgba(126,200,227,0.4);">{{ wire.sublabel }}</div></div>
-                <span style="font-size: 9px; color: {{ wire.statusColor }};">{{ wire.statusText }}</span>
+                <div style="grid-column: 2; grid-row: 1; min-width: 0;"><div style="font-family: 'Oswald', sans-serif; font-size: 12px; letter-spacing: 0.08em; white-space: nowrap;">{{ wire.label }}</div><div style="font-size: 8px; color: rgba(126,200,227,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ wire.sublabel }}</div></div>
+                <span style="grid-column: 3; grid-row: 1; font-size: 8px; color: {{ wire.statusColor }};">{{ wire.statusText }}</span>
                 <sc-if value="{{ wire.intact }}" hint-placeholder-val="{{ true }}">
-                  <span style="border: 1px solid #C04040; color: #C04040; background: rgba(192,64,64,0.08); padding: 5px 12px; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.12em; cursor: pointer;">SEVER</span>
+                  <span class="wire-scissors" role="button" aria-label="Cut {{ wire.label }}" title="{{ wire.cutTitle }}" onclick="{{ wire.onCut }}" style="grid-column: 3; grid-row: 2; color: {{ wire.cutColor }}; opacity: {{ wire.controlOpacity }}; font-size: 23px; line-height: 1; cursor: pointer; display: inline-block; transition: transform 0.15s, color 0.15s, text-shadow 0.15s;">✂</span>
                 </sc-if>
               </div>
             </sc-for>
@@ -519,6 +525,11 @@
             <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 5px;"><span style="color: rgba(126,200,227,0.5);">MAIN CHARGE</span><span style="color: #C4A84F;">[CHECK]</span></div>
             <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 5px;"><span style="color: rgba(126,200,227,0.5);">DETONATOR MK4</span><span style="color: #C04040;">[FAULT]</span></div>
             <div style="display: flex; justify-content: space-between; font-size: 10px;"><span style="color: rgba(126,200,227,0.5);">FAILSAFE LOOP</span><span style="color: #7EC8E3;">[OK]</span></div>
+          </div>
+          <div style="margin: 8px 0; padding: 7px; border: 1px solid {{ ackPanelBorder }}; background: {{ ackPanelBg }}; flex-shrink: 0;">
+            <div style="font-size: 8px; color: rgba(126,200,227,0.5); letter-spacing: 0.16em; margin-bottom: 5px;">// FINAL TRI-LOCK</div>
+            <div style="display:flex;gap:4px;margin-bottom:5px;"><span style="flex:1;text-align:center;border:1px solid {{ analystAckColor }};color:{{ analystAckColor }};font-size:7px;padding:2px;">A {{ analystAckMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ technicianAckColor }};color:{{ technicianAckColor }};font-size:7px;padding:2px;">T {{ technicianAckMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ operatorAckColor }};color:{{ operatorAckColor }};font-size:7px;padding:2px;">O {{ operatorAckMark }}</span></div>
+            <div onclick="{{ acknowledgeRole }}" style="text-align:center;border:1px solid {{ ackActionColor }};color:{{ ackActionColor }};padding:4px;font-size:8px;letter-spacing:0.08em;cursor:{{ ackCursor }};">{{ ackButtonText }}</div>
           </div>
           <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(126,200,227,0.18); flex-shrink: 0;">
             <div style="font-size: 9px; color: rgba(126,200,227,0.4); letter-spacing: 0.2em; margin-bottom: 4px;">// TEAM STATUS</div>
@@ -608,7 +619,7 @@
             </sc-for>
             <div style="margin-top: 20px; border-top: 1px solid rgba(216,163,74,0.25); padding-top: 16px;">
               <div style="font-family: 'Oswald', sans-serif; font-size: 13px; color: #D8A34A; letter-spacing: 0.15em; margin-bottom: 6px;">AUTHORIZATION CODE ENTRY</div>
-              <div style="display: flex; gap: 8px;">
+              <div style="display: flex; gap: 8px; opacity: {{ authControlOpacity }};">
                 <input value="{{ authInput }}" oninput="{{ setAuthInput }}" onkeydown="{{ authKeyDown }}" placeholder="ENTER AUTH CODE" style="flex: 1; border: 1px solid {{ authBorderColor }}; background: rgba(216,163,74,0.06); padding: 6px 10px; font-size: 12px; letter-spacing: 0.12em; color: #E8DFC4; font-family: 'DM Mono', monospace; outline: none;" />
                 <div onclick="{{ submitAuth }}" style="border: 1px solid #D8A34A; color: #D8A34A; padding: 6px 16px; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.15em; cursor: pointer; transition: background 0.15s, color 0.15s;" style-hover="background:#D8A34A;color:#0A0703;">SUBMIT</div>
               </div>
@@ -623,12 +634,17 @@
             <div style="font-size: 9px; color: rgba(216,163,74,0.5); letter-spacing: 0.2em; margin-bottom: 8px;">// STANDING ORDER CHECK</div>
             <div style="font-size: 10px; color: #E8DFC4; line-height: 1.6; margin-bottom: 6px;">Which disable order matches the cipher officer's protocol?</div>
             <div style="font-size: 8px; color: rgba(216,163,74,0.4); margin-bottom: 10px;">{{ techProgressText }}</div>
-            <div onclick="{{ chooseOrderA }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; margin-bottom: 6px; cursor: pointer; transition: background 0.15s;" style-hover="background:rgba(216,163,74,0.12);">A. POWER → DETONATOR → SIGNAL</div>
-            <div onclick="{{ chooseOrderB }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; margin-bottom: 6px; cursor: pointer; transition: background 0.15s;" style-hover="background:rgba(216,163,74,0.12);">B. SIGNAL → FAILSAFE → POWER</div>
-            <div onclick="{{ chooseOrderC }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; cursor: pointer; transition: background 0.15s;" style-hover="background:rgba(216,163,74,0.12);">C. DETONATOR → POWER → SIGNAL</div>
+            <div onclick="{{ chooseOrderA }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; margin-bottom: 6px; cursor: pointer; transition: background 0.15s; opacity:{{ orderControlOpacity }};" style-hover="background:rgba(216,163,74,0.12);">A. POWER → DETONATOR → SIGNAL</div>
+            <div onclick="{{ chooseOrderB }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; margin-bottom: 6px; cursor: pointer; transition: background 0.15s; opacity:{{ orderControlOpacity }};" style-hover="background:rgba(216,163,74,0.12);">B. SIGNAL → FAILSAFE → POWER</div>
+            <div onclick="{{ chooseOrderC }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; cursor: pointer; transition: background 0.15s; opacity:{{ orderControlOpacity }};" style-hover="background:rgba(216,163,74,0.12);">C. DETONATOR → POWER → SIGNAL</div>
             <sc-if value="{{ hasOrderStatus }}" hint-placeholder-val="{{ false }}">
               <div style="margin-top: 8px; font-size: 10px; color: {{ orderStatusColor }};">{{ orderStatusText }}</div>
             </sc-if>
+          </div>
+          <div style="margin: 8px 0; padding: 7px; border: 1px solid {{ ackPanelBorder }}; background: {{ ackPanelBg }}; flex-shrink: 0;">
+            <div style="font-size: 8px; color: rgba(216,163,74,0.5); letter-spacing: 0.16em; margin-bottom: 5px;">// FINAL TRI-LOCK</div>
+            <div style="display:flex;gap:4px;margin-bottom:5px;"><span style="flex:1;text-align:center;border:1px solid {{ analystAckColor }};color:{{ analystAckColor }};font-size:7px;padding:2px;">A {{ analystAckMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ technicianAckColor }};color:{{ technicianAckColor }};font-size:7px;padding:2px;">T {{ technicianAckMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ operatorAckColor }};color:{{ operatorAckColor }};font-size:7px;padding:2px;">O {{ operatorAckMark }}</span></div>
+            <div onclick="{{ acknowledgeRole }}" style="text-align:center;border:1px solid {{ ackActionColor }};color:{{ ackActionColor }};padding:4px;font-size:8px;letter-spacing:0.08em;cursor:{{ ackCursor }};">{{ ackButtonText }}</div>
           </div>
           <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(216,163,74,0.2); flex-shrink: 0;">
             <div style="font-size: 9px; color: rgba(216,163,74,0.5); letter-spacing: 0.2em; margin-bottom: 4px;">// TEAM STATUS</div>
@@ -797,20 +813,21 @@ const WIRES_POOL = [
   { id: "G", label: "CIRCUIT G", sublabel: "BACKUP TRIGGER", color: "#C48A6A", safe: false },
 ];
 const DIFFICULTY_WIRES = { STANDARD: 3, HARD: 5, EXTREME: 7 };
-const DIFFICULTY_SECONDS = { STANDARD: 252, HARD: 210, EXTREME: 165 };
-const DIFFICULTY_MODULES = { STANDARD: 4, HARD: 6, EXTREME: 6 };
+const DIFFICULTY_SECONDS = { STANDARD: 540, HARD: 450, EXTREME: 360 };
+const DIFFICULTY_MODULES = { STANDARD: 7, HARD: 7, EXTREME: 7 };
 const DIFFICULTY_DETAILS = {
-  STANDARD: { specs: "04:12 // 3 CIRCUITS // 4 OBJECTIVES", description: "FIELD TRAINING PROFILE — GENEROUS TIMER AND REDUCED DEVICE COMPLEXITY." },
-  HARD: { specs: "03:30 // 5 CIRCUITS // 6 OBJECTIVES", description: "ACTIVE-DUTY PROFILE — SHORTER WINDOW, MORE CIRCUITS, AND FULL TEAM COORDINATION." },
-  EXTREME: { specs: "02:45 // 7 CIRCUITS // 6 OBJECTIVES", description: "DIRECTORATE BLACK PROFILE — MINIMUM TIME, MAXIMUM DEVICE COMPLEXITY, NO MARGIN FOR ERROR." },
+  STANDARD: { specs: "09:00 // 3 CIRCUITS // 7 OBJECTIVES", description: "FIELD PROFILE — FULL CROSS-ROLE PROTOCOL WITH A GENEROUS COORDINATION WINDOW." },
+  HARD: { specs: "07:30 // 5 CIRCUITS // 7 OBJECTIVES", description: "ACTIVE-DUTY PROFILE — EXPANDED CIRCUIT BANK AND TIGHTER TEAM HANDOFFS." },
+  EXTREME: { specs: "06:00 // 7 CIRCUITS // 7 OBJECTIVES", description: "DIRECTORATE BLACK PROFILE — MAXIMUM DEVICE COMPLEXITY AND NO FAILED HANDOFFS." },
 };
 const OBJECTIVE_DEFS = [
   { id: "frequency", label: "LOCK TARGET FREQUENCY AT 156.8 MHZ" },
   { id: "pattern", label: "DECODE THE CHANNEL-B SIGNAL PATTERN" },
   { id: "auth", label: "ENTER THE DIRECTORATE AUTHORIZATION CODE" },
+  { id: "order", label: "CONFIRM THE STANDING DISABLE ORDER" },
   { id: "wire", label: "ISOLATE EVERY SAFE CIRCUIT" },
   { id: "relay", label: "SYNCHRONIZE CARRIER AND PATTERN RELAYS" },
-  { id: "order", label: "CONFIRM THE STANDING DISABLE ORDER" },
+  { id: "interlock", label: "COMPLETE THE THREE-ROLE FINAL INTERLOCK" },
 ];
 const AUTH_CODE = "DELTA-7-ECHO";
 const TARGET_FREQ = 156.8;
@@ -856,7 +873,7 @@ class Component extends DCLogic {
       { id: "C", label: "CIRCUIT C", sublabel: "DETONATOR LEAD — CRITICAL", color: "#C04040", safe: false, cut: false },
     ],
     cutResult: null,
-    seconds: 252,
+    seconds: 540,
     frequency: 144.5,
     authInput: "",
     authStatus: "idle",
@@ -885,6 +902,10 @@ class Component extends DCLogic {
     patternSolved: false,
     relaySolved: false,
     orderSolved: false,
+    analystAck: false,
+    technicianAck: false,
+    operatorAck: false,
+    interlockSolved: false,
     cutOrder: [],
     players: [],
     connectionStatus: "OFFLINE",
@@ -1005,13 +1026,15 @@ class Component extends DCLogic {
     const s = this.state;
     const a = this.slotInfo("analyst"), t = this.slotInfo("technician"), o = this.slotInfo("operator");
     const isNarrow = s.viewportWidth < 720;
-    const moduleCount = DIFFICULTY_MODULES[s.difficulty] || 4;
+    const moduleCount = DIFFICULTY_MODULES[s.difficulty] || 7;
     const freqDiff = Math.abs(s.frequency - TARGET_FREQ);
     const freqLocked = freqDiff < 0.6;
     const wiresCutCount = s.wires.filter((w) => w.cut).length;
     const safeWires = s.wires.filter((w) => w.safe);
     const safeWiresCutCount = safeWires.filter((w) => w.cut).length;
     const allWiresCut = safeWires.length > 0 && safeWiresCutCount === safeWires.length;
+    const corePuzzlesSolved = freqLocked && s.patternSolved && s.authSolved && s.orderSolved && allWiresCut && s.relaySolved;
+    const currentRoleAcked = s.role === "analyst" ? s.analystAck : s.role === "technician" ? s.technicianAck : s.operatorAck;
     const solvedMap = {
       frequency: freqLocked,
       pattern: s.patternSolved,
@@ -1019,6 +1042,7 @@ class Component extends DCLogic {
       wire: allWiresCut,
       relay: s.relaySolved,
       order: s.orderSolved,
+      interlock: s.interlockSolved,
     };
     const objectives = OBJECTIVE_DEFS.slice(0, moduleCount).map((objective, i) => {
       const systemDone = Boolean(solvedMap[objective.id]);
@@ -1062,7 +1086,7 @@ class Component extends DCLogic {
       timerGlow: s.seconds < 60 ? "rgba(192,64,64,0.5)" : this.roleTheme(s.role).dim,
       timerStatus: s.seconds < 60 ? "!! CRITICAL -- DEFUSE IMMEDIATELY !!" : s.seconds < 150 ? "-- URGENT -- PROCEED WITH HASTE --" : "-- NOMINAL --",
       timerPulseAnim: s.seconds < 60 ? "timerPulse 0.6s ease-in-out infinite" : "timerPulse 2.4s ease-in-out infinite",
-      timerPct: `${Math.max(0, Math.min(100, (s.seconds / (DIFFICULTY_SECONDS[s.difficulty] || 252)) * 100))}%`,
+      timerPct: `${Math.max(0, Math.min(100, (s.seconds / (DIFFICULTY_SECONDS[s.difficulty] || 540)) * 100))}%`,
       objectives,
       moduleCount,
       completedModules: completedObjectiveCount,
@@ -1092,7 +1116,7 @@ class Component extends DCLogic {
       wireTotalCount: s.wires.length,
       lastCutWireId: s.cutOrder.length ? s.cutOrder[s.cutOrder.length - 1] : "—",
       techProgressText: `TECHNICIAN: ${safeWiresCutCount}/${safeWires.length} SAFE LEADS ISOLATED${s.cutOrder.length ? " · LAST: " + s.cutOrder[s.cutOrder.length - 1] : ""}`,
-      relayTargetHintText: "SET EACH CURRENT STATE TO ITS SHOWN TARGET, THEN COMMIT.",
+      relayTargetHintText: !s.patternSolved ? "LOCKED — AWAIT ANALYST PATTERN." : !allWiresCut ? "TARGETS RECEIVED — ISOLATE SAFE CIRCUITS BEFORE COMMIT." : "SET EACH CURRENT STATE TO ITS SHOWN TARGET, THEN COMMIT.",
       authInput: s.authInput,
       setAuthInput: (e) => this.setState({ authInput: e.target.value.toUpperCase() }),
       authKeyDown: (e) => { if (e.key === "Enter") this.submitAuth(); },
@@ -1108,8 +1132,11 @@ class Component extends DCLogic {
       pressCircle: () => this.pressSymbol("○"),
       pressSquare: () => this.pressSymbol("□"),
       pressDiamond: () => this.pressSymbol("◇"),
-      patternStatusText: s.patternStatus === "ok" ? "● PATTERN MATCHED" : s.patternStatus === "fail" ? "✕ MISMATCH — RESET" : "AWAITING INPUT",
-      patternStatusColor: s.patternStatus === "ok" ? "#4DDB7A" : s.patternStatus === "fail" ? "#C04040" : "rgba(77,219,122,0.4)",
+      patternStatusText: !freqLocked ? "LOCKED — ACQUIRE TARGET FREQUENCY" : s.patternStatus === "ok" ? "● PATTERN MATCHED" : s.patternStatus === "fail" ? "✕ MISMATCH — RESET" : "AWAITING INPUT",
+      patternStatusColor: !freqLocked ? "#C4A84F" : s.patternStatus === "ok" ? "#4DDB7A" : s.patternStatus === "fail" ? "#C04040" : "rgba(77,219,122,0.4)",
+      patternControlOpacity: freqLocked ? 1 : 0.3,
+      authControlOpacity: s.patternSolved ? 1 : 0.3,
+      orderControlOpacity: s.authSolved ? 1 : 0.3,
       relay1: s.relay1,
       relay2: s.relay2,
       relay1Bg: s.relay1 ? "#7EC8E3" : "rgba(126,200,227,0.15)",
@@ -1129,11 +1156,19 @@ class Component extends DCLogic {
       relayCommitColor: s.relay1 === freqLocked && s.relay2 === s.patternSolved ? "#4DDB7A" : "#7EC8E3",
       relayCommitBg: s.relay1 === freqLocked && s.relay2 === s.patternSolved ? "rgba(77,219,122,0.12)" : "transparent",
       toggleRelay1: () => {
+        if (!this.state.patternSolved) {
+          this.notifyLocked("RELAY BANK LOCKED — AWAIT ANALYST PATTERN");
+          return;
+        }
         const relay1 = !this.state.relay1;
         this.setState({ relay1, relayStatus: "idle" });
         this.sendPuzzle("relaySet", { relay1, relay2: this.state.relay2 });
       },
       toggleRelay2: () => {
+        if (!this.state.patternSolved) {
+          this.notifyLocked("RELAY BANK LOCKED — AWAIT ANALYST PATTERN");
+          return;
+        }
         const relay2 = !this.state.relay2;
         this.setState({ relay2, relayStatus: "idle" });
         this.sendPuzzle("relaySet", { relay1: this.state.relay1, relay2 });
@@ -1148,6 +1183,18 @@ class Component extends DCLogic {
       orderStatusText: s.orderStatus === "ok" ? "> CORRECT — SEQUENCE CONFIRMED" : s.orderStatus === "fail" ? "> INCORRECT — CONSULT CIPHER OFFICER" : "",
       orderStatusColor: s.orderStatus === "ok" ? "#4DDB7A" : "#E05A3E",
       hasOrderStatus: s.orderStatus !== "idle",
+      analystAckColor: s.analystAck ? "#4DDB7A" : "rgba(232,220,196,0.25)",
+      technicianAckColor: s.technicianAck ? "#4DDB7A" : "rgba(232,220,196,0.25)",
+      operatorAckColor: s.operatorAck ? "#4DDB7A" : "rgba(232,220,196,0.25)",
+      analystAckMark: s.analystAck ? "✓" : "—",
+      technicianAckMark: s.technicianAck ? "✓" : "—",
+      operatorAckMark: s.operatorAck ? "✓" : "—",
+      ackPanelBorder: s.interlockSolved ? "rgba(77,219,122,0.7)" : corePuzzlesSolved ? this.roleTheme(s.role).accent : "rgba(232,220,196,0.15)",
+      ackPanelBg: s.interlockSolved ? "rgba(77,219,122,0.08)" : "rgba(0,0,0,0.12)",
+      ackActionColor: currentRoleAcked ? "#4DDB7A" : corePuzzlesSolved ? this.roleTheme(s.role).accent : "rgba(232,220,196,0.25)",
+      ackCursor: corePuzzlesSolved && !currentRoleAcked ? "pointer" : "default",
+      ackButtonText: currentRoleAcked ? `${s.role.toUpperCase()} ACKNOWLEDGED` : corePuzzlesSolved ? `ACKNOWLEDGE — ${s.role.toUpperCase()}` : "LOCKED — COMPLETE CORE OBJECTIVES",
+      acknowledgeRole: () => this.acknowledgeRole(),
       flashActive: s.flashActive,
       playerName: s.playerName,
       setName: (e) => this.setState({ playerName: e.target.value.toUpperCase() }),
@@ -1204,11 +1251,11 @@ class Component extends DCLogic {
         rowOpacity: w.cut ? 0.42 : 1,
         rowBorder: w.cut ? "rgba(126,200,227,0.1)" : "rgba(126,200,227,0.24)",
         rowBg: w.cut ? "rgba(0,0,0,0.16)" : "rgba(126,200,227,0.025)",
-        hoverBorder: w.cut ? "rgba(126,200,227,0.1)" : "#C04040",
-        hoverBg: w.cut ? "rgba(0,0,0,0.16)" : "rgba(192,64,64,0.06)",
-        cursor: w.cut ? "default" : "pointer",
         statusText: w.cut ? "[CUT]" : "[INTACT]",
         statusColor: w.cut ? "#444" : "rgba(126,200,227,0.4)",
+        cutColor: s.orderSolved ? "#E05A3E" : "rgba(126,200,227,0.32)",
+        controlOpacity: s.orderSolved ? 1 : 0.55,
+        cutTitle: s.orderSolved ? `Cut ${w.label}` : "Locked — await Operator standing order",
         onCut: () => this.cutWire(w.id),
       })),
       hasCutResult: !!s.cutResult,
@@ -1409,6 +1456,11 @@ class Component extends DCLogic {
         setTimeout(() => this.setState({ flashActive: false }), 350);
       });
       room.onMessage("missionRejected", (message) => this.setState({ connectionError: String(message.reason || "DEPLOYMENT REJECTED").toUpperCase() }));
+      room.onMessage("puzzleLocked", (message) => this.notifyLocked(String(message.reason || "ACTION LOCKED")));
+      room.onMessage("interlockAck", (message) => {
+        const role = String(message.role || "").toUpperCase();
+        this.receiveComms({ from: "SYSTEM", text: `${role} STATION CONFIRMED FINAL INTERLOCK`, timestamp: message.timestamp });
+      });
       room.onLeave(() => {
         this.closeVoicePeers();
         if (!this._finished) this.setState({ connectionStatus: "LINK LOST — SELECT ROLE TO RECONNECT" });
@@ -1451,6 +1503,10 @@ class Component extends DCLogic {
       relay2: Boolean(roomState.relay2),
       relaySolved: Boolean(roomState.relaySolved),
       orderSolved: Boolean(roomState.orderSolved),
+      analystAck: Boolean(roomState.analystAck),
+      technicianAck: Boolean(roomState.technicianAck),
+      operatorAck: Boolean(roomState.operatorAck),
+      interlockSolved: Boolean(roomState.interlockSolved),
       cutOrder: cutIds,
       wires: WIRES_POOL.slice(0, count).map((wire) => ({ ...wire, cut: cutIds.includes(wire.id) })),
       connectionError: "",
@@ -1701,6 +1757,10 @@ class Component extends DCLogic {
   }
 
   submitAuth() {
+    if (!this.state.patternSolved) {
+      this.notifyLocked("OPERATOR AUTH CHANNEL LOCKED — AWAIT ANALYST PATTERN");
+      return;
+    }
     const ok = this.state.authInput.trim().toUpperCase() === AUTH_CODE;
     this.setState({ authStatus: ok ? "ok" : "fail" });
     this.sendPuzzle("auth", this.state.authInput);
@@ -1709,6 +1769,10 @@ class Component extends DCLogic {
   }
 
   pressSymbol(sym) {
+    if (Math.abs(this.state.frequency - TARGET_FREQ) >= 0.6) {
+      this.notifyLocked("ANALYST DECODER LOCKED — ACQUIRE TARGET FREQUENCY FIRST");
+      return;
+    }
     const next = [...this.state.patternInput, sym];
     if (next.length < Component.PATTERN_TARGET.length) {
       this.setState({ patternInput: next, patternStatus: "idle" });
@@ -1722,6 +1786,15 @@ class Component extends DCLogic {
   }
 
   checkRelays() {
+    const safeWires = this.state.wires.filter((wire) => wire.safe);
+    if (!this.state.patternSolved) {
+      this.notifyLocked("RELAY BANK LOCKED — AWAIT ANALYST PATTERN");
+      return;
+    }
+    if (!safeWires.every((wire) => wire.cut)) {
+      this.notifyLocked("RELAY COMMIT LOCKED — SAFE CIRCUITS MUST BE ISOLATED");
+      return;
+    }
     const freqDiff = Math.abs(this.state.frequency - TARGET_FREQ);
     const freqLocked = freqDiff < 0.6;
     const ok = this.state.relay1 === freqLocked && this.state.relay2 === this.state.patternSolved;
@@ -1731,6 +1804,10 @@ class Component extends DCLogic {
   }
 
   chooseOrder(choice) {
+    if (!this.state.authSolved) {
+      this.notifyLocked("STANDING ORDER SEALED — COMPLETE AUTHORIZATION FIRST");
+      return;
+    }
     const ok = choice === "B";
     this.setState({ orderStatus: ok ? "ok" : "fail" });
     this.sendPuzzle("order", choice);
@@ -1741,6 +1818,10 @@ class Component extends DCLogic {
   cutWire(id) {
     const wire = this.state.wires.find((w) => w.id === id);
     if (!wire || wire.cut) return;
+    if (!this.state.orderSolved) {
+      this.notifyLocked("WIRE ACCESS LOCKED — AWAIT OPERATOR STANDING ORDER");
+      return;
+    }
     this.setState({ cutResult: { id, safe: wire.safe } });
     this.sendPuzzle("wire", id);
     if (wire.safe) this.beep(660, 0.12);
@@ -1755,6 +1836,26 @@ class Component extends DCLogic {
         ? this.state.checkedObjectives.filter((objectiveId) => objectiveId !== id)
         : [...this.state.checkedObjectives, id],
     });
+  }
+
+  acknowledgeRole() {
+    const safeWires = this.state.wires.filter((wire) => wire.safe);
+    const coreSolved = Math.abs(this.state.frequency - TARGET_FREQ) < 0.6
+      && this.state.patternSolved
+      && this.state.authSolved
+      && this.state.orderSolved
+      && safeWires.every((wire) => wire.cut)
+      && this.state.relaySolved;
+    if (!coreSolved) {
+      this.notifyLocked("FINAL TRI-LOCK SEALED — COMPLETE ALL SIX CORE OBJECTIVES");
+      return;
+    }
+    this.sendPuzzle("ack", this.state.role);
+  }
+
+  notifyLocked(reason) {
+    this.beep(220, 0.12, "square");
+    this.receiveComms({ from: "SYSTEM", text: `🔒 ${reason}`, timestamp: Date.now() });
   }
 
   sendComms() {

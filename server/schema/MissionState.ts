@@ -18,7 +18,7 @@ export class MissionState extends Schema {
   @type("boolean") gameStarted = false;
   @type("boolean") isGameOver = false;
   @type("string") bombStatus = "ready";
-  @type("number") seconds = 252;
+  @type("number") seconds = 540;
   @type("number") frequency = 144.5;
   @type("boolean") frequencySolved = false;
   @type("boolean") patternSolved = false;
@@ -27,7 +27,11 @@ export class MissionState extends Schema {
   @type("boolean") relay2 = true;
   @type("boolean") relaySolved = false;
   @type("boolean") orderSolved = false;
+  @type("boolean") analystAck = false;
+  @type("boolean") technicianAck = false;
+  @type("boolean") operatorAck = false;
+  @type("boolean") interlockSolved = false;
   @type(["string"]) cutWireIds = new ArraySchema<string>();
   @type("number") solvedPuzzleCount = 0;
-  @type("number") requiredPuzzleCount = 4;
+  @type("number") requiredPuzzleCount = 7;
 }

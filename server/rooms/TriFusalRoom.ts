@@ -2,14 +2,14 @@ import { Client, Room } from "colyseus";
 import { MissionPlayer, MissionRole, MissionState } from "../schema/MissionState";
 
 const ROLE_SET = new Set<MissionRole>(["analyst", "technician", "operator"]);
-const DIFFICULTY_SECONDS: Record<string, number> = { STANDARD: 252, HARD: 210, EXTREME: 165 };
-const REQUIRED_PUZZLES: Record<string, number> = { STANDARD: 4, HARD: 6, EXTREME: 6 };
+const DIFFICULTY_SECONDS: Record<string, number> = { STANDARD: 540, HARD: 450, EXTREME: 360 };
+const REQUIRED_PUZZLES: Record<string, number> = { STANDARD: 7, HARD: 7, EXTREME: 7 };
 const SAFE_WIRES = new Set(["B", "D"]);
 const WIRES_PER_DIFFICULTY: Record<string, number> = { STANDARD: 3, HARD: 5, EXTREME: 7 };
 const ROLE_ACTIONS: Record<MissionRole, Set<string>> = {
-  analyst: new Set(["frequency", "pattern"]),
-  technician: new Set(["relay", "relaySet", "wire"]),
-  operator: new Set(["auth", "order"]),
+  analyst: new Set(["frequency", "pattern", "ack"]),
+  technician: new Set(["relay", "relaySet", "wire", "ack"]),
+  operator: new Set(["auth", "order", "ack"]),
 };
 
 function makeBombId() {
@@ -61,6 +61,7 @@ export class TriFusalRoom extends Room<MissionState> {
       const player = this.state.players.get(client.sessionId)!;
       const action = String(message.action);
       let failedReason = "";
+      let lockedReason = "";
 
       if (action === "frequency") {
         const value = Math.max(140, Math.min(170, Number(message.value)));
@@ -68,36 +69,66 @@ export class TriFusalRoom extends Room<MissionState> {
         this.state.frequency = Math.round(value * 10) / 10;
         this.state.frequencySolved = Math.abs(this.state.frequency - 156.8) < 0.6;
       } else if (action === "pattern") {
-        const value = Array.isArray(message.value) ? message.value.join("") : String(message.value || "");
-        if (value === "△○□○") this.state.patternSolved = true;
-        else failedReason = "SIGNAL PATTERN MISMATCH";
+        if (!this.state.frequencySolved) lockedReason = "ANALYST DECODER LOCKED — ACQUIRE TARGET FREQUENCY FIRST";
+        else {
+          const value = Array.isArray(message.value) ? message.value.join("") : String(message.value || "");
+          if (value === "△○□○") this.state.patternSolved = true;
+          else failedReason = "SIGNAL PATTERN MISMATCH";
+        }
       } else if (action === "auth") {
-        if (String(message.value || "").trim().toUpperCase() === "DELTA-7-ECHO") this.state.authSolved = true;
+        if (!this.state.patternSolved) lockedReason = "OPERATOR AUTH CHANNEL LOCKED — AWAIT ANALYST PATTERN";
+        else if (String(message.value || "").trim().toUpperCase() === "DELTA-7-ECHO") this.state.authSolved = true;
         else failedReason = "INVALID AUTH CODE";
       } else if (action === "relaySet") {
+        if (!this.state.patternSolved) {
+          client.send("puzzleLocked", { reason: "RELAY BANK LOCKED — AWAIT ANALYST PATTERN" });
+          return;
+        }
         const value = message.value as { relay1?: boolean; relay2?: boolean };
         this.state.relay1 = Boolean(value?.relay1);
         this.state.relay2 = Boolean(value?.relay2);
       } else if (action === "relay") {
-        const value = message.value as { relay1?: boolean; relay2?: boolean };
-        this.state.relay1 = Boolean(value?.relay1);
-        this.state.relay2 = Boolean(value?.relay2);
-        if (this.state.relay1 === this.state.frequencySolved && this.state.relay2 === this.state.patternSolved) {
-          this.state.relaySolved = true;
-        } else {
-          failedReason = "RELAY SYNC FAULT";
+        if (!this.isWireSolved()) lockedReason = "RELAY COMMIT LOCKED — SAFE CIRCUITS MUST BE ISOLATED";
+        else {
+          const value = message.value as { relay1?: boolean; relay2?: boolean };
+          this.state.relay1 = Boolean(value?.relay1);
+          this.state.relay2 = Boolean(value?.relay2);
+          if (this.state.relay1 === this.state.frequencySolved && this.state.relay2 === this.state.patternSolved) {
+            this.state.relaySolved = true;
+          } else {
+            failedReason = "RELAY SYNC FAULT";
+          }
         }
       } else if (action === "order") {
-        if (String(message.value) === "B") this.state.orderSolved = true;
+        if (!this.state.authSolved) lockedReason = "STANDING ORDER SEALED — COMPLETE AUTHORIZATION FIRST";
+        else if (String(message.value) === "B") this.state.orderSolved = true;
         else failedReason = "INCORRECT STANDING ORDER";
       } else if (action === "wire") {
-        const id = String(message.value || "").toUpperCase();
-        const allowedIds = ["A", "B", "C", "D", "E", "F", "G"].slice(0, WIRES_PER_DIFFICULTY[this.state.difficulty]);
-        if (!allowedIds.includes(id) || this.state.cutWireIds.includes(id)) return;
-        this.state.cutWireIds.push(id);
-        if (!SAFE_WIRES.has(id)) failedReason = `CIRCUIT ${id} DETONATOR TRIGGERED`;
+        if (!this.state.orderSolved) lockedReason = "WIRE ACCESS LOCKED — AWAIT OPERATOR STANDING ORDER";
+        else {
+          const id = String(message.value || "").toUpperCase();
+          const allowedIds = ["A", "B", "C", "D", "E", "F", "G"].slice(0, WIRES_PER_DIFFICULTY[this.state.difficulty]);
+          if (!allowedIds.includes(id) || this.state.cutWireIds.includes(id)) return;
+          this.state.cutWireIds.push(id);
+          if (!SAFE_WIRES.has(id)) failedReason = `CIRCUIT ${id} DETONATOR TRIGGERED`;
+        }
+      } else if (action === "ack") {
+        if (!this.areCorePuzzlesSolved()) lockedReason = "FINAL TRI-LOCK SEALED — COMPLETE ALL SIX CORE OBJECTIVES";
+        else {
+          const requestedRole = String(message.value || "") as MissionRole;
+          const ackRole = this.isSoloDemo && ROLE_SET.has(requestedRole) ? requestedRole : player.role;
+          if (ackRole === "analyst") this.state.analystAck = true;
+          if (ackRole === "technician") this.state.technicianAck = true;
+          if (ackRole === "operator") this.state.operatorAck = true;
+          this.state.interlockSolved = this.state.analystAck && this.state.technicianAck && this.state.operatorAck;
+          this.broadcast("interlockAck", { role: ackRole, timestamp: Date.now() });
+        }
       }
 
+      if (lockedReason) {
+        client.send("puzzleLocked", { reason: lockedReason });
+        return;
+      }
       if (failedReason) this.applyPenalty(player, failedReason);
       this.updateProgress();
     });
@@ -187,7 +218,7 @@ export class TriFusalRoom extends Room<MissionState> {
   private canAct(client: Client, action?: string) {
     const player = this.state.players.get(client.sessionId);
     if (!player || !this.state.gameStarted || this.state.isGameOver || this.state.bombStatus !== "running") return false;
-    if (this.isSoloDemo) return ["frequency", "pattern", "relaySet", "relay", "wire", "auth", "order"].includes(String(action));
+    if (this.isSoloDemo) return ["frequency", "pattern", "relaySet", "relay", "wire", "auth", "order", "ack"].includes(String(action));
     return ROLE_ACTIONS[player.role].has(String(action));
   }
 
@@ -222,20 +253,32 @@ export class TriFusalRoom extends Room<MissionState> {
   }
 
   private updateProgress() {
-    const allowedIds = ["A", "B", "C", "D", "E", "F", "G"].slice(0, WIRES_PER_DIFFICULTY[this.state.difficulty]);
-    const safeWireIds = allowedIds.filter((id) => SAFE_WIRES.has(id));
-    const wireSolved = safeWireIds.every((id) => this.state.cutWireIds.includes(id));
     const base = [
+      this.state.frequencySolved,
       this.state.patternSolved,
       this.state.authSolved,
-      wireSolved,
-      this.state.frequencySolved,
-      this.state.relaySolved,
       this.state.orderSolved,
+      this.isWireSolved(),
+      this.state.relaySolved,
+      this.state.interlockSolved,
     ];
-    const relevant = this.state.difficulty === "STANDARD" ? base.slice(0, 4) : base;
-    this.state.solvedPuzzleCount = relevant.filter(Boolean).length;
+    this.state.solvedPuzzleCount = base.filter(Boolean).length;
     if (this.state.solvedPuzzleCount >= this.state.requiredPuzzleCount) this.finish("defused");
+  }
+
+  private isWireSolved() {
+    const allowedIds = ["A", "B", "C", "D", "E", "F", "G"].slice(0, WIRES_PER_DIFFICULTY[this.state.difficulty]);
+    const safeWireIds = allowedIds.filter((id) => SAFE_WIRES.has(id));
+    return safeWireIds.every((id) => this.state.cutWireIds.includes(id));
+  }
+
+  private areCorePuzzlesSolved() {
+    return this.state.frequencySolved
+      && this.state.patternSolved
+      && this.state.authSolved
+      && this.state.orderSolved
+      && this.isWireSolved()
+      && this.state.relaySolved;
   }
 
   private finish(status: "defused" | "detonated") {
