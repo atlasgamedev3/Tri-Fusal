@@ -1,31 +1,1776 @@
-<!doctype html>
-<html lang="en" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Polar Winds</title>
-    <link rel="icon" type="image/png" href="/atlas-logo.png" />
-    <meta name="description" content="Polar Winds Game" />
-    <meta name="author" content="Lovable" />
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./colyseus.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
 
-    <!-- Manrope Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #0A0A08; }
+    @keyframes radarSweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes blipPulse { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.3; } }
+    @keyframes speakPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.6; } }
+    @keyframes timerPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+    @keyframes flicker { 0%, 100% { opacity: 1; } 45% { opacity: 0.96; } 46% { opacity: 0.7; } 47% { opacity: 0.98; } }
+    @keyframes twinkle { 0%, 100% { opacity: 0; } 50% { opacity: 0.9; } }
+    @keyframes scanGlow { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+    @keyframes randomFlicker { 0%, 96%, 98.5%, 100% { opacity: 0; } 96.8% { opacity: 0.22; } 97.3% { opacity: 0.03; } 97.9% { opacity: 0.16; } }
+    @keyframes penaltyBlink { 0%, 100% { opacity: 0; } 25% { opacity: 0.55; } 50% { opacity: 0.08; } 75% { opacity: 0.4; } }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes stampSlam { 0% { opacity: 0; transform: scale(2.4) rotate(-4deg); } 55% { opacity: 1; transform: scale(0.92) rotate(-4deg); } 75% { transform: scale(1.05) rotate(-4deg); } 100% { opacity: 1; transform: scale(1) rotate(-4deg); } }
+    @keyframes flashGreen { from { opacity: 0.35; } to { opacity: 0; } }
+    @keyframes flashRed { from { opacity: 0.4; } to { opacity: 0; } }
+    ::placeholder { opacity: 0.5; }
+    [data-clickable]:hover { filter: brightness(1.35); }
+    .menu-option:hover { background: rgba(216,163,74,0.08) !important; border-left-color: #D8A34A !important; color: #E8DFC4 !important; }
+    .scanlines-off [style*="repeating-linear-gradient(0deg"] { background: none !important; }
+    .motion-off * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+  </style>
+</helmet>
 
-    <!-- TODO: Update og:title to match your application name -->
-    <meta property="og:title" content="Lovable App" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+<div class="{{ terminalClass }}" style="font-family: 'DM Mono', monospace; background: #0A0A08; color: #E8DFC4; max-width: 1480px; margin: 0 auto; height: 100vh; position: relative; display: flex; flex-direction: column; overflow: hidden;">
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+<sc-if value="{{ isMenu }}" hint-placeholder-val="{{ true }}">
+  <!-- MAIN MENU — MILITARY MAINFRAME TERMINAL -->
+  <div style="background: #060502; padding: 56px 64px; position: relative; flex: 1; min-height: 0; overflow-y: auto; font-family: 'DM Mono', monospace; color: #D8A34A; display: flex; align-items: center; justify-content: center;">
+    <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 3px);"></div>
+    <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.65) 100%);"></div>
+    <div style="position: absolute; inset: 0; pointer-events: none; mix-blend-mode: overlay; opacity: 0.6; background-image: radial-gradient(circle at 20% 25%, rgba(255,255,255,0.05) 0%, transparent 2%), radial-gradient(circle at 78% 70%, rgba(255,255,255,0.04) 0%, transparent 1.5%), repeating-linear-gradient(108deg, rgba(255,255,255,0.02) 0px, transparent 1px, transparent 5px);"></div>
+    <div style="position: absolute; top: 0; left: 0; right: 0; background: #7A1F1F; color: #F0E8D0; text-align: center; padding: 4px 0; font-size: 9px; letter-spacing: 0.35em; animation: flicker 6s infinite;">▓ TOP SECRET // DIRECTORATE 9 MAINFRAME // TERMINAL ACCESS RESTRICTED ▓</div>
+    <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 45%, transparent 75%);"></div>
 
-  <body>
-    <div id="root" class="min-h-dvh w-full bg-canvas"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <div onclick="{{ toggleSettings }}" style="position: absolute; bottom: 22px; right: 28px; font-size: 11px; letter-spacing: 0.15em; color: rgba(216,163,74,0.5); cursor: pointer; z-index: 5;">[ SETTINGS ]</div>
+
+    <div style="position: relative; width: 100%; max-width: 620px;">
+      <div style="border: 1px solid rgba(216,163,74,0.5); padding: 40px 48px; background: rgba(216,163,74,0.04);">
+        <pre style="margin: 0 0 4px; font-family: 'DM Mono', monospace; font-size: 11px; line-height: 1.4; color: rgba(216,163,74,0.6); text-align: center;">+==========================================+</pre>
+        <div style="font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 46px; letter-spacing: 0.25em; text-align: center; color: #D8A34A; text-shadow: 0 0 22px rgba(216,163,74,0.45); line-height: 1.1;">TRI-FUSAL</div>
+        <div style="text-align: center; font-size: 11px; letter-spacing: 0.3em; color: rgba(216,163,74,0.55); margin-top: 6px;">DIRECTORATE 9 MAINFRAME — REMOTE TERMINAL</div>
+        <pre style="margin: 4px 0 22px; font-family: 'DM Mono', monospace; font-size: 11px; line-height: 1.4; color: rgba(216,163,74,0.6); text-align: center;">+==========================================+</pre>
+
+        <div style="margin-bottom: 18px;">
+          <div style="font-size: 11px; letter-spacing: 0.15em; color: rgba(216,163,74,0.6); margin-bottom: 6px;">OPERATION — LEAVE BLANK TO CREATE:</div>
+          <div style="display: flex; align-items: center; gap: 4px; border-bottom: 1px solid rgba(216,163,74,0.4); padding-bottom: 6px;">
+            <span style="color: #D8A34A;">&gt;</span>
+            <input value="{{ roomName }}" oninput="{{ setRoomName }}" placeholder="BLACKTHORN" style="flex: 1; background: transparent; border: none; outline: none; color: #E8DFC4; font-family: 'DM Mono', monospace; font-size: 15px; letter-spacing: 0.15em; text-transform: uppercase;" />
+            <span style="font-size: 9px; color: #5A7040; letter-spacing: 0.1em;">{{ roomFieldStatus }}</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 22px;">
+          <div style="font-size: 11px; letter-spacing: 0.15em; color: rgba(216,163,74,0.6); margin-bottom: 6px;">ENTER FIELD CODENAME:</div>
+          <div style="display: flex; align-items: center; gap: 4px; border-bottom: 1px solid rgba(216,163,74,0.4); padding-bottom: 6px;">
+            <span style="color: #D8A34A;">&gt;</span>
+            <input value="{{ playerName }}" oninput="{{ setName }}" placeholder="SABLE" style="flex: 1; background: transparent; border: none; outline: none; color: #E8DFC4; font-family: 'DM Mono', monospace; font-size: 15px; letter-spacing: 0.15em;" />
+            <span style="animation: blipPulse 1s infinite;">█</span>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 2px; font-size: 15px; letter-spacing: 0.12em;">
+          <div class="menu-option" onclick="{{ goLobby }}" style="padding: 9px 14px; cursor: pointer; border-left: 3px solid transparent; color: rgba(216,163,74,0.7); transition: background 0.15s, border-color 0.15s, color 0.15s;">&gt; BEGIN BRIEFING</div>
+          <div class="menu-option" onclick="{{ goSoloDemo }}" style="padding: 9px 14px; cursor: pointer; border-left: 3px solid transparent; color: rgba(216,163,74,0.7); transition: background 0.15s, border-color 0.15s, color 0.15s;">&gt; SOLO DEMO</div>
+          <div class="menu-option" onclick="{{ goRoster }}" style="padding: 9px 14px; cursor: pointer; border-left: 3px solid transparent; color: rgba(216,163,74,0.7); transition: background 0.15s, border-color 0.15s, color 0.15s;">&gt; ROSTER</div>
+          <div class="menu-option" onclick="{{ goArchive }}" style="padding: 9px 14px; cursor: pointer; border-left: 3px solid transparent; color: rgba(216,163,74,0.7); transition: background 0.15s, border-color 0.15s, color 0.15s;">&gt; ARCHIVE LOGS</div>
+        </div>
+
+        <div style="margin-top: 26px; padding-top: 14px; border-top: 1px dashed rgba(216,163,74,0.3); font-size: 10px; letter-spacing: 0.15em; color: rgba(216,163,74,0.45);">SYS TIME 14:20:00 GMT — 21 JUL 1963 // CLEARANCE: DELTA<span style="animation: blipPulse 1s infinite; margin-left: 8px;">▮</span></div>
+      </div>
+    </div>
+
+    <sc-if value="{{ showSettings }}" hint-placeholder-val="{{ false }}">
+      <div onclick="{{ toggleSettings }}" style="position: absolute; inset: 0; background: rgba(2,2,0,0.75); z-index: 10; backdrop-filter: blur(2px);"></div>
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 11; width: 380px; max-height: 84vh; background: #0A0804; border: 1px solid rgba(216,163,74,0.5); box-shadow: 0 0 40px rgba(216,163,74,0.15), 0 0 0 1px rgba(0,0,0,0.4); padding: 32px 34px; font-family: 'DM Mono', monospace; color: #D8A34A; overflow-y: auto; overflow-x: hidden;">
+        <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 3px);"></div>
+        <div style="position: absolute; top: -1px; left: -1px; width: 14px; height: 14px; border-top: 2px solid #D8A34A; border-left: 2px solid #D8A34A;"></div>
+        <div style="position: absolute; top: -1px; right: -1px; width: 14px; height: 14px; border-top: 2px solid #D8A34A; border-right: 2px solid #D8A34A;"></div>
+        <div style="position: absolute; bottom: -1px; left: -1px; width: 14px; height: 14px; border-bottom: 2px solid #D8A34A; border-left: 2px solid #D8A34A;"></div>
+        <div style="position: absolute; bottom: -1px; right: -1px; width: 14px; height: 14px; border-bottom: 2px solid #D8A34A; border-right: 2px solid #D8A34A;"></div>
+
+        <div style="position: relative; text-align: center; margin-bottom: 4px;">
+          <div style="font-family: 'Oswald', sans-serif; font-size: 18px; letter-spacing: 0.25em; color: #D8A34A; text-shadow: 0 0 14px rgba(216,163,74,0.4);">FIELD SETTINGS</div>
+          <div style="font-size: 9px; letter-spacing: 0.2em; color: rgba(216,163,74,0.45); margin-top: 4px;">TERMINAL CONFIGURATION — DIRECTORATE 9</div>
+        </div>
+        <div style="height: 1px; background: rgba(216,163,74,0.3); margin: 18px 0; position: relative;"></div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; position: relative;">
+          <span style="font-size: 11px; letter-spacing: 0.1em;">TRANSMISSION SOUND</span>
+          <div onclick="{{ toggleSound }}" style="width: 44px; height: 22px; border: 1px solid #D8A34A; position: relative; cursor: pointer; background: {{ soundOnBg }}; transition: background 0.2s;"><div style="width: 16px; height: 16px; background: #D8A34A; box-shadow: 0 0 8px rgba(216,163,74,0.6); position: absolute; top: 2px; left: {{ soundOnPos }}; transition: left 0.2s ease;"></div></div>
+        </div>
+        <div style="padding: 0 0 12px; border-top: 1px dashed rgba(216,163,74,0.2); padding-top: 12px; position: relative; opacity: {{ soundVolumeOpacity }};">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span style="font-size: 11px; letter-spacing: 0.1em;">SOUND VOLUME</span><span style="font-size: 11px; color: rgba(216,163,74,0.6);">{{ soundVolume }}%</span></div>
+          <input type="range" min="0" max="100" step="1" value="{{ soundVolume }}" oninput="{{ setSoundVolume }}" disabled="{{ soundVolumeDisabled }}" style="width: 100%; accent-color: #D8A34A;" />
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-top: 1px dashed rgba(216,163,74,0.2); position: relative;">
+          <span style="font-size: 11px; letter-spacing: 0.1em;">CRT SCANLINE EFFECT</span>
+          <div onclick="{{ toggleScanlines }}" style="width: 44px; height: 22px; border: 1px solid #D8A34A; position: relative; cursor: pointer; background: {{ scanlinesOnBg }}; transition: background 0.2s;"><div style="width: 16px; height: 16px; background: #D8A34A; box-shadow: 0 0 8px rgba(216,163,74,0.6); position: absolute; top: 2px; left: {{ scanlinesOnPos }}; transition: left 0.2s ease;"></div></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-top: 1px dashed rgba(216,163,74,0.2); position: relative;">
+          <div><div style="font-size: 11px; letter-spacing: 0.1em;">MOTION EFFECTS</div><div style="font-size: 8px; color: rgba(216,163,74,0.45); margin-top: 3px;">RADAR SWEEP, PULSES, AND SCREEN FLICKER</div></div>
+          <div onclick="{{ toggleMotion }}" style="width: 44px; height: 22px; border: 1px solid #D8A34A; position: relative; cursor: pointer; background: {{ motionOnBg }}; transition: background 0.2s;"><div style="width: 16px; height: 16px; background: #D8A34A; box-shadow: 0 0 8px rgba(216,163,74,0.6); position: absolute; top: 2px; left: {{ motionOnPos }}; transition: left 0.2s ease;"></div></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-top: 1px dashed rgba(216,163,74,0.2); position: relative;">
+          <div><div style="font-size: 11px; letter-spacing: 0.1em;">VOICE CHAT</div><div style="font-size: 8px; color: {{ voiceStatusColor }}; margin-top: 3px;">{{ voiceStatusText }}</div></div>
+          <div onclick="{{ toggleVoice }}" style="width: 44px; height: 22px; border: 1px solid #D8A34A; position: relative; cursor: pointer; background: {{ voiceOnBg }}; transition: background 0.2s;"><div style="width: 16px; height: 16px; background: #D8A34A; box-shadow: 0 0 8px rgba(216,163,74,0.6); position: absolute; top: 2px; left: {{ voiceOnPos }}; transition: left 0.2s ease;"></div></div>
+        </div>
+        <div style="padding: 12px 0; border-top: 1px dashed rgba(216,163,74,0.2); position: relative; opacity: {{ voiceControlOpacity }};">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span style="font-size: 11px; letter-spacing: 0.1em;">VOICE OUTPUT</span><span style="font-size: 11px; color: rgba(216,163,74,0.6);">{{ voiceVolume }}%</span></div>
+          <input type="range" min="0" max="100" step="1" value="{{ voiceVolume }}" oninput="{{ setVoiceVolume }}" style="width: 100%; accent-color: #D8A34A;" />
+          <div style="font-size: 9px; letter-spacing: 0.1em; margin: 12px 0 6px;">TRANSMIT MODE</div>
+          <div style="display: flex; border: 1px solid rgba(216,163,74,0.45);">
+            <div onclick="{{ setPttHold }}" style="flex: 1; text-align: center; padding: 6px; cursor: pointer; font-size: 9px; letter-spacing: 0.08em; {{ pttHoldStyle }}">PUSH TO TALK</div>
+            <div onclick="{{ setPttOpen }}" style="flex: 1; text-align: center; padding: 6px; cursor: pointer; font-size: 9px; letter-spacing: 0.08em; border-left: 1px solid rgba(216,163,74,0.45); {{ pttOpenStyle }}">OPEN MIC</div>
+          </div>
+          <sc-if value="{{ isPttHold }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; align-items: center; gap: 5px; margin-top: 8px;"><span style="font-size: 8px; letter-spacing: 0.08em; margin-right: auto;">PTT KEY</span><div onclick="{{ setPttKeyV }}" style="border: 1px solid rgba(216,163,74,0.45); padding: 4px 8px; cursor: pointer; font-size: 9px; {{ pttKeyVStyle }}">V</div><div onclick="{{ setPttKeyT }}" style="border: 1px solid rgba(216,163,74,0.45); padding: 4px 8px; cursor: pointer; font-size: 9px; {{ pttKeyTStyle }}">T</div><div onclick="{{ setPttKeySpace }}" style="border: 1px solid rgba(216,163,74,0.45); padding: 4px 8px; cursor: pointer; font-size: 9px; {{ pttKeySpaceStyle }}">SPACE</div></div>
+          </sc-if>
+        </div>
+        <div onclick="{{ resetSettings }}" style="margin-top: 8px; text-align: center; letter-spacing: 0.12em; font-size: 10px; border: 1px dashed rgba(216,163,74,0.4); padding: 7px; cursor: pointer; position: relative; color: rgba(216,163,74,0.65);">RESTORE DEFAULT SETTINGS</div>
+        <div onclick="{{ clearArchive }}" style="margin-top: 6px; text-align: center; letter-spacing: 0.12em; font-size: 10px; border: 1px dashed rgba(192,64,64,0.45); padding: 7px; cursor: pointer; position: relative; color: rgba(224,90,62,0.7);">CLEAR ARCHIVE LOGS</div>
+
+        <div style="height: 1px; background: rgba(216,163,74,0.3); margin: 20px 0 16px; position: relative;"></div>
+        <div onclick="{{ toggleSettings }}" style="text-align: center; letter-spacing: 0.15em; font-size: 12px; border: 1px solid #D8A34A; padding: 9px; cursor: pointer; position: relative; color: #E8DFC4; background: rgba(216,163,74,0.08);">CLOSE PANEL</div>
+      </div>
+    </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isRoster }}" hint-placeholder-val="{{ false }}">
+  <div style="background: #060502; color: #D8A34A; flex: 1; min-height: 0; overflow-y: auto; font-family: 'DM Mono', monospace; padding: 48px 64px; position: relative;">
+    <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 3px);"></div>
+    <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.6) 100%);"></div>
+    <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 45%, transparent 75%);"></div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; position: relative;">
+      <div style="font-family: 'Oswald', sans-serif; font-size: 32px; letter-spacing: 0.1em; color: #D8A34A; text-shadow: 0 0 20px rgba(216,163,74,0.4);">PERSONNEL ROSTER</div>
+      <div onclick="{{ goMenu }}" style="border: 1px solid rgba(216,163,74,0.5); padding: 6px 16px; font-size: 12px; letter-spacing: 0.15em; cursor: pointer; color: rgba(216,163,74,0.7);">&lt; BACK</div>
+    </div>
+    <div style="font-size: 12px; color: rgba(216,163,74,0.5); letter-spacing: 0.1em; margin-bottom: 32px; position: relative;">OP: {{ rosterOperation }} — ROLE BRIEFING FOR INCOMING OPERATIVES</div>
+    <div style="display: flex; gap: 24px; flex-wrap: wrap; position: relative;">
+      <div style="flex: 1; min-width: 280px; border: 1px solid rgba(77,219,122,0.4); background: rgba(77,219,122,0.05); padding: 22px;">
+        <div style="font-family: 'Oswald', sans-serif; font-size: 20px; letter-spacing: 0.1em; color: #4DDB7A; margin-bottom: 4px;">ANALYST</div>
+        <div style="font-size: 10px; color: rgba(216,163,74,0.5); letter-spacing: 0.15em; margin-bottom: 14px;">STATION ALPHA — SIGNALS INTELLIGENCE</div>
+        <div style="font-size: 12px; line-height: 1.7; margin-bottom: 14px; color: #E8DFC4;">Gathers intelligence from intercepted transmissions, radar contacts and encrypted signals. Knows WHERE, WHEN, and WHICH — but cannot touch the device.</div>
+        <div style="font-size: 10px; letter-spacing: 0.15em; color: rgba(77,219,122,0.6); margin-bottom: 4px;">SEES</div>
+        <div style="font-size: 11px; line-height: 1.7; color: rgba(232,220,196,0.75);">Coordinates · Radar contacts · Signal frequencies · Encrypted clues · Timing patterns</div>
+      </div>
+      <div style="flex: 1; min-width: 280px; border: 1px solid rgba(126,200,227,0.4); background: rgba(126,200,227,0.05); padding: 22px;">
+        <div style="font-family: 'Oswald', sans-serif; font-size: 20px; letter-spacing: 0.1em; color: #7EC8E3; margin-bottom: 4px;">TECHNICIAN</div>
+        <div style="font-size: 10px; color: rgba(216,163,74,0.5); letter-spacing: 0.15em; margin-bottom: 14px;">UNIT BRAVO-7 — ORDNANCE ENGINEERING</div>
+        <div style="font-size: 12px; line-height: 1.7; margin-bottom: 14px; color: #E8DFC4;">Handles the device directly — wiring, relays, gauges and diagnostics. Knows WHAT and HOW, and performs every physical action on the bomb.</div>
+        <div style="font-size: 10px; letter-spacing: 0.15em; color: rgba(126,200,227,0.6); margin-bottom: 4px;">SEES</div>
+        <div style="font-size: 11px; line-height: 1.7; color: rgba(232,220,196,0.75);">Wiring diagrams · Circuits &amp; relays · Valves &amp; switches · Component diagnostics</div>
+      </div>
+      <div style="flex: 1; min-width: 280px; border: 1px solid rgba(216,163,74,0.4); background: rgba(216,163,74,0.05); padding: 22px;">
+        <div style="font-family: 'Oswald', sans-serif; font-size: 20px; letter-spacing: 0.1em; color: #D8A34A; margin-bottom: 4px;">OPERATOR</div>
+        <div style="font-size: 10px; color: rgba(216,163,74,0.5); letter-spacing: 0.15em; margin-bottom: 14px;">FIELD COMMAND — OPERATION CONTROL</div>
+        <div style="font-size: 12px; line-height: 1.7; margin-bottom: 14px; color: #E8DFC4;">Holds the mission dossier — procedures, authorization codes and objectives. Knows WHY and in WHAT ORDER, and determines correct procedure.</div>
+        <div style="font-size: 10px; letter-spacing: 0.15em; color: rgba(216,163,74,0.6); margin-bottom: 4px;">SEES</div>
+        <div style="font-size: 11px; line-height: 1.7; color: rgba(232,220,196,0.75);">Standing orders · Authorization codes · Mission objectives · Personnel &amp; maps</div>
+      </div>
+    </div>
+    <div style="margin-top: 28px; border-top: 1px dashed rgba(216,163,74,0.3); padding-top: 16px; font-size: 11px; color: rgba(216,163,74,0.5); line-height: 1.7; position: relative;">No single operative holds the complete solution. Defusal depends on relaying information across roles under time pressure.</div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isArchive }}" hint-placeholder-val="{{ false }}">
+  <div style="background: #060502; color: #D8A34A; flex: 1; min-height: 0; overflow-y: auto; font-family: 'DM Mono', monospace; padding: 48px 64px; position: relative;">
+    <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 3px);"></div>
+    <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.6) 100%);"></div>
+    <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 45%, transparent 75%);"></div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; position: relative;">
+      <div style="font-family: 'Oswald', sans-serif; font-size: 32px; letter-spacing: 0.1em; color: #D8A34A; text-shadow: 0 0 20px rgba(216,163,74,0.4);">ARCHIVE LOGS</div>
+      <div onclick="{{ goMenu }}" style="border: 1px solid rgba(216,163,74,0.5); padding: 6px 16px; font-size: 12px; letter-spacing: 0.15em; cursor: pointer; color: rgba(216,163,74,0.7);">&lt; BACK</div>
+    </div>
+    <div style="font-size: 12px; color: rgba(216,163,74,0.5); letter-spacing: 0.1em; margin-bottom: 24px; position: relative;">CLOSED OPERATIONS — DIRECTORATE 9 RECORDS</div>
+    <div style="border: 1px solid rgba(216,163,74,0.5); background: rgba(216,163,74,0.04); position: relative;">
+      <div style="display: grid; grid-template-columns: 1.1fr 1fr 0.9fr 0.8fr 1.2fr; padding: 10px 16px; font-size: 10px; letter-spacing: 0.15em; color: rgba(216,163,74,0.6); border-bottom: 1px solid rgba(216,163,74,0.4);">
+        <span>OPERATION</span><span>BOMB ID</span><span>DATE</span><span>OUTCOME</span><span>TIME ON CLOCK</span>
+      </div>
+      <sc-for list="{{ archiveRows }}" as="row" hint-placeholder-count="5">
+        <div style="display: grid; grid-template-columns: 1.1fr 1fr 0.9fr 0.8fr 1.2fr; padding: 10px 16px; font-size: 12px; border-bottom: 1px solid rgba(216,163,74,0.15); align-items: center; color: #E8DFC4;">
+          <span style="font-family: 'Oswald', sans-serif; letter-spacing: 0.06em;">{{ row.codename }}</span>
+          <span style="font-size: 11px; opacity: 0.8;">{{ row.bombId }}</span>
+          <span>{{ row.date }}</span>
+          <span style="color: {{ row.color }}; font-weight: 700; letter-spacing: 0.1em;">{{ row.outcome }}</span>
+          <span>{{ row.time }}</span>
+        </div>
+      </sc-for>
+      <sc-if value="{{ archiveEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 34px 16px; text-align: center; font-size: 11px; letter-spacing: 0.16em; color: rgba(216,163,74,0.4);">NO CLOSED OPERATIONS ON FILE — COMPLETE A MISSION TO CREATE THE FIRST RECORD</div>
+      </sc-if>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isLobby }}" hint-placeholder-val="{{ false }}">
+  <div style="background: #060502; color: #D8A34A; flex: 1; min-height: 0; overflow-y: auto; font-family: 'DM Mono', monospace; position: relative; display: flex; align-items: center; justify-content: center; padding: 56px 64px;">
+    <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 3px);"></div>
+    <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.65) 100%);"></div>
+    <div style="position: absolute; top: 0; left: 0; right: 0; background: #7A1F1F; color: #F0E8D0; text-align: center; padding: 4px 0; font-size: 9px; letter-spacing: 0.35em; animation: flicker 6s infinite;">▓ SECURE LOBBY // AWAITING FULL ROSTER — OP: {{ roomName }} ▓</div>
+    <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 45%, transparent 75%);"></div>
+
+    <div style="position: relative; width: 100%; max-width: 640px;">
+      <div style="border: 1px solid rgba(216,163,74,0.5); padding: 40px 48px; background: rgba(216,163,74,0.04);">
+        <div style="text-align: center; font-family: 'Oswald', sans-serif; font-size: 28px; letter-spacing: 0.15em; color: #D8A34A; margin-bottom: 6px;">DEPLOYMENT LOBBY</div>
+        <div style="text-align: center; font-size: 11px; letter-spacing: 0.12em; color: rgba(216,163,74,0.55); margin-bottom: 8px;">CLAIM YOUR ROLE — TEAM MUST BE FULL BEFORE DEPLOYMENT</div>
+        <div style="text-align: center; font-size: 9px; letter-spacing: 0.15em; color: {{ lobbyStatusColor }}; margin-bottom: 20px;">{{ lobbyStatusText }}</div>
+
+        <div onclick="{{ copyRoomCode }}" style="border: 1px dashed rgba(216,163,74,0.45); background: rgba(216,163,74,0.04); text-align: center; padding: 10px 12px; margin-bottom: 18px; cursor: pointer;">
+          <div style="font-size: 9px; letter-spacing: 0.18em; color: rgba(216,163,74,0.5); margin-bottom: 4px;">OPERATION — SHARE WITH OPERATIVES</div>
+          <div style="font-family: 'Oswald', sans-serif; font-size: 22px; letter-spacing: 0.2em; color: #D8A34A;">{{ roomName }}</div>
+          <div style="font-size: 8px; letter-spacing: 0.12em; color: rgba(216,163,74,0.4); margin-top: 3px;">{{ roomCodeHint }}</div>
+        </div>
+
+        <div style="margin-bottom: 22px;">
+          <div style="font-size: 10px; letter-spacing: 0.15em; color: rgba(216,163,74,0.6); margin-bottom: 8px; text-align: center;">DIFFICULTY — HOST ONLY</div>
+          <div style="display: flex; border: 1px solid rgba(216,163,74,0.4);">
+            <div onclick="{{ setStandard }}" style="flex: 1; text-align: center; padding: 7px 0; font-size: 10px; letter-spacing: 0.1em; cursor: pointer; {{ standardStyle }}">STANDARD</div>
+            <div onclick="{{ setHard }}" style="flex: 1; text-align: center; padding: 7px 0; font-size: 10px; letter-spacing: 0.1em; cursor: pointer; border-left: 1px solid rgba(216,163,74,0.4); border-right: 1px solid rgba(216,163,74,0.4); {{ hardStyle }}">HARD</div>
+            <div onclick="{{ setExtreme }}" style="flex: 1; text-align: center; padding: 7px 0; font-size: 10px; letter-spacing: 0.1em; cursor: pointer; {{ extremeStyle }}">EXTREME</div>
+          </div>
+          <div style="border: 1px solid rgba(216,163,74,0.2); border-top: none; padding: 9px 11px; background: rgba(216,163,74,0.025);">
+            <div style="font-size: 10px; letter-spacing: 0.12em; color: #D8A34A; margin-bottom: 3px;">{{ difficultySpecs }}</div>
+            <div style="font-size: 9px; line-height: 1.5; color: rgba(232,223,196,0.5);">{{ difficultyDescription }}</div>
+          </div>
+        </div>
+
+        <div onclick="{{ claimAnalyst }}" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; margin-bottom: 6px; cursor: pointer; border: 1px solid {{ analystSlotBorder }}; background: rgba(77,219,122,0.05);">
+          <div><span style="font-family: 'Oswald', sans-serif; font-size: 14px; letter-spacing: 0.1em; color: #4DDB7A;">ANALYST</span><span style="font-size: 10px; color: rgba(216,163,74,0.5); margin-left: 10px;">STATION ALPHA</span></div>
+          <div style="font-size: 12px; letter-spacing: 0.08em;">{{ analystSlotLabel }}</div>
+          <div style="font-size: 9px; color: {{ analystSlotStatusColor }}; letter-spacing: 0.12em; min-width: 150px; text-align: right;">{{ analystSlotStatus }}</div>
+        </div>
+        <div onclick="{{ claimTechnician }}" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; margin-bottom: 6px; cursor: pointer; border: 1px solid {{ technicianSlotBorder }}; background: rgba(126,200,227,0.05);">
+          <div><span style="font-family: 'Oswald', sans-serif; font-size: 14px; letter-spacing: 0.1em; color: #7EC8E3;">TECHNICIAN</span><span style="font-size: 10px; color: rgba(216,163,74,0.5); margin-left: 10px;">UNIT BRAVO-7</span></div>
+          <div style="font-size: 12px; letter-spacing: 0.08em;">{{ technicianSlotLabel }}</div>
+          <div style="font-size: 9px; color: {{ technicianSlotStatusColor }}; letter-spacing: 0.12em; min-width: 150px; text-align: right;">{{ technicianSlotStatus }}</div>
+        </div>
+        <div onclick="{{ claimOperator }}" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; margin-bottom: 22px; cursor: pointer; border: 1px solid {{ operatorSlotBorder }}; background: rgba(216,163,74,0.05);">
+          <div><span style="font-family: 'Oswald', sans-serif; font-size: 14px; letter-spacing: 0.1em; color: #D8A34A;">OPERATOR</span><span style="font-size: 10px; color: rgba(216,163,74,0.5); margin-left: 10px;">FIELD COMMAND</span></div>
+          <div style="font-size: 12px; letter-spacing: 0.08em;">{{ operatorSlotLabel }}</div>
+          <div style="font-size: 9px; color: {{ operatorSlotStatusColor }}; letter-spacing: 0.12em; min-width: 150px; text-align: right;">{{ operatorSlotStatus }}</div>
+        </div>
+
+        <div onclick="{{ deploy }}" style="text-align: center; border: 1px solid {{ deployBorder }}; color: {{ deployColor }}; padding: 12px; font-family: 'Oswald', sans-serif; letter-spacing: 0.2em; font-size: 15px; cursor: pointer; transition: background 0.15s;" style-hover="background:rgba(216,163,74,0.1);">{{ deployLabel }}</div>
+        <div onclick="{{ goMenu }}" style="text-align: center; margin-top: 16px; font-size: 11px; letter-spacing: 0.15em; color: rgba(216,163,74,0.45); cursor: pointer;">CANCEL DEPLOYMENT</div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isMission }}" hint-placeholder-val="{{ false }}">
+  <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+  <!-- SLIM CLASSIFICATION BAR -->
+  <div style="background: #0A0A08; border-bottom: 2px solid {{ roleAccent }}; flex-shrink: 0;">
+    <div style="background: #8B1E1E; color: #F0E8D0; text-align: center; padding: 4px 0; font-size: 9px; letter-spacing: 0.35em; animation: flicker 6s infinite;">▓ TOP SECRET // OPERATION {{ roomName }} // BOMB {{ bombId }} // CLEARANCE: DELTA ▓</div>
+    <div style="display: flex; align-items: center; min-width: 0;">
+      <div style="flex: 1; padding: 8px 16px; letter-spacing: 0.15em; font-size: 11px; font-family: 'Oswald', sans-serif; color: {{ roleAccent }};">OPERATIVE: {{ roleLabel }} <span style="opacity: 0.5; font-size: 9px;">{{ roleSub }}</span></div>
+      <div style="display: flex; align-items: center; gap: 6px; padding: 0 16px; flex-shrink: 1; min-width: 0; overflow-x: auto;">
+        <sc-if value="{{ isSoloDemo }}" hint-placeholder-val="{{ false }}">
+          <span style="font-size: 8px; letter-spacing: 0.1em; color: rgba(232,220,196,0.3);">DEMO — VIEW STATION:</span>
+          <div onclick="{{ swapAnalyst }}" style="border: 1px solid {{ swapAnalystBorder }}; color: {{ swapAnalystColor }}; font-size: 9px; letter-spacing: 0.08em; padding: 4px 8px; cursor: pointer;">ANALYST</div>
+          <div onclick="{{ swapTechnician }}" style="border: 1px solid {{ swapTechnicianBorder }}; color: {{ swapTechnicianColor }}; font-size: 9px; letter-spacing: 0.08em; padding: 4px 8px; cursor: pointer;">TECHNICIAN</div>
+          <div onclick="{{ swapOperator }}" style="border: 1px solid {{ swapOperatorBorder }}; color: {{ swapOperatorColor }}; font-size: 9px; letter-spacing: 0.08em; padding: 4px 8px; cursor: pointer;">OPERATOR</div>
+          <div onclick="{{ triggerWin }}" style="border: 1px solid rgba(90,112,64,0.5); color: #5A7040; font-size: 9px; letter-spacing: 0.1em; padding: 4px 10px; cursor: pointer;">SIM: DEFUSE</div>
+          <div onclick="{{ triggerLose }}" style="border: 1px solid rgba(139,30,30,0.5); color: #8B1E1E; font-size: 9px; letter-spacing: 0.1em; padding: 4px 10px; cursor: pointer;">SIM: DETONATE</div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{ isAnalyst }}" hint-placeholder-val="{{ true }}">
+    <!-- ANALYST SCREEN — CRT PHOSPHOR GREEN -->
+    <div style="background: #030A05; color: #4DDB7A; position: relative; overflow: hidden; flex: 1; display: flex; flex-direction: column; min-height: 0;">
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 3px);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.6) 100%);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; mix-blend-mode: overlay; opacity: 0.75; background-image: radial-gradient(circle at 18% 28%, rgba(255,255,255,0.06) 0%, transparent 2%), radial-gradient(circle at 72% 62%, rgba(255,255,255,0.05) 0%, transparent 1.5%), radial-gradient(circle at 40% 85%, rgba(255,255,255,0.06) 0%, transparent 2%), radial-gradient(circle at 92% 12%, rgba(255,255,255,0.05) 0%, transparent 2%), radial-gradient(circle at 8% 92%, rgba(255,255,255,0.04) 0%, transparent 1.5%), repeating-linear-gradient(112deg, rgba(255,255,255,0.025) 0px, transparent 1px, transparent 4px), repeating-linear-gradient(28deg, rgba(255,255,255,0.015) 0px, transparent 1px, transparent 7px);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse at center, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 45%, transparent 75%);"></div>
+      <div style="position: absolute; top: 4%; right: 6%; width: 2px; height: 30%; background: rgba(255,255,255,0.08); transform: rotate(8deg); pointer-events: none; z-index: 2;"></div>
+      <div style="position: absolute; bottom: 10%; left: 14%; width: 1px; height: 22%; background: rgba(255,255,255,0.05); transform: rotate(-20deg); pointer-events: none; z-index: 2;"></div>
+      <div style="position: absolute; top: 30%; left: 4%; width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle, rgba(0,0,0,0.35), transparent 70%); pointer-events: none; z-index: 2;"></div>
+      <div style="position: absolute; bottom: 6%; right: 10%; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle, rgba(0,0,0,0.3), transparent 70%); pointer-events: none; z-index: 2;"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; box-shadow: inset 0 0 90px rgba(0,0,0,0.5); border: 4px solid rgba(0,0,0,0.15);"></div>
+      <div style="display: flex; flex-direction: {{ rowDirection }}; flex: 1; min-height: 0; overflow-y: auto;">
+        <div style="width: 260px; flex-shrink: 0; border-right: 1px solid rgba(77,219,122,0.18); overflow-y: auto; {{ colNarrowOverride }}">
+          <div style="padding: 8px 12px; border-bottom: 1px solid rgba(77,219,122,0.18); font-size: 9px; letter-spacing: 0.25em; color: rgba(77,219,122,0.4);">+--[ RADAR // SECTOR-7 // LIVE ]--+</div>
+          <div style="padding: 16px;">
+            <svg viewBox="0 0 100 100" style="width: 100%; max-width: 260px; display: block; margin: 0 auto;">
+              <circle cx="50" cy="50" r="44" fill="#061006"></circle>
+              <circle cx="50" cy="50" r="33" fill="none" stroke="#215A2E" stroke-width="0.35" opacity="0.7"></circle>
+              <circle cx="50" cy="50" r="22" fill="none" stroke="#215A2E" stroke-width="0.35" opacity="0.7"></circle>
+              <circle cx="50" cy="50" r="11" fill="none" stroke="#215A2E" stroke-width="0.35" opacity="0.7"></circle>
+              <line x1="50" y1="6" x2="50" y2="94" stroke="#215A2E" stroke-width="0.2" opacity="0.6"></line>
+              <line x1="6" y1="50" x2="94" y2="50" stroke="#215A2E" stroke-width="0.2" opacity="0.6"></line>
+              <g style="transform-origin: 50px 50px; animation: radarSweep 5s linear infinite;">
+                <path d="M 50 50 L 50 6" stroke="#4DDB7A" stroke-width="0.7" opacity="0.9"></path>
+              </g>
+              <circle cx="68" cy="35" r="1.5" fill="#C04040" style="animation: blipPulse 2s ease-in-out infinite;"></circle>
+              <text x="70" y="34" fill="#C04040" font-size="2.8">TGT-01</text>
+              <circle cx="32" cy="68" r="1.5" fill="#C04040" style="animation: blipPulse 2s ease-in-out infinite 0.4s;"></circle>
+              <text x="34" y="67" fill="#C04040" font-size="2.8">TGT-02</text>
+              <circle cx="65" cy="70" r="1.5" fill="#8A9430" style="animation: blipPulse 2s ease-in-out infinite 0.8s;"></circle>
+              <text x="67" y="69" fill="#8A9430" font-size="2.8">UNK-A</text>
+              <circle cx="50" cy="50" r="0.8" fill="#4DDB7A"></circle>
+              <circle cx="50" cy="50" r="44" fill="none" stroke="#2E7A40" stroke-width="0.5"></circle>
+            </svg>
+          </div>
+          <div style="padding: 0 12px 16px; font-size: 11px;">
+            <div style="color: rgba(77,219,122,0.4); font-size: 9px; letter-spacing: 0.2em; margin-bottom: 6px;">// COORDINATES</div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span style="color: rgba(77,219,122,0.4);">LAT</span><span>47°22.4'N</span></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span style="color: rgba(77,219,122,0.4);">LON</span><span>015°07.2'E</span></div>
+            <div style="display: flex; justify-content: space-between;"><span style="color: rgba(77,219,122,0.4);">GRID</span><span>BN-7742</span></div>
+          </div>
+          <div style="margin: 4px 12px 12px; padding-top: 12px; border-top: 1px solid rgba(77,219,122,0.18); text-align: center;">
+            <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">TIME REMAINING</div>
+            <div style="position: relative; padding: 4px 0 2px;">
+              <div style="font-family: 'DM Mono', monospace; font-size: 38px; font-weight: 500; letter-spacing: 0.08em; line-height: 1; color: {{ timerColor }}; text-shadow: 0 0 18px {{ timerGlow }}; animation: {{ timerPulseAnim }};">{{ timeStr }}</div>
+              <div style="height: 3px; width: 140px; margin: 10px auto 0; background: rgba(255,255,255,0.08); position: relative; overflow: hidden;"><div style="height: 100%; width: {{ timerPct }}; background: {{ timerColor }}; box-shadow: 0 0 6px {{ timerGlow }}; transition: width 1s linear;"></div></div>
+            </div>
+            <div style="font-size: 8px; margin-top: 5px; letter-spacing: 0.15em; color: {{ timerColor }};">{{ timerStatus }}</div>
+            <div style="font-size: 9px; margin-top: 10px; letter-spacing: 0.15em; color: rgba(77,219,122,0.45);">MISSION OBJECTIVES: {{ moduleCount }}</div>
+          </div>
+        </div>
+        <div style="flex: 1; border-right: 1px solid rgba(77,219,122,0.18); overflow-y: auto; {{ middleNarrowOverride }}">
+          <div style="padding: 8px 12px; border-bottom: 1px solid rgba(77,219,122,0.18); font-size: 9px; letter-spacing: 0.25em; color: rgba(77,219,122,0.4);">+--[ INTERCEPTED TRANSMISSIONS // DECRYPTION ACTIVE ]--+</div>
+          <div style="padding: 14px; border-bottom: 1px solid rgba(77,219,122,0.18);">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 4px;">TUNE TO TARGET SIGNAL</div>
+              <div style="font-size: 10px; letter-spacing: 0.1em; color: {{ freqStatusColor }};">{{ freqStatusText }}</div>
+            </div>
+            <div style="font-family: 'Oswald', sans-serif; font-size: 38px; color: #4DDB7A; letter-spacing: 0.05em; text-shadow: 0 0 24px rgba(77,219,122,0.35); line-height: 1;">{{ frequencyStr }}<span style="font-size: 16px; opacity: 0.4; margin-left: 6px;">MHZ</span></div>
+            <input type="range" min="140" max="170" step="0.1" value="{{ frequencyStr }}" oninput="{{ setFrequency }}" style="width: 100%; margin-top: 10px; accent-color: #4DDB7A;" />
+          </div>
+          <div style="padding: 14px;">
+            <div style="border: 1px solid #4DDB7A; background: rgba(77,219,122,0.13); padding: 8px 10px; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; font-size: 9px; color: rgba(77,219,122,0.4); margin-bottom: 4px;"><span>14:32:08</span><span>156.800 MHZ</span><span style="color: #C04040;">HIGH</span></div>
+              <div style="font-size: 11px;">CARRIER SPIKE — AUTHENTICATION BURST DETECTED</div>
+            </div>
+            <div style="border: 1px solid rgba(77,219,122,0.18); padding: 8px 10px; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; font-size: 9px; color: rgba(77,219,122,0.4); margin-bottom: 4px;"><span>14:31:44</span><span>144.500 MHZ</span><span>NORMAL</span></div>
+              <div style="font-size: 11px;">ALPHA STATION THIS IS CONTROL — DO YOU READ OVER</div>
+            </div>
+            <div style="border: 1px solid rgba(77,219,122,0.18); padding: 8px 10px;">
+              <div style="display: flex; justify-content: space-between; font-size: 9px; color: rgba(77,219,122,0.4); margin-bottom: 4px;"><span>14:28:55</span><span>160.000 MHZ</span><span style="color: #8A9430;">ENCRYPTED</span></div>
+              <div style="font-size: 11px;">{{ authClueText }}</div>
+            </div>
+          </div>
+        </div>
+        <div style="width: 230px; flex-shrink: 0; padding: 12px; display: flex; flex-direction: column; min-height: 0; {{ lastColNarrowOverride }}">
+          <div style="flex: 0 1 auto; overflow-y: auto; min-height: 0;">
+            <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 8px;">// CIPHER KEY</div>
+            <div style="border: 1px solid #8A9430; color: #8A9430; font-size: 16px; text-align: center; padding: 8px; letter-spacing: 0.15em; font-weight: 600; margin-bottom: 16px;">NB-7△-41X</div>
+            <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">// SYS STATUS</div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; border-bottom: 1px solid rgba(77,219,122,0.18); padding-bottom: 3px; margin-bottom: 3px;"><span style="color: rgba(77,219,122,0.4);">SIGNAL LOCK</span><span style="color: {{ freqStatusColor }};">{{ freqShortStatus }}</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 12px;"><span style="color: rgba(77,219,122,0.4);">CHANNEL-B</span><span style="color: {{ patternStatusColor }};">{{ patternShortStatus }}</span></div>
+            <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">// PATTERN LOCK</div>
+            <div style="font-size: 9px; color: rgba(77,219,122,0.5); margin-bottom: 4px;">TARGET: △ ○ □ ○</div>
+            <div style="font-size: 8px; color: rgba(77,219,122,0.3); margin-bottom: 8px;">{{ techProgressText }}</div>
+            <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+              <sc-for list="{{ patternSlots }}" as="slot" hint-placeholder-count="4">
+                <div style="width: 24px; height: 24px; border: 1px solid rgba(77,219,122,0.3); display: flex; align-items: center; justify-content: center; font-size: 13px;">{{ slot.filled }}</div>
+              </sc-for>
+            </div>
+            <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+              <div onclick="{{ pressTriangle }}" style="flex: 1; border: 1px solid #4DDB7A; text-align: center; padding: 5px 0; cursor: pointer; font-size: 14px; transition: background 0.15s;" style-hover="background:rgba(77,219,122,0.2);">△</div>
+              <div onclick="{{ pressCircle }}" style="flex: 1; border: 1px solid #4DDB7A; text-align: center; padding: 5px 0; cursor: pointer; font-size: 14px; transition: background 0.15s;" style-hover="background:rgba(77,219,122,0.2);">○</div>
+              <div onclick="{{ pressSquare }}" style="flex: 1; border: 1px solid #4DDB7A; text-align: center; padding: 5px 0; cursor: pointer; font-size: 14px; transition: background 0.15s;" style-hover="background:rgba(77,219,122,0.2);">□</div>
+              <div onclick="{{ pressDiamond }}" style="flex: 1; border: 1px solid #4DDB7A; text-align: center; padding: 5px 0; cursor: pointer; font-size: 14px; transition: background 0.15s;" style-hover="background:rgba(77,219,122,0.2);">◇</div>
+            </div>
+            <div style="font-size: 9px; letter-spacing: 0.1em; color: {{ patternStatusColor }};">{{ patternStatusText }}</div>
+          </div>
+          <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(77,219,122,0.18); flex-shrink: 0;">
+            <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 4px;">// TEAM STATUS</div>
+            <sc-for list="{{ teamStatus }}" as="member" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                <div style="width: 6px; height: 6px; border-radius: 50%; background: {{ member.dotColor }}; box-shadow: {{ member.dotGlow }}; flex-shrink: 0; transition: background 0.2s; animation: {{ member.dotAnim }};"></div>
+                <span style="font-size: 10px; flex: 1;">{{ member.name }} <span style="opacity: 0.4;">{{ member.roleLabel }}</span></span>
+                <sc-if value="{{ member.isSelf }}" hint-placeholder-val="{{ false }}"><span style="font-size: 8px; opacity: 0.3; letter-spacing: 0.08em;">YOU</span></sc-if>
+                <sc-if value="{{ member.showMute }}" hint-placeholder-val="{{ true }}"><span onclick="{{ member.toggleMute }}" style="font-size: 8px; letter-spacing: 0.08em; border: 1px solid {{ member.muteColor }}; color: {{ member.muteColor }}; padding: 2px 6px; cursor: pointer; flex-shrink: 0;">{{ member.muteLabel }}</span></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(77,219,122,0.25); flex: 1 1 260px; min-height: 220px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0;"><span style="font-size: 9px; letter-spacing: 0.15em; color: rgba(77,219,122,0.4);">░░ COMMS ░░</span><div onclick="{{ toggleVoice }}" style="display: flex; align-items: center; gap: 5px; border: 1px solid {{ voiceColor }}; color: {{ voiceColor }}; background: {{ voiceBg }}; padding: 4px 9px; cursor: pointer; font-size: 10px; letter-spacing: 0.08em; font-weight: 600;"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{ voiceColor }}; box-shadow: 0 0 6px {{ voiceColor }}; flex-shrink: 0;"></span>{{ voiceLabel }}</div></div>
+            <div style="font-size: 8px; letter-spacing: 0.1em; color: rgba(77,219,122,0.4); text-align: right; margin-bottom: 6px; flex-shrink: 0;">{{ pttHintText }}</div>
+            <div ref="{{ commsListRef }}" style="flex: 1; overflow-y: auto; margin-bottom: 6px; min-height: 0;">
+              <sc-for list="{{ commsMessages }}" as="msg" hint-placeholder-count="2">
+                <div style="font-size: 10px; margin-bottom: 3px; line-height: 1.4;"><span style="color: rgba(77,219,122,0.35);">[{{ msg.time }}] </span><span style="color: {{ msg.timeColor }}; font-weight: 600;">{{ msg.from }}:</span> {{ msg.text }}</div>
+              </sc-for>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+              <input value="{{ commsInput }}" oninput="{{ setCommsInput }}" onkeydown="{{ commsKeyDown }}" placeholder="MESSAGE..." style="flex: 1; min-width: 0; background: transparent; border: 1px solid rgba(77,219,122,0.25); outline: none; color: #4DDB7A; font-family: 'DM Mono', monospace; font-size: 10px; padding: 4px 6px;" />
+              <div onclick="{{ sendComms }}" style="border: 1px solid rgba(77,219,122,0.3); color: rgba(77,219,122,0.6); font-size: 9px; padding: 4px 8px; cursor: pointer; flex-shrink: 0;">SEND</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isTechnician }}" hint-placeholder-val="{{ false }}">
+    <!-- TECHNICIAN SCREEN — BLUEPRINT -->
+    <div style="background: #08101E; color: #7EC8E3; position: relative; overflow: hidden; flex: 1; display: flex; flex-direction: column; min-height: 0;">
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; mix-blend-mode: overlay; opacity: 0.7; background-image: radial-gradient(circle at 25% 20%, rgba(255,255,255,0.06) 0%, transparent 2%), radial-gradient(circle at 78% 70%, rgba(255,255,255,0.05) 0%, transparent 1.5%), radial-gradient(circle at 55% 92%, rgba(255,255,255,0.05) 0%, transparent 2%), radial-gradient(circle at 6% 60%, rgba(255,255,255,0.04) 0%, transparent 1.5%), repeating-linear-gradient(100deg, rgba(255,255,255,0.02) 0px, transparent 1px, transparent 5px), repeating-linear-gradient(-35deg, rgba(255,255,255,0.015) 0px, transparent 1px, transparent 8px);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse at center, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 45%, transparent 75%);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; box-shadow: inset 0 0 130px rgba(0,0,0,0.55); border: 4px solid rgba(0,0,0,0.18);"></div>
+      <div style="position: absolute; top: 8%; left: 8%; width: 50px; height: 50px; border-radius: 50%; background: radial-gradient(circle, rgba(0,0,0,0.4), transparent 70%); pointer-events: none; z-index: 2;"></div>
+      <div style="position: absolute; bottom: 12%; right: 6%; width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle, rgba(0,0,0,0.35), transparent 70%); pointer-events: none; z-index: 2;"></div>
+      <div style="display: flex; flex-direction: {{ rowDirection }}; position: relative; flex: 1; min-height: 0; overflow-y: auto;">
+        <div style="width: 320px; flex-shrink: 0; border-right: 1px solid rgba(126,200,227,0.18); overflow-y: auto; {{ colNarrowOverride }}">
+          <div style="padding: 8px 12px; border-bottom: 1px solid rgba(126,200,227,0.18); font-size: 9px; letter-spacing: 0.25em; color: rgba(126,200,227,0.4);">+--[ DEVICE SCHEMATIC // DWG BRV-7-041 // REV. C ]--+</div>
+          <div style="margin: 12px; background: #060E1A; border: 1px solid rgba(126,200,227,0.18);">
+            <svg viewBox="0 0 240 160" style="width: 100%; max-width: 520px; display: block; margin: 0 auto;">
+              <rect width="240" height="160" fill="#060E1A"></rect>
+              <rect x="30" y="30" width="180" height="100" rx="4" fill="#0D1E35" stroke="#5B9BD5" stroke-width="1" opacity="0.9"></rect>
+              <rect x="42" y="42" width="50" height="36" fill="#0A1828" stroke="#5B9BD5" stroke-width="0.8"></rect>
+              <text x="67" y="58" text-anchor="middle" fill="#7EC8E3" font-size="5" font-weight="bold">TIMER</text>
+              <rect x="106" y="42" width="72" height="52" fill="#0A1828" stroke="#5B9BD5" stroke-width="0.8"></rect>
+              <text x="142" y="65" text-anchor="middle" fill="#7EC8E3" font-size="5" font-weight="bold">MAIN CHARGE</text>
+              <text x="142" y="73" text-anchor="middle" fill="#5B9BD5" font-size="3.4" opacity="0.7">TYPE IV — 4.2KG HMX</text>
+              <rect x="42" y="86" width="50" height="36" fill="#0A1828" stroke="#5B9BD5" stroke-width="0.8"></rect>
+              <text x="67" y="102" text-anchor="middle" fill="#7EC8E3" font-size="5" font-weight="bold">POWER CELL</text>
+              <rect x="106" y="100" width="32" height="36" fill="#1A0808" stroke="#C04040" stroke-width="0.8"></rect>
+              <text x="122" y="116" text-anchor="middle" fill="#C04040" font-size="4" font-weight="bold">DET. MKIV</text>
+              <rect x="146" y="100" width="32" height="36" fill="#0A1828" stroke="#5B9BD5" stroke-width="0.8"></rect>
+              <text x="162" y="116" text-anchor="middle" fill="#7EC8E3" font-size="3.8" font-weight="bold">FAILSAFE</text>
+              <path d="M 92 60 L 106 60" stroke="#C4A84F" stroke-width="1.2" stroke-dasharray="2,1"></path>
+              <path d="M 80 78 L 80 95 L 162 95 L 162 100" fill="none" stroke="#2B5EA7" stroke-width="1.2"></path>
+              <text x="4" y="152" fill="#5B9BD5" font-size="3.5" opacity="0.8">DWG NO: BRV-7-041 — REV. C</text>
+            </svg>
+          </div>
+          <div style="margin: 4px 12px 12px; padding-top: 12px; border-top: 1px solid rgba(126,200,227,0.18); text-align: center;">
+            <div style="font-size: 9px; color: rgba(126,200,227,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">TIME REMAINING</div>
+            <div style="position: relative; padding: 4px 0 2px;">
+              <div style="font-family: 'DM Mono', monospace; font-size: 38px; font-weight: 500; letter-spacing: 0.08em; line-height: 1; color: {{ timerColor }}; text-shadow: 0 0 18px {{ timerGlow }}; animation: {{ timerPulseAnim }};">{{ timeStr }}</div>
+              <div style="height: 3px; width: 140px; margin: 10px auto 0; background: rgba(255,255,255,0.08); position: relative; overflow: hidden;"><div style="height: 100%; width: {{ timerPct }}; background: {{ timerColor }}; box-shadow: 0 0 6px {{ timerGlow }}; transition: width 1s linear;"></div></div>
+            </div>
+            <div style="font-size: 8px; margin-top: 5px; letter-spacing: 0.15em; color: {{ timerColor }};">{{ timerStatus }}</div>
+            <div style="font-size: 9px; margin-top: 10px; letter-spacing: 0.15em; color: rgba(126,200,227,0.45);">MISSION OBJECTIVES: {{ moduleCount }}</div>
+          </div>
+        </div>
+        <div style="flex: 1; border-right: 1px solid rgba(126,200,227,0.18); overflow-y: auto; {{ middleNarrowOverride }}">
+          <div style="padding: 8px 12px; border-bottom: 1px solid rgba(126,200,227,0.18); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 9px; letter-spacing: 0.25em; color: rgba(126,200,227,0.4);">+--[ WIRE ARRAY // DEFUSAL SEQUENCE ]--+</span>
+            <span style="font-size: 9px; color: #C4A84F; letter-spacing: 0.1em;">CUT ONLY IDENTIFIED SAFE CIRCUITS</span>
+          </div>
+          <div style="display: flex; gap: 14px; padding: 8px 12px; border-bottom: 1px solid rgba(126,200,227,0.1); font-size: 9px; color: rgba(126,200,227,0.45); flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 14px; height: 2px; background: #C4A84F;"></div>PWR BUS</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 14px; height: 2px; background: #5A7040;"></div>SIG RELAY</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 14px; height: 2px; background: #C04040;"></div>DETONATOR</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><div style="width: 14px; height: 2px; background: #2B5EA7;"></div>FAILSAFE</div>
+          </div>
+          <sc-if value="{{ hasCutResult }}" hint-placeholder-val="{{ false }}">
+            <div style="margin: 12px 12px 0; padding: 8px 12px; border: 1px solid {{ cutResultColor }}; color: {{ cutResultColor }}; background: {{ cutResultBg }}; font-size: 11px; letter-spacing: 0.05em;">&gt; {{ cutResultText }}</div>
+          </sc-if>
+          <div style="padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+            <sc-for list="{{ wires }}" as="wire" hint-placeholder-count="3">
+              <div onclick="{{ wire.onCut }}" style="border: 1px solid {{ wire.rowBorder }}; padding: 12px; display: flex; align-items: center; gap: 14px; opacity: {{ wire.rowOpacity }}; background: {{ wire.rowBg }}; cursor: {{ wire.cursor }}; transition: border-color 0.15s, background 0.15s;" style-hover="border-color:{{ wire.hoverBorder }};background:{{ wire.hoverBg }};">
+                <span style="color: rgba(126,200,227,0.4); font-size: 10px; width: 16px;">{{ wire.id }}</span>
+                <sc-if value="{{ wire.cut }}" hint-placeholder-val="{{ false }}">
+                  <div style="width: 104px; height: 24px; display: flex; align-items: center; gap: 7px;">
+                    <div style="position: relative; flex: 1; height: 8px; background: {{ wire.color }}; border-radius: 5px 0 0 5px; opacity: 0.48; box-shadow: 0 0 7px {{ wire.color }};"><div style="position:absolute;right:-3px;top:-2px;width:5px;height:12px;background:#B87333;"></div></div>
+                    <span style="color: {{ wire.color }}; font-size: 15px; line-height: 1;">✂</span>
+                    <div style="position: relative; flex: 1; height: 8px; background: {{ wire.color }}; border-radius: 0 5px 5px 0; opacity: 0.48; box-shadow: 0 0 7px {{ wire.color }};"><div style="position:absolute;left:-3px;top:-2px;width:5px;height:12px;background:#B87333;"></div></div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ wire.intact }}" hint-placeholder-val="{{ true }}">
+                  <div style="width: 104px; height: 24px; position: relative; display: flex; align-items: center;">
+                    <div style="position:absolute;left:0;right:0;height:10px;border-radius:6px;background:{{ wire.color }};box-shadow:0 0 9px {{ wire.color }}, inset 0 2px rgba(255,255,255,0.22), inset 0 -2px rgba(0,0,0,0.35);"></div>
+                    <div style="position:absolute;left:-3px;width:9px;height:16px;border:1px solid rgba(126,200,227,0.55);background:#15243A;"></div>
+                    <div style="position:absolute;right:-3px;width:9px;height:16px;border:1px solid rgba(126,200,227,0.55);background:#15243A;"></div>
+                  </div>
+                </sc-if>
+                <div style="flex: 1;"><div style="font-family: 'Oswald', sans-serif; font-size: 12px; letter-spacing: 0.1em;">{{ wire.label }}</div><div style="font-size: 9px; color: rgba(126,200,227,0.4);">{{ wire.sublabel }}</div></div>
+                <span style="font-size: 9px; color: {{ wire.statusColor }};">{{ wire.statusText }}</span>
+                <sc-if value="{{ wire.intact }}" hint-placeholder-val="{{ true }}">
+                  <span style="border: 1px solid #C04040; color: #C04040; background: rgba(192,64,64,0.08); padding: 5px 12px; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.12em; cursor: pointer;">SEVER</span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding: 12px; border-top: 1px solid rgba(126,200,227,0.18);">
+            <div style="font-size: 9px; color: rgba(126,200,227,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">// TECHNICIAN FIELD NOTES</div>
+            <div style="font-size: 10px; color: rgba(126,200,227,0.4); line-height: 1.6;">PER CIPHER OFFICER: SAFE CIRCUITS ARE SIGNAL AND FAILSAFE CLASS ONLY.</div>
+          </div>
+        </div>
+        <div style="width: 260px; flex-shrink: 0; padding: 12px; display: flex; flex-direction: column; min-height: 0; {{ lastColNarrowOverride }}">
+          <div style="flex: 0 1 auto; overflow-y: auto; min-height: 0;">
+            <div style="font-size: 9px; color: rgba(126,200,227,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">// RELAY SYNC PUZZLE</div>
+            <div style="font-size: 8px; color: rgba(126,200,227,0.45); margin-bottom: 8px; line-height: 1.5;">{{ relayTargetHintText }}</div>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+              <div onclick="{{ toggleRelay1 }}" style="flex: 1; border: 1px solid {{ relay1Border }}; padding: 8px; text-align: center; cursor: pointer; background: rgba(126,200,227,0.04);"><div style="font-size: 8px; color: rgba(126,200,227,0.55); letter-spacing: 0.08em;">RELAY A // CARRIER</div><div style="font-size: 9px; margin-top: 5px;">TARGET <span style="color:#E8DFC4;">{{ relay1TargetLabel }}</span></div><div style="margin: 6px 0; padding: 7px; border: 1px solid rgba(126,200,227,0.45); background: {{ relay1Bg }}; color: {{ relay1TextColor }}; font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:0.12em;">{{ relay1CurrentLabel }}</div><div style="font-size: 8px; color: {{ relay1MatchColor }}; letter-spacing: 0.1em;">{{ relay1MatchText }}</div></div>
+              <div onclick="{{ toggleRelay2 }}" style="flex: 1; border: 1px solid {{ relay2Border }}; padding: 8px; text-align: center; cursor: pointer; background: rgba(126,200,227,0.04);"><div style="font-size: 8px; color: rgba(126,200,227,0.55); letter-spacing: 0.08em;">RELAY B // PATTERN</div><div style="font-size: 9px; margin-top: 5px;">TARGET <span style="color:#E8DFC4;">{{ relay2TargetLabel }}</span></div><div style="margin: 6px 0; padding: 7px; border: 1px solid rgba(126,200,227,0.45); background: {{ relay2Bg }}; color: {{ relay2TextColor }}; font-family:'Oswald',sans-serif; font-size:14px; letter-spacing:0.12em;">{{ relay2CurrentLabel }}</div><div style="font-size: 8px; color: {{ relay2MatchColor }}; letter-spacing: 0.1em;">{{ relay2MatchText }}</div></div>
+            </div>
+            <div onclick="{{ checkRelays }}" style="text-align: center; border: 1px solid {{ relayCommitColor }}; color: {{ relayCommitColor }}; background: {{ relayCommitBg }}; font-size: 9px; letter-spacing: 0.1em; padding: 6px; cursor: pointer; margin-bottom: 6px; transition: background 0.15s, color 0.15s;" style-hover="background:#7EC8E3;color:#08101E;">COMMIT RELAY SYNC</div>
+            <sc-if value="{{ hasRelayStatus }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size: 9px; color: {{ relayStatusColor }}; letter-spacing: 0.08em; margin-bottom: 8px;">{{ relayStatusText }}</div>
+            </sc-if>
+            <div style="margin-top: 6px; padding-top: 8px; border-top: 1px solid rgba(126,200,227,0.18); font-size: 9px; color: rgba(126,200,227,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">// COMPONENT STATUS</div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 5px;"><span style="color: rgba(126,200,227,0.5);">OUTER CASING</span><span style="color: #7EC8E3;">[OK]</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 5px;"><span style="color: rgba(126,200,227,0.5);">TIMER CIRCUIT</span><span style="color: #7EC8E3;">[OK]</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 5px;"><span style="color: rgba(126,200,227,0.5);">POWER CELL</span><span style="color: #7EC8E3;">[OK]</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 5px;"><span style="color: rgba(126,200,227,0.5);">MAIN CHARGE</span><span style="color: #C4A84F;">[CHECK]</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 5px;"><span style="color: rgba(126,200,227,0.5);">DETONATOR MK4</span><span style="color: #C04040;">[FAULT]</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 10px;"><span style="color: rgba(126,200,227,0.5);">FAILSAFE LOOP</span><span style="color: #7EC8E3;">[OK]</span></div>
+          </div>
+          <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(126,200,227,0.18); flex-shrink: 0;">
+            <div style="font-size: 9px; color: rgba(126,200,227,0.4); letter-spacing: 0.2em; margin-bottom: 4px;">// TEAM STATUS</div>
+            <sc-for list="{{ teamStatus }}" as="member" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                <div style="width: 6px; height: 6px; border-radius: 50%; background: {{ member.dotColor }}; box-shadow: {{ member.dotGlow }}; flex-shrink: 0; transition: background 0.2s; animation: {{ member.dotAnim }};"></div>
+                <span style="font-size: 10px; flex: 1;">{{ member.name }} <span style="opacity: 0.4;">{{ member.roleLabel }}</span></span>
+                <sc-if value="{{ member.isSelf }}" hint-placeholder-val="{{ false }}"><span style="font-size: 8px; opacity: 0.3; letter-spacing: 0.08em;">YOU</span></sc-if>
+                <sc-if value="{{ member.showMute }}" hint-placeholder-val="{{ true }}"><span onclick="{{ member.toggleMute }}" style="font-size: 8px; letter-spacing: 0.08em; border: 1px solid {{ member.muteColor }}; color: {{ member.muteColor }}; padding: 2px 6px; cursor: pointer; flex-shrink: 0;">{{ member.muteLabel }}</span></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(126,200,227,0.25); flex: 1 1 260px; min-height: 220px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0;"><span style="font-size: 9px; letter-spacing: 0.15em; color: rgba(126,200,227,0.4);">░░ COMMS ░░</span><div onclick="{{ toggleVoice }}" style="display: flex; align-items: center; gap: 5px; border: 1px solid {{ voiceColor }}; color: {{ voiceColor }}; background: {{ voiceBg }}; padding: 4px 9px; cursor: pointer; font-size: 10px; letter-spacing: 0.08em; font-weight: 600;"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{ voiceColor }}; box-shadow: 0 0 6px {{ voiceColor }}; flex-shrink: 0;"></span>{{ voiceLabel }}</div></div>
+            <div style="font-size: 8px; letter-spacing: 0.1em; color: rgba(126,200,227,0.4); text-align: right; margin-bottom: 6px; flex-shrink: 0;">{{ pttHintText }}</div>
+            <div ref="{{ commsListRef }}" style="flex: 1; overflow-y: auto; margin-bottom: 6px; min-height: 0;">
+              <sc-for list="{{ commsMessages }}" as="msg" hint-placeholder-count="2">
+                <div style="font-size: 11px; margin-bottom: 5px; line-height: 1.5;"><span style="color: rgba(126,200,227,0.35);">[{{ msg.time }}] </span><span style="color: {{ msg.timeColor }}; font-weight: 600;">{{ msg.from }}:</span> {{ msg.text }}</div>
+              </sc-for>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+              <input value="{{ commsInput }}" oninput="{{ setCommsInput }}" onkeydown="{{ commsKeyDown }}" placeholder="MESSAGE..." style="flex: 1; min-width: 0; background: transparent; border: 1px solid rgba(126,200,227,0.25); outline: none; color: #7EC8E3; font-family: 'DM Mono', monospace; font-size: 11px; padding: 6px 8px;" />
+              <div onclick="{{ sendComms }}" style="border: 1px solid rgba(126,200,227,0.3); color: rgba(126,200,227,0.6); font-size: 10px; padding: 6px 10px; cursor: pointer; flex-shrink: 0;">SEND</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isOperator }}" hint-placeholder-val="{{ false }}">
+    <!-- OPERATOR SCREEN — FIELD COMMAND CRT (AMBER) -->
+    <div style="background: #0A0703; color: #D8A34A; position: relative; overflow: hidden; flex: 1; display: flex; flex-direction: column; min-height: 0;">
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 3px);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.6) 100%);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; mix-blend-mode: overlay; opacity: 0.7; background-image: radial-gradient(circle at 20% 25%, rgba(255,255,255,0.05) 0%, transparent 2%), radial-gradient(circle at 75% 68%, rgba(255,255,255,0.04) 0%, transparent 1.5%), repeating-linear-gradient(105deg, rgba(255,255,255,0.02) 0px, transparent 1px, transparent 5px);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(ellipse at center, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 45%, transparent 75%);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; box-shadow: inset 0 0 110px rgba(0,0,0,0.5); border: 4px solid rgba(0,0,0,0.15);"></div>
+      <div style="display: flex; flex-direction: {{ rowDirection }}; position: relative; flex: 1; min-height: 0; overflow-y: auto;">
+        <div style="width: 280px; flex-shrink: 0; border-right: 1px solid rgba(216,163,74,0.2); overflow-y: auto; {{ colNarrowOverride }}">
+          <div style="padding: 8px 12px; border-bottom: 1px solid rgba(216,163,74,0.2); font-size: 9px; letter-spacing: 0.25em; color: rgba(216,163,74,0.5);">+--[ CLASSIFIED INTELLIGENCE FILE ]--+</div>
+          <div style="padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+              <div><div style="font-size: 9px; color: rgba(216,163,74,0.5); letter-spacing: 0.2em; margin-bottom: 3px;">BOMB ID</div><div style="font-size: 14px; letter-spacing: 0.1em; font-weight: 700; color: #E8DFC4;">{{ bombId }}</div></div>
+              <div style="border: 1px solid #E05A3E; color: #E05A3E; padding: 3px 8px; font-size: 10px; letter-spacing: 0.2em; font-weight: 700;">[TOP SECRET]</div>
+            </div>
+            <div style="border-top: 1px solid rgba(216,163,74,0.3); border-bottom: 1px solid rgba(216,163,74,0.3); padding: 12px 0; margin-bottom: 14px;">
+              <div style="font-size: 9px; color: rgba(216,163,74,0.5); letter-spacing: 0.2em; margin-bottom: 4px;">OPERATION</div>
+              <div style="font-family: 'Oswald', sans-serif; font-size: 24px; color: #D8A34A; font-weight: 700; line-height: 1; text-shadow: 0 0 16px rgba(216,163,74,0.35);">{{ roomName }}</div>
+            </div>
+            <div style="font-size: 9px; color: rgba(216,163,74,0.5); letter-spacing: 0.2em; margin-bottom: 6px;">FIELD OPERATIVE</div>
+            <div style="display: flex; gap: 8px; font-size: 11px; margin-bottom: 4px;"><span style="color: rgba(216,163,74,0.5); min-width: 72px;">CODENAME:</span><span style="font-weight: 700; color: #E8DFC4;">{{ operatorCallsign }}</span></div>
+            <div style="display: flex; gap: 8px; font-size: 11px;"><span style="color: rgba(216,163,74,0.5); min-width: 72px;">CLEARANCE:</span><span style="font-weight: 700; color: #E8DFC4;">DELTA</span></div>
+          </div>
+          <div style="margin: 4px 16px 16px; padding-top: 14px; border-top: 1px solid rgba(216,163,74,0.2); text-align: center;">
+            <div style="font-size: 9px; color: rgba(216,163,74,0.5); letter-spacing: 0.2em; margin-bottom: 6px;">TIME REMAINING</div>
+            <div style="position: relative; padding: 4px 0 2px;">
+              <div style="font-family: 'DM Mono', monospace; font-size: 38px; font-weight: 500; letter-spacing: 0.08em; line-height: 1; color: {{ timerColor }}; text-shadow: 0 0 18px {{ timerGlow }}; animation: {{ timerPulseAnim }};">{{ timeStr }}</div>
+              <div style="height: 3px; width: 140px; margin: 10px auto 0; background: rgba(255,255,255,0.08); position: relative; overflow: hidden;"><div style="height: 100%; width: {{ timerPct }}; background: {{ timerColor }}; box-shadow: 0 0 6px {{ timerGlow }}; transition: width 1s linear;"></div></div>
+            </div>
+            <div style="font-size: 8px; margin-top: 5px; letter-spacing: 0.15em; color: {{ timerColor }};">{{ timerStatus }}</div>
+            <div style="margin-top: 12px; text-align: left;">
+              <div style="display: flex; justify-content: space-between; font-size: 9px; letter-spacing: 0.1em; color: rgba(216,163,74,0.5); margin-bottom: 4px;"><span>OBJECTIVE PROGRESS</span><span>{{ completedModules }}/{{ moduleCount }}</span></div>
+              <div style="height: 5px; background: rgba(216,163,74,0.12);"><div style="height: 100%; width: {{ modulePct }}; background: #D8A34A;"></div></div>
+              <div style="font-size: 9px; color: rgba(216,163,74,0.6); margin-top: 6px;">CURRENT: {{ activeModuleLabel }}</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex: 1; border-right: 1px solid rgba(216,163,74,0.2); overflow-y: auto; {{ middleNarrowOverride }}">
+          <div style="padding: 6px 16px; border-bottom: 1px solid rgba(216,163,74,0.2); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 9px; letter-spacing: 0.25em; color: rgba(216,163,74,0.5);">+--[ MISSION OBJECTIVES // OP: {{ roomName }} ]--+</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 8px; letter-spacing: 0.15em; color: rgba(216,163,74,0.5);">THREAT: LEVEL 4</span>
+              <div style="display: flex; gap: 2px; width: 60px;"><div style="flex:1; height:8px; background:#E05A3E;"></div><div style="flex:1; height:8px; background:#E05A3E;"></div><div style="flex:1; height:8px; background:#E05A3E;"></div><div style="flex:1; height:8px; background:#E05A3E;"></div><div style="flex:1; height:8px; background:rgba(216,163,74,0.15);"></div></div>
+            </div>
+          </div>
+          <div style="padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px;">
+              <div style="font-family: 'Oswald', sans-serif; font-size: 13px; color: #D8A34A; letter-spacing: 0.15em;">MISSION OBJECTIVES</div>
+              <div style="font-size: 9px; border: 1px solid rgba(216,163,74,0.3); padding: 2px 8px; color: rgba(216,163,74,0.5);">{{ completedModules }}/{{ moduleCount }} COMPLETE</div>
+            </div>
+            <sc-for list="{{ objectives }}" as="objective" hint-placeholder-count="4">
+              <div class="mission-objective" onclick="{{ objective.toggle }}" style="display: flex; gap: 10px; margin-bottom: 10px; cursor: pointer; padding: 5px; border: 1px solid {{ objective.border }}; background: {{ objective.bg }};">
+                <div style="width: 14px; height: 14px; border: 1px solid {{ objective.checkBorder }}; background: {{ objective.checkBg }}; flex-shrink: 0; display:flex;align-items:center;justify-content:center;"><span style="color:#0A0703; font-size:9px;">{{ objective.checkmark }}</span></div>
+                <div style="font-size: 10px; line-height: 1.5; opacity: {{ objective.opacity }}; text-decoration: {{ objective.decoration }}; color: #E8DFC4;"><span style="color: rgba(216,163,74,0.5); margin-right: 6px;">{{ objective.number }}.</span>{{ objective.label }}<div style="font-size:8px;color:{{ objective.statusColor }};margin-top:2px;letter-spacing:0.08em;">{{ objective.statusText }}</div></div>
+              </div>
+            </sc-for>
+            <div style="margin-top: 20px; border-top: 1px solid rgba(216,163,74,0.25); padding-top: 16px;">
+              <div style="font-family: 'Oswald', sans-serif; font-size: 13px; color: #D8A34A; letter-spacing: 0.15em; margin-bottom: 6px;">AUTHORIZATION CODE ENTRY</div>
+              <div style="display: flex; gap: 8px;">
+                <input value="{{ authInput }}" oninput="{{ setAuthInput }}" onkeydown="{{ authKeyDown }}" placeholder="ENTER AUTH CODE" style="flex: 1; border: 1px solid {{ authBorderColor }}; background: rgba(216,163,74,0.06); padding: 6px 10px; font-size: 12px; letter-spacing: 0.12em; color: #E8DFC4; font-family: 'DM Mono', monospace; outline: none;" />
+                <div onclick="{{ submitAuth }}" style="border: 1px solid #D8A34A; color: #D8A34A; padding: 6px 16px; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.15em; cursor: pointer; transition: background 0.15s, color 0.15s;" style-hover="background:#D8A34A;color:#0A0703;">SUBMIT</div>
+              </div>
+              <sc-if value="{{ hasAuthStatus }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top: 8px; font-size: 11px; color: {{ authStatusColor }}; letter-spacing: 0.05em;">{{ authStatusText }}</div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+        <div style="width: 260px; flex-shrink: 0; padding: 12px; display: flex; flex-direction: column; min-height: 0; {{ lastColNarrowOverride }}">
+          <div style="flex: 0 1 auto; overflow-y: auto; min-height: 0;">
+            <div style="font-size: 9px; color: rgba(216,163,74,0.5); letter-spacing: 0.2em; margin-bottom: 8px;">// STANDING ORDER CHECK</div>
+            <div style="font-size: 10px; color: #E8DFC4; line-height: 1.6; margin-bottom: 6px;">Which disable order matches the cipher officer's protocol?</div>
+            <div style="font-size: 8px; color: rgba(216,163,74,0.4); margin-bottom: 10px;">{{ techProgressText }}</div>
+            <div onclick="{{ chooseOrderA }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; margin-bottom: 6px; cursor: pointer; transition: background 0.15s;" style-hover="background:rgba(216,163,74,0.12);">A. POWER → DETONATOR → SIGNAL</div>
+            <div onclick="{{ chooseOrderB }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; margin-bottom: 6px; cursor: pointer; transition: background 0.15s;" style-hover="background:rgba(216,163,74,0.12);">B. SIGNAL → FAILSAFE → POWER</div>
+            <div onclick="{{ chooseOrderC }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; cursor: pointer; transition: background 0.15s;" style-hover="background:rgba(216,163,74,0.12);">C. DETONATOR → POWER → SIGNAL</div>
+            <sc-if value="{{ hasOrderStatus }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top: 8px; font-size: 10px; color: {{ orderStatusColor }};">{{ orderStatusText }}</div>
+            </sc-if>
+          </div>
+          <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(216,163,74,0.2); flex-shrink: 0;">
+            <div style="font-size: 9px; color: rgba(216,163,74,0.5); letter-spacing: 0.2em; margin-bottom: 4px;">// TEAM STATUS</div>
+            <sc-for list="{{ teamStatus }}" as="member" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                <div style="width: 6px; height: 6px; border-radius: 50%; background: {{ member.dotColor }}; box-shadow: {{ member.dotGlow }}; flex-shrink: 0; transition: background 0.2s; animation: {{ member.dotAnim }};"></div>
+                <span style="font-size: 10px; color: #E8DFC4; flex: 1;">{{ member.name }} <span style="opacity: 0.5;">{{ member.roleLabel }}</span></span>
+                <sc-if value="{{ member.isSelf }}" hint-placeholder-val="{{ false }}"><span style="font-size: 8px; opacity: 0.4; letter-spacing: 0.08em;">YOU</span></sc-if>
+                <sc-if value="{{ member.showMute }}" hint-placeholder-val="{{ true }}"><span onclick="{{ member.toggleMute }}" style="font-size: 8px; letter-spacing: 0.08em; border: 1px solid {{ member.muteColor }}; color: {{ member.muteColor }}; padding: 2px 6px; cursor: pointer; flex-shrink: 0;">{{ member.muteLabel }}</span></sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(216,163,74,0.25); flex: 1 1 260px; min-height: 220px; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-shrink: 0;"><span style="font-size: 9px; letter-spacing: 0.15em; color: rgba(216,163,74,0.5);">░░ COMMS ░░</span><div onclick="{{ toggleVoice }}" style="display: flex; align-items: center; gap: 5px; border: 1px solid {{ voiceColor }}; color: {{ voiceColor }}; background: {{ voiceBg }}; padding: 4px 9px; cursor: pointer; font-size: 10px; letter-spacing: 0.08em; font-weight: 600;"><span style="width: 6px; height: 6px; border-radius: 50%; background: {{ voiceColor }}; box-shadow: 0 0 6px {{ voiceColor }}; flex-shrink: 0;"></span>{{ voiceLabel }}</div></div>
+            <div style="font-size: 8px; letter-spacing: 0.1em; color: rgba(216,163,74,0.5); text-align: right; margin-bottom: 6px; flex-shrink: 0;">{{ pttHintText }}</div>
+            <div ref="{{ commsListRef }}" style="flex: 1; overflow-y: auto; margin-bottom: 6px; min-height: 0;">
+              <sc-for list="{{ commsMessages }}" as="msg" hint-placeholder-count="2">
+                <div style="font-size: 11px; margin-bottom: 5px; color: #E8DFC4; line-height: 1.5;"><span style="color: rgba(216,163,74,0.4);">[{{ msg.time }}] </span><span style="color: {{ msg.timeColor }}; font-weight: 600;">{{ msg.from }}:</span> {{ msg.text }}</div>
+              </sc-for>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+              <input value="{{ commsInput }}" oninput="{{ setCommsInput }}" onkeydown="{{ commsKeyDown }}" placeholder="MESSAGE..." style="flex: 1; min-width: 0; background: transparent; border: 1px solid rgba(216,163,74,0.25); outline: none; color: #D8A34A; font-family: 'DM Mono', monospace; font-size: 11px; padding: 6px 8px;" />
+              <div onclick="{{ sendComms }}" style="border: 1px solid rgba(216,163,74,0.3); color: rgba(216,163,74,0.6); font-size: 10px; padding: 6px 10px; cursor: pointer; flex-shrink: 0;">SEND</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isWin }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ isAnalyst }}" hint-placeholder-val="{{ true }}">
+    <div style="background: #030A05; color: #4DDB7A; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+      <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 3px);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.6) 100%);"></div>
+      <div style="position: fixed; inset: 0; pointer-events: none; z-index: 65; background: #4DDB7A; animation: flashGreen 1s ease-out forwards;"></div>
+      <div style="border: 1px solid #4DDB7A; padding: 48px 64px; text-align: center; position: relative; background: rgba(77,219,122,0.05); animation: popIn 0.5s ease-out;">
+        <div style="font-size: 10px; letter-spacing: 0.3em; color: rgba(77,219,122,0.5); margin-bottom: 18px; animation: fadeUp 0.5s ease-out 0.1s both;">+--[ CHANNEL-BRAVO // BOMB {{ bombId }} ]--+</div>
+        <div style="font-family: 'Oswald', sans-serif; font-size: 44px; font-weight: 700; letter-spacing: 0.1em; text-shadow: 0 0 26px rgba(77,219,122,0.5); margin-bottom: 16px; animation: fadeUp 0.5s ease-out 0.22s both;">DEVICE NEUTRALIZED</div>
+        <div style="font-size: 13px; line-height: 1.8; max-width: 460px; margin: 0 auto; animation: fadeUp 0.5s ease-out 0.34s both;">&gt; GOOD WORK, TEAM. THE BOMB HAS BEEN DEFUSED.<br/>&gt; ALL MODULES CONFIRMED SAFE. STAND DOWN.</div>
+      </div>
+      <div onclick="{{ goMenu }}" style="margin-top: 32px; border: 1px solid rgba(77,219,122,0.4); color: rgba(77,219,122,0.7); padding: 8px 24px; font-size: 11px; letter-spacing: 0.2em; cursor: pointer; position: relative; animation: fadeUp 0.5s ease-out 0.46s both;">RETURN TO BRIEFING</div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ isTechnician }}" hint-placeholder-val="{{ false }}">
+    <div style="background: #08101E; color: #7EC8E3; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+      <div style="position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 120px rgba(0,0,0,0.5);"></div>
+      <div style="position: fixed; inset: 0; pointer-events: none; z-index: 65; background: #4DDB7A; animation: flashGreen 1s ease-out forwards;"></div>
+      <div style="border: 1px solid #7EC8E3; padding: 48px 64px; text-align: center; position: relative; background: rgba(126,200,227,0.05); animation: popIn 0.5s ease-out;">
+        <div style="font-size: 10px; letter-spacing: 0.3em; color: rgba(126,200,227,0.5); margin-bottom: 18px; animation: fadeUp 0.5s ease-out 0.1s both;">+--[ DWG BRV-7-041 // FINAL STATUS ]--+</div>
+        <div style="font-family: 'Oswald', sans-serif; font-size: 44px; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 16px; animation: fadeUp 0.5s ease-out 0.22s both;">ALL CIRCUITS SAFE</div>
+        <div style="font-size: 13px; line-height: 1.8; max-width: 460px; margin: 0 auto; color: rgba(126,200,227,0.8); animation: fadeUp 0.5s ease-out 0.34s both;">GOOD WORK, TEAM. THE BOMB HAS BEEN DEFUSED.<br/>DEVICE FULLY DISARMED — NO FURTHER ACTION REQUIRED.</div>
+      </div>
+      <div onclick="{{ goMenu }}" style="margin-top: 32px; border: 1px solid rgba(126,200,227,0.4); color: rgba(126,200,227,0.7); padding: 8px 24px; font-size: 11px; letter-spacing: 0.2em; cursor: pointer; animation: fadeUp 0.5s ease-out 0.46s both;">RETURN TO BRIEFING</div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ isOperator }}" hint-placeholder-val="{{ false }}">
+    <div style="background: #0A0703; color: #D8A34A; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+      <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 3px);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.6) 100%);"></div>
+      <div style="position: fixed; inset: 0; pointer-events: none; z-index: 65; background: #4DDB7A; animation: flashGreen 1s ease-out forwards;"></div>
+      <div style="border: 1px solid #D8A34A; padding: 48px 64px; text-align: center; position: relative; background: rgba(216,163,74,0.05); animation: popIn 0.5s ease-out;">
+        <div style="font-size: 10px; letter-spacing: 0.3em; color: rgba(216,163,74,0.5); margin-bottom: 18px; animation: fadeUp 0.5s ease-out 0.1s both;">+--[ BOMB {{ bombId }} // FINAL ENTRY ]--+</div>
+        <div style="font-family: 'Oswald', sans-serif; font-size: 44px; font-weight: 700; letter-spacing: 0.1em; color: #4DDB7A; text-shadow: 0 0 26px rgba(77,219,122,0.4); margin-bottom: 16px; animation: stampSlam 0.6s ease-out 0.15s both;">MISSION SUCCESS</div>
+        <div style="font-size: 13px; line-height: 1.8; max-width: 460px; margin: 0 auto; color: #E8DFC4; animation: fadeUp 0.5s ease-out 0.4s both;">Good work, team. The bomb has been defused.<br/>Bomb {{ bombId }} is hereby marked resolved.</div>
+      </div>
+      <div onclick="{{ goMenu }}" style="margin-top: 32px; border: 1px solid rgba(216,163,74,0.4); color: rgba(216,163,74,0.7); padding: 8px 24px; font-size: 11px; letter-spacing: 0.2em; cursor: pointer; animation: fadeUp 0.5s ease-out 0.55s both;">RETURN TO BRIEFING</div>
+    </div>
+  </sc-if>
+</sc-if>
+
+<sc-if value="{{ isLose }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ isAnalyst }}" hint-placeholder-val="{{ true }}">
+    <div style="background: #0A0302; color: #E05A3E; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+      <div style="position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.22) 2px, rgba(0,0,0,0.22) 3px);"></div>
+      <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(139,20,20,0.15) 0%, rgba(0,0,0,0.7) 100%);"></div>
+      <div style="position: fixed; inset: 0; pointer-events: none; z-index: 65; background: #E05A3E; animation: flashRed 1s ease-out forwards;"></div>
+      <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#E05A3E" stroke-width="2" style="margin-bottom: 18px; position: relative; animation: stampSlam 0.6s ease-out both;">
+        <circle cx="32" cy="24" r="16"></circle>
+        <circle cx="25" cy="22" r="3" fill="#E05A3E" stroke="none"></circle>
+        <circle cx="39" cy="22" r="3" fill="#E05A3E" stroke="none"></circle>
+        <path d="M26 30 L26 36 M32 30 L32 38 M38 30 L38 36"></path>
+        <path d="M20 34 Q32 42 44 34"></path>
+        <path d="M10 50 L54 34 M10 34 L54 50" stroke-width="3"></path>
+      </svg>
+      <div style="border: 1px solid #E05A3E; padding: 40px 64px; text-align: center; position: relative; background: rgba(224,90,62,0.06); animation: popIn 0.5s ease-out 0.1s both;">
+        <div style="font-size: 10px; letter-spacing: 0.3em; color: rgba(224,90,62,0.6); margin-bottom: 18px; animation: fadeUp 0.5s ease-out 0.3s both;">+--[ CHANNEL-BRAVO // SIGNAL LOST ]--+</div>
+        <div style="font-family: 'Oswald', sans-serif; font-size: 44px; font-weight: 700; letter-spacing: 0.1em; text-shadow: 0 0 26px rgba(224,90,62,0.5); margin-bottom: 16px; animation: fadeUp 0.5s ease-out 0.42s both;">DETONATION CONFIRMED</div>
+        <div style="font-size: 13px; line-height: 1.8; max-width: 460px; margin: 0 auto; animation: fadeUp 0.5s ease-out 0.54s both;">&gt; THE BOMB EXPLODED. THE TEAM WAS LOST.<br/>&gt; ALL CHANNELS SILENT. OPERATION FAILED.</div>
+      </div>
+      <div onclick="{{ goMenu }}" style="margin-top: 32px; border: 1px solid rgba(224,90,62,0.4); color: rgba(224,90,62,0.7); padding: 8px 24px; font-size: 11px; letter-spacing: 0.2em; cursor: pointer; position: relative; animation: fadeUp 0.5s ease-out 0.66s both;">RETURN TO BRIEFING</div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ isTechnician }}" hint-placeholder-val="{{ false }}">
+    <div style="background: #0E0808; color: #E05A3E; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+      <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(139,20,20,0.15) 0%, rgba(0,0,0,0.7) 100%);"></div>
+      <div style="position: fixed; inset: 0; pointer-events: none; z-index: 65; background: #E05A3E; animation: flashRed 1s ease-out forwards;"></div>
+      <svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="#E05A3E" stroke-width="2" style="margin-bottom: 18px; position: relative; animation: stampSlam 0.6s ease-out both;">
+        <circle cx="32" cy="24" r="16"></circle>
+        <circle cx="25" cy="22" r="3" fill="#E05A3E" stroke="none"></circle>
+        <circle cx="39" cy="22" r="3" fill="#E05A3E" stroke="none"></circle>
+        <path d="M26 30 L26 36 M32 30 L32 38 M38 30 L38 36"></path>
+        <path d="M20 34 Q32 42 44 34"></path>
+        <path d="M10 50 L54 34 M10 34 L54 50" stroke-width="3"></path>
+      </svg>
+      <div style="border: 1px solid #E05A3E; padding: 40px 64px; text-align: center; position: relative; background: rgba(224,90,62,0.06); animation: popIn 0.5s ease-out 0.1s both;">
+        <div style="font-size: 10px; letter-spacing: 0.3em; color: rgba(224,90,62,0.6); margin-bottom: 18px; animation: fadeUp 0.5s ease-out 0.3s both;">+--[ DWG BRV-7-041 // CATASTROPHIC FAILURE ]--+</div>
+        <div style="font-family: 'Oswald', sans-serif; font-size: 44px; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 16px; animation: fadeUp 0.5s ease-out 0.42s both;">MAIN CHARGE DETONATED</div>
+        <div style="font-size: 13px; line-height: 1.8; max-width: 460px; margin: 0 auto; color: rgba(224,90,62,0.85); animation: fadeUp 0.5s ease-out 0.54s both;">The bomb exploded. The team was lost.<br/>Wrong circuit severed — no further diagnostics possible.</div>
+      </div>
+      <div onclick="{{ goMenu }}" style="margin-top: 32px; border: 1px solid rgba(224,90,62,0.4); color: rgba(224,90,62,0.7); padding: 8px 24px; font-size: 11px; letter-spacing: 0.2em; cursor: pointer; animation: fadeUp 0.5s ease-out 0.66s both;">RETURN TO BRIEFING</div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ isOperator }}" hint-placeholder-val="{{ false }}">
+    <div style="background: #0A0703; color: #D8A34A; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+      <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(139,20,20,0.15) 0%, rgba(0,0,0,0.7) 100%);"></div>
+      <div style="position: fixed; inset: 0; pointer-events: none; z-index: 65; background: #E05A3E; animation: flashRed 1s ease-out forwards;"></div>
+      <svg viewBox="0 0 64 64" width="60" height="60" fill="none" stroke="#E05A3E" stroke-width="2" style="margin-bottom: 16px; position: relative; animation: stampSlam 0.6s ease-out both;">
+        <circle cx="32" cy="24" r="16"></circle>
+        <circle cx="25" cy="22" r="3" fill="#E05A3E" stroke="none"></circle>
+        <circle cx="39" cy="22" r="3" fill="#E05A3E" stroke="none"></circle>
+        <path d="M26 30 L26 36 M32 30 L32 38 M38 30 L38 36"></path>
+        <path d="M20 34 Q32 42 44 34"></path>
+        <path d="M10 50 L54 34 M10 34 L54 50" stroke-width="3"></path>
+      </svg>
+      <div style="border: 1px solid #E05A3E; padding: 40px 64px; text-align: center; position: relative; background: rgba(224,90,62,0.06); animation: popIn 0.5s ease-out 0.1s both;">
+        <div style="font-size: 10px; letter-spacing: 0.3em; color: rgba(224,90,62,0.6); margin-bottom: 18px; animation: fadeUp 0.5s ease-out 0.3s both;">+--[ BOMB {{ bombId }} // FINAL ENTRY ]--+</div>
+        <div style="font-family: 'Oswald', sans-serif; font-size: 44px; font-weight: 700; letter-spacing: 0.1em; color: #E05A3E; text-shadow: 0 0 26px rgba(224,90,62,0.5); margin-bottom: 16px; animation: fadeUp 0.5s ease-out 0.42s both;">MISSION FAILED</div>
+        <div style="font-size: 13px; line-height: 1.8; max-width: 460px; margin: 0 auto; color: #E8DFC4; animation: fadeUp 0.5s ease-out 0.54s both;">The bomb exploded. The team was lost.<br/>Bomb {{ bombId }} is hereby marked closed — no survivors reported.</div>
+      </div>
+      <div onclick="{{ goMenu }}" style="margin-top: 32px; border: 1px solid rgba(216,163,74,0.4); color: rgba(216,163,74,0.7); padding: 8px 24px; font-size: 11px; letter-spacing: 0.2em; cursor: pointer; animation: fadeUp 0.5s ease-out 0.66s both;">RETURN TO BRIEFING</div>
+    </div>
+  </sc-if>
+</sc-if>
+
+<div style="position: fixed; inset: 0; pointer-events: none; z-index: 60; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 3px); animation: scanGlow 2.6s ease-in-out infinite;"></div>
+<div style="position: fixed; inset: 0; pointer-events: none; z-index: 61; mix-blend-mode: overlay; background: radial-gradient(ellipse at center, rgba(255,255,255,0.12) 0%, transparent 65%); animation: scanGlow 2.6s ease-in-out infinite reverse;"></div>
+<div style="position: fixed; inset: 0; pointer-events: none; z-index: 62; background: #fff; mix-blend-mode: overlay; animation: randomFlicker 26s linear infinite;"></div>
+<div style="position: fixed; inset: 0; pointer-events: none; z-index: 62; background: #000; opacity: 0; animation: randomFlicker 34s linear infinite 11s both;"></div>
+<sc-if value="{{ flashActive }}" hint-placeholder-val="{{ false }}">
+  <div style="position: fixed; inset: 0; pointer-events: none; z-index: 70; background: rgba(192,32,32,0.5); animation: penaltyBlink 0.35s steps(2);"></div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const CALLSIGNS = { analyst: "WREN", technician: "BRIDGE", operator: "SABLE" };
+function msgColor(from) {
+  if (from === "SYSTEM") return "#C04040";
+  if (from === "CTRL") return "#E8DFC4";
+  if (from === "WREN") return "#4DDB7A";
+  if (from === "BRIDGE") return "#7EC8E3";
+  if (from === "SABLE") return "#D8A34A";
+  return "#8A9430";
+}
+const WIRES_POOL = [
+  { id: "A", label: "CIRCUIT A", sublabel: "PRIMARY POWER BUS", color: "#C4A84F", safe: false },
+  { id: "B", label: "CIRCUIT B", sublabel: "SIGNAL RELAY — CLASS III", color: "#5A7040", safe: true },
+  { id: "C", label: "CIRCUIT C", sublabel: "DETONATOR LEAD — CRITICAL", color: "#C04040", safe: false },
+  { id: "D", label: "CIRCUIT D", sublabel: "FAILSAFE LOOP — SECONDARY", color: "#2B5EA7", safe: true },
+  { id: "E", label: "CIRCUIT E", sublabel: "GROUND RETURN", color: "#888880", safe: false },
+  { id: "F", label: "CIRCUIT F", sublabel: "COOLANT SENSOR LINE", color: "#8A9430", safe: false },
+  { id: "G", label: "CIRCUIT G", sublabel: "BACKUP TRIGGER", color: "#C48A6A", safe: false },
+];
+const DIFFICULTY_WIRES = { STANDARD: 3, HARD: 5, EXTREME: 7 };
+const DIFFICULTY_SECONDS = { STANDARD: 252, HARD: 210, EXTREME: 165 };
+const DIFFICULTY_MODULES = { STANDARD: 4, HARD: 6, EXTREME: 6 };
+const DIFFICULTY_DETAILS = {
+  STANDARD: { specs: "04:12 // 3 CIRCUITS // 4 OBJECTIVES", description: "FIELD TRAINING PROFILE — GENEROUS TIMER AND REDUCED DEVICE COMPLEXITY." },
+  HARD: { specs: "03:30 // 5 CIRCUITS // 6 OBJECTIVES", description: "ACTIVE-DUTY PROFILE — SHORTER WINDOW, MORE CIRCUITS, AND FULL TEAM COORDINATION." },
+  EXTREME: { specs: "02:45 // 7 CIRCUITS // 6 OBJECTIVES", description: "DIRECTORATE BLACK PROFILE — MINIMUM TIME, MAXIMUM DEVICE COMPLEXITY, NO MARGIN FOR ERROR." },
+};
+const OBJECTIVE_DEFS = [
+  { id: "frequency", label: "LOCK TARGET FREQUENCY AT 156.8 MHZ" },
+  { id: "pattern", label: "DECODE THE CHANNEL-B SIGNAL PATTERN" },
+  { id: "auth", label: "ENTER THE DIRECTORATE AUTHORIZATION CODE" },
+  { id: "wire", label: "ISOLATE EVERY SAFE CIRCUIT" },
+  { id: "relay", label: "SYNCHRONIZE CARRIER AND PATTERN RELAYS" },
+  { id: "order", label: "CONFIRM THE STANDING DISABLE ORDER" },
+];
+const AUTH_CODE = "DELTA-7-ECHO";
+const TARGET_FREQ = 156.8;
+const NATO_WORDS = ["ALPHA","BRAVO","CHARLIE","DELTA","ECHO","FOXTROT","GOLF","HOTEL","INDIA","JULIET","KILO","LIMA","MIKE","NOVEMBER","OSCAR","PAPA","QUEBEC","ROMEO","SIERRA","TANGO","UNIFORM","VICTOR","WHISKEY","XRAY","YANKEE","ZULU"];
+function generateBombId() {
+  const word = NATO_WORDS[Math.floor(Math.random() * NATO_WORDS.length)];
+  const digits = Math.floor(1000 + Math.random() * 9000);
+  const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+  return `${word}-${digits}-${letter}`;
+}
+function generateRoomCode() {
+  const names = ["BLACKTHORN", "BL4CKTH0RN", "N1GHTFALL", "REDSHIFT", "R3DSHIFT", "IRONCURTAIN", "GH0STLINE", "DUSK", "VANTA", "CIPHER", "NIGHTJAR", "DEADLETTER"];
+  const base = names[Math.floor(Math.random() * names.length)];
+  if (/\d/.test(base) || Math.random() < 0.35) return base;
+  return `${base}-${Math.floor(10 + Math.random() * 90)}`;
+}
+const ARCHIVE = [
+  { codename: "BLACKTHORN", bombId: "ECHO-4471-K", date: "21 JUL 1963", outcome: "SUCCESS", color: "#4DDB7A", time: "02:47 REMAINING" },
+  { codename: "REDSHIFT", bombId: "TANGO-2290-R", date: "03 NOV 1962", outcome: "FAILED", color: "#E05A3E", time: "00:00 — DETONATED" },
+  { codename: "IRON CURTAIN", bombId: "KILO-8813-M", date: "14 FEB 1964", outcome: "SUCCESS", color: "#4DDB7A", time: "01:12 REMAINING" },
+  { codename: "NIGHTINGALE", bombId: "OSCAR-1056-D", date: "30 SEP 1963", outcome: "SUCCESS", color: "#4DDB7A", time: "00:38 REMAINING" },
+  { codename: "GREY FALCON", bombId: "ZULU-7734-P", date: "19 AUG 1962", outcome: "FAILED", color: "#E05A3E", time: "00:00 — DETONATED" },
+];
+
+class Component extends DCLogic {
+  state = {
+    screen: "menu",
+    playerName: "",
+    role: "analyst",
+    lobbyClaimed: null,
+    showSettings: false,
+    soundOn: true,
+    scanlinesOn: true,
+    difficulty: "STANDARD",
+    comms: [
+      { time: "14:25:02", from: "CTRL", text: "FIELD TEAM -- CONFIRM POSITIONS OVER" },
+      { time: "14:30:11", from: "CTRL", text: "ZETA PROTOCOL INITIATED -- COUNTDOWN RUNNING" },
+    ],
+    commsInput: "",
+    wires: [
+      { id: "A", label: "CIRCUIT A", sublabel: "PRIMARY POWER BUS", color: "#C4A84F", safe: false, cut: false },
+      { id: "B", label: "CIRCUIT B", sublabel: "SIGNAL RELAY — CLASS III", color: "#5A7040", safe: true, cut: false },
+      { id: "C", label: "CIRCUIT C", sublabel: "DETONATOR LEAD — CRITICAL", color: "#C04040", safe: false, cut: false },
+    ],
+    cutResult: null,
+    seconds: 252,
+    frequency: 144.5,
+    authInput: "",
+    authStatus: "idle",
+    viewportWidth: typeof window !== "undefined" ? window.innerWidth : 1400,
+    roomName: "",
+    bombId: null,
+    voiceOn: false,
+    voiceStatus: "off",
+    voiceError: "",
+    voiceVolume: 80,
+    soundVolume: 70,
+    mutedTeam: [],
+    speakingId: null,
+    npcReady: false,
+    pttMode: "hold",
+    pttKey: "V",
+    archive: [],
+    patternInput: [],
+    patternStatus: "idle",
+    relay1: false,
+    relay2: true,
+    relayStatus: "idle",
+    orderStatus: "idle",
+    flashActive: false,
+    authSolved: false,
+    patternSolved: false,
+    relaySolved: false,
+    orderSolved: false,
+    cutOrder: [],
+    players: [],
+    connectionStatus: "OFFLINE",
+    connectionError: "",
+    connectionMode: "host",
+    soloDemo: false,
+    roomCodeCopied: false,
+    motionOn: true,
+    checkedObjectives: [],
+  };
+
+  static PATTERN_TARGET = ["△", "○", "□", "○"];
+
+  componentDidMount() {
+    try {
+      const savedSettings = JSON.parse(localStorage.getItem("trifusal-settings") || "{}");
+      const savedArchive = JSON.parse(localStorage.getItem("trifusal-archive") || "[]");
+      this.setState({
+        soundOn: savedSettings.soundOn ?? this.state.soundOn,
+        soundVolume: savedSettings.soundVolume ?? this.state.soundVolume,
+        scanlinesOn: savedSettings.scanlinesOn ?? this.state.scanlinesOn,
+        motionOn: savedSettings.motionOn ?? this.state.motionOn,
+        voiceOn: savedSettings.voiceOn ?? this.state.voiceOn,
+        voiceVolume: savedSettings.voiceVolume ?? this.state.voiceVolume,
+        pttMode: savedSettings.pttMode ?? this.state.pttMode,
+        pttKey: savedSettings.pttKey ?? this.state.pttKey,
+        archive: Array.isArray(savedArchive) ? savedArchive : [],
+      });
+    } catch (e) {}
+    this._onResize = () => this.setState({ viewportWidth: window.innerWidth });
+    window.addEventListener("resize", this._onResize);
+    this._pttPressed = false;
+    this._voicePeers = new Map();
+    this._voiceAudios = new Map();
+    this._onPttDown = (event) => {
+      const tag = event.target && event.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || event.repeat || !this.pttKeyMatches(event)) return;
+      this._pttPressed = true;
+      this.syncVoiceTransmit();
+    };
+    this._onPttUp = (event) => {
+      if (!this.pttKeyMatches(event)) return;
+      this._pttPressed = false;
+      this.syncVoiceTransmit();
+    };
+    window.addEventListener("keydown", this._onPttDown);
+    window.addEventListener("keyup", this._onPttUp);
+    this.commsListRef = React.createRef();
+  }
+
+  componentWillUnmount() {
+    if (this._room) this._room.leave();
+    this.disconnectVoiceSession();
+    window.removeEventListener("resize", this._onResize);
+    window.removeEventListener("keydown", this._onPttDown);
+    window.removeEventListener("keyup", this._onPttUp);
+  }
+
+  componentDidUpdate() {
+    if (this.commsListRef && this.commsListRef.current) {
+      this.commsListRef.current.scrollTop = this.commsListRef.current.scrollHeight;
+    }
+  }
+
+  getTeamStatus() {
+    const s = this.state;
+    const roster = [
+      { id: "analyst", name: "WREN", roleLabel: "ANALYST" },
+      { id: "technician", name: "BRIDGE", roleLabel: "TECHNICIAN" },
+      { id: "operator", name: "SABLE", roleLabel: "OPERATOR" },
+    ];
+    return roster.map((m) => {
+      const muted = s.mutedTeam.includes(m.id);
+      const networkPlayer = s.players.find((player) => player.role === m.id);
+      const connected = Boolean(networkPlayer && networkPlayer.connected);
+      const speaking = false;
+      const isSelf = m.id === s.role;
+      return {
+        ...m,
+        isSelf,
+        showMute: !isSelf,
+        dotColor: muted || !connected ? "#C04040" : "#4DDB7A",
+        dotGlow: speaking ? "0 0 8px #4DDB7A, 0 0 2px #4DDB7A" : "none",
+        dotAnim: speaking ? "speakPulse 1s ease-in-out infinite" : "none",
+        muteColor: muted ? "#C04040" : "rgba(232,220,196,0.3)",
+        muteLabel: muted ? "MUTED" : "MUTE",
+        toggleMute: () => this.toggleMute(m.id),
+      };
+    });
+  }
+
+  toggleMute(id) {
+    const muted = this.state.mutedTeam.includes(id);
+    this.setState({ mutedTeam: muted ? this.state.mutedTeam.filter((x) => x !== id) : [...this.state.mutedTeam, id] }, () => this.applyVoiceVolume());
+  }
+
+  roleTheme(r) {
+    const themes = {
+      analyst: { accent: "#4DDB7A", dim: "rgba(77,219,122,0.45)", label: "ANALYST", sub: "STATION ALPHA" },
+      technician: { accent: "#7EC8E3", dim: "rgba(126,200,227,0.45)", label: "TECHNICIAN", sub: "UNIT BRAVO-7" },
+      operator: { accent: "#D8A34A", dim: "rgba(216,163,74,0.45)", label: "OPERATOR", sub: "OP: BLACKTHORN" },
+    };
+    return themes[r] || themes.analyst;
+  }
+
+  slotInfo(role) {
+    const player = this.state.players.find((item) => item.role === role);
+    if (player) return {
+      label: player.role === this.state.lobbyClaimed ? (player.name || "YOU") : (player.name || CALLSIGNS[role]),
+      status: player.connected ? "READY" : "RECONNECTING",
+      color: player.connected ? "#5A7040" : "#8A9430",
+      border: player.role === this.state.lobbyClaimed ? "#C4A84F" : "rgba(90,112,64,0.4)",
+    };
+    return { label: "...", status: "CONNECTING...", color: "#8A9430", border: "rgba(232,220,196,0.15)" };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const a = this.slotInfo("analyst"), t = this.slotInfo("technician"), o = this.slotInfo("operator");
+    const isNarrow = s.viewportWidth < 720;
+    const moduleCount = DIFFICULTY_MODULES[s.difficulty] || 4;
+    const freqDiff = Math.abs(s.frequency - TARGET_FREQ);
+    const freqLocked = freqDiff < 0.6;
+    const wiresCutCount = s.wires.filter((w) => w.cut).length;
+    const safeWires = s.wires.filter((w) => w.safe);
+    const safeWiresCutCount = safeWires.filter((w) => w.cut).length;
+    const allWiresCut = safeWires.length > 0 && safeWiresCutCount === safeWires.length;
+    const solvedMap = {
+      frequency: freqLocked,
+      pattern: s.patternSolved,
+      auth: s.authSolved,
+      wire: allWiresCut,
+      relay: s.relaySolved,
+      order: s.orderSolved,
+    };
+    const objectives = OBJECTIVE_DEFS.slice(0, moduleCount).map((objective, i) => {
+      const systemDone = Boolean(solvedMap[objective.id]);
+      const manuallyDone = s.checkedObjectives.includes(objective.id);
+      const done = systemDone || manuallyDone;
+      return {
+        ...objective,
+        number: String(i + 1).padStart(2, "0"),
+        done,
+        toggle: () => this.toggleObjective(objective.id),
+        border: done ? "rgba(77,219,122,0.35)" : "rgba(216,163,74,0.16)",
+        bg: done ? "rgba(77,219,122,0.05)" : "rgba(216,163,74,0.025)",
+        checkBorder: done ? "#4DDB7A" : "rgba(216,163,74,0.45)",
+        checkBg: done ? "#4DDB7A" : "transparent",
+        checkmark: done ? "X" : "",
+        opacity: done ? 0.48 : 1,
+        decoration: done ? "line-through" : "none",
+        statusColor: systemDone ? "#4DDB7A" : manuallyDone ? "#C4A84F" : "rgba(216,163,74,0.35)",
+        statusText: systemDone ? "SYSTEM CONFIRMED" : manuallyDone ? "MANUALLY MARKED" : "PENDING — CLICK TO MARK",
+      };
+    });
+    const completedObjectiveCount = objectives.filter((objective) => objective.done).length;
+    return {
+      isMenu: s.screen === "menu",
+      isRoster: s.screen === "roster",
+      isArchive: s.screen === "archive",
+      isLobby: s.screen === "lobby",
+      isMission: s.screen === "mission",
+      isWin: s.screen === "win",
+      isLose: s.screen === "lose",
+      isSoloDemo: s.soloDemo,
+      isAnalyst: s.role === "analyst",
+      isTechnician: s.role === "technician",
+      isOperator: s.role === "operator",
+      roleAccent: this.roleTheme(s.role).accent,
+      roleAccentDim: this.roleTheme(s.role).dim,
+      roleLabel: this.roleTheme(s.role).label,
+      roleSub: s.role === "operator" ? `OP: ${s.roomName}` : this.roleTheme(s.role).sub,
+      timeStr: `${String(Math.floor(s.seconds / 60)).padStart(2, "0")}:${String(s.seconds % 60).padStart(2, "0")}`,
+      timerColor: s.seconds < 60 ? "#C04040" : this.roleTheme(s.role).accent,
+      timerGlow: s.seconds < 60 ? "rgba(192,64,64,0.5)" : this.roleTheme(s.role).dim,
+      timerStatus: s.seconds < 60 ? "!! CRITICAL -- DEFUSE IMMEDIATELY !!" : s.seconds < 150 ? "-- URGENT -- PROCEED WITH HASTE --" : "-- NOMINAL --",
+      timerPulseAnim: s.seconds < 60 ? "timerPulse 0.6s ease-in-out infinite" : "timerPulse 2.4s ease-in-out infinite",
+      timerPct: `${Math.max(0, Math.min(100, (s.seconds / (DIFFICULTY_SECONDS[s.difficulty] || 252)) * 100))}%`,
+      objectives,
+      moduleCount,
+      completedModules: completedObjectiveCount,
+      modulePct: `${Math.round((completedObjectiveCount / moduleCount) * 100)}%`,
+      activeModuleLabel: (objectives.find((objective) => !objective.done) || {}).label || "ALL OBJECTIVES CHECKED",
+      isNarrow,
+      hudGridStyle: isNarrow
+        ? "display:flex;flex-direction:column;gap:16px;align-items:stretch;"
+        : "display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:24px;",
+      rowDirection: isNarrow ? "column" : "row",
+      colNarrowOverride: isNarrow ? "width:100%;flex:none;overflow:visible;border-right:none;border-bottom:1px solid rgba(255,255,255,0.15);" : "",
+      middleNarrowOverride: isNarrow ? "width:100%;flex:none;overflow:visible;border-right:none;border-bottom:1px solid rgba(255,255,255,0.15);" : "",
+      lastColNarrowOverride: isNarrow ? "width:100%;flex:none;" : "",
+      frequencyStr: s.frequency.toFixed(1),
+      setFrequency: (e) => {
+        const frequency = parseFloat(e.target.value);
+        this.setState({ frequency });
+        this.sendPuzzle("frequency", frequency);
+      },
+      freqLocked,
+      freqStatusText: freqLocked ? "● SIGNAL LOCKED" : "○ SEARCHING...",
+      freqStatusColor: freqLocked ? "#4DDB7A" : "rgba(77,219,122,0.4)",
+      freqShortStatus: freqLocked ? "CONFIRMED" : "SEARCHING",
+      patternShortStatus: s.patternSolved ? "DECODED" : "NO SIGNAL",
+      authClueText: freqLocked ? "AUTH BURST: DELTA-7-ECHO — RELAY TO OPERATOR" : "████ ██████ ████████ — [TUNE TARGET TO DECRYPT]",
+      wiresCutCount,
+      wireTotalCount: s.wires.length,
+      lastCutWireId: s.cutOrder.length ? s.cutOrder[s.cutOrder.length - 1] : "—",
+      techProgressText: `TECHNICIAN: ${safeWiresCutCount}/${safeWires.length} SAFE LEADS ISOLATED${s.cutOrder.length ? " · LAST: " + s.cutOrder[s.cutOrder.length - 1] : ""}`,
+      relayTargetHintText: "SET EACH CURRENT STATE TO ITS SHOWN TARGET, THEN COMMIT.",
+      authInput: s.authInput,
+      setAuthInput: (e) => this.setState({ authInput: e.target.value.toUpperCase() }),
+      authKeyDown: (e) => { if (e.key === "Enter") this.submitAuth(); },
+      submitAuth: () => this.submitAuth(),
+      authBorderColor: s.authStatus === "ok" ? "#4DDB7A" : s.authStatus === "fail" ? "#E05A3E" : "rgba(216,163,74,0.3)",
+      hasAuthStatus: s.authStatus !== "idle",
+      authStatusText: s.authStatus === "ok" ? "> AUTHORIZATION CONFIRMED -- CLEARANCE GRANTED" : "> INVALID CODE -- CONTACT CIPHER OFFICER",
+      authStatusColor: s.authStatus === "ok" ? "#4DDB7A" : "#E05A3E",
+      patternTarget: Component.PATTERN_TARGET,
+      patternInput: s.patternInput,
+      patternSlots: Component.PATTERN_TARGET.map((sym, i) => ({ id: i, filled: s.patternInput[i] || "", })),
+      pressTriangle: () => this.pressSymbol("△"),
+      pressCircle: () => this.pressSymbol("○"),
+      pressSquare: () => this.pressSymbol("□"),
+      pressDiamond: () => this.pressSymbol("◇"),
+      patternStatusText: s.patternStatus === "ok" ? "● PATTERN MATCHED" : s.patternStatus === "fail" ? "✕ MISMATCH — RESET" : "AWAITING INPUT",
+      patternStatusColor: s.patternStatus === "ok" ? "#4DDB7A" : s.patternStatus === "fail" ? "#C04040" : "rgba(77,219,122,0.4)",
+      relay1: s.relay1,
+      relay2: s.relay2,
+      relay1Bg: s.relay1 ? "#7EC8E3" : "rgba(126,200,227,0.15)",
+      relay2Bg: s.relay2 ? "#7EC8E3" : "rgba(126,200,227,0.15)",
+      relay1TextColor: s.relay1 ? "#08101E" : "#7EC8E3",
+      relay2TextColor: s.relay2 ? "#08101E" : "#7EC8E3",
+      relay1TargetLabel: freqLocked ? "ON" : "OFF",
+      relay2TargetLabel: s.patternSolved ? "ON" : "OFF",
+      relay1CurrentLabel: s.relay1 ? "ON" : "OFF",
+      relay2CurrentLabel: s.relay2 ? "ON" : "OFF",
+      relay1MatchText: s.relay1 === freqLocked ? "✓ MATCH" : "✕ MISMATCH",
+      relay2MatchText: s.relay2 === s.patternSolved ? "✓ MATCH" : "✕ MISMATCH",
+      relay1MatchColor: s.relay1 === freqLocked ? "#4DDB7A" : "#C04040",
+      relay2MatchColor: s.relay2 === s.patternSolved ? "#4DDB7A" : "#C04040",
+      relay1Border: s.relay1 === freqLocked ? "rgba(77,219,122,0.65)" : "rgba(192,64,64,0.65)",
+      relay2Border: s.relay2 === s.patternSolved ? "rgba(77,219,122,0.65)" : "rgba(192,64,64,0.65)",
+      relayCommitColor: s.relay1 === freqLocked && s.relay2 === s.patternSolved ? "#4DDB7A" : "#7EC8E3",
+      relayCommitBg: s.relay1 === freqLocked && s.relay2 === s.patternSolved ? "rgba(77,219,122,0.12)" : "transparent",
+      toggleRelay1: () => {
+        const relay1 = !this.state.relay1;
+        this.setState({ relay1, relayStatus: "idle" });
+        this.sendPuzzle("relaySet", { relay1, relay2: this.state.relay2 });
+      },
+      toggleRelay2: () => {
+        const relay2 = !this.state.relay2;
+        this.setState({ relay2, relayStatus: "idle" });
+        this.sendPuzzle("relaySet", { relay1: this.state.relay1, relay2 });
+      },
+      checkRelays: () => this.checkRelays(),
+      relayStatusText: s.relayStatus === "ok" ? "● RELAY SYNC CONFIRMED" : s.relayStatus === "fail" ? "✕ SYNC FAULT — RECHECK" : "",
+      relayStatusColor: s.relayStatus === "ok" ? "#4DDB7A" : "#C04040",
+      hasRelayStatus: s.relayStatus !== "idle",
+      chooseOrderA: () => this.chooseOrder("A"),
+      chooseOrderB: () => this.chooseOrder("B"),
+      chooseOrderC: () => this.chooseOrder("C"),
+      orderStatusText: s.orderStatus === "ok" ? "> CORRECT — SEQUENCE CONFIRMED" : s.orderStatus === "fail" ? "> INCORRECT — CONSULT CIPHER OFFICER" : "",
+      orderStatusColor: s.orderStatus === "ok" ? "#4DDB7A" : "#E05A3E",
+      hasOrderStatus: s.orderStatus !== "idle",
+      flashActive: s.flashActive,
+      playerName: s.playerName,
+      setName: (e) => this.setState({ playerName: e.target.value.toUpperCase() }),
+      showSettings: s.showSettings,
+      toggleSettings: () => this.setState({ showSettings: !this.state.showSettings }),
+      soundOnBg: s.soundOn ? "rgba(90,112,64,0.3)" : "transparent",
+      soundOnPos: s.soundOn ? "22px" : "1px",
+      toggleSound: () => this.updatePreferences({ soundOn: !this.state.soundOn }),
+      soundVolume: s.soundVolume,
+      soundVolumeOpacity: s.soundOn ? 1 : 0.35,
+      soundVolumeDisabled: !s.soundOn,
+      setSoundVolume: (e) => this.updatePreferences({ soundVolume: Number(e.target.value) }),
+      teamStatus: this.getTeamStatus(),
+      scanlinesOnBg: s.scanlinesOn ? "rgba(90,112,64,0.3)" : "transparent",
+      scanlinesOnPos: s.scanlinesOn ? "22px" : "1px",
+      toggleScanlines: () => this.updatePreferences({ scanlinesOn: !this.state.scanlinesOn }),
+      motionOnBg: s.motionOn ? "rgba(90,112,64,0.3)" : "transparent",
+      motionOnPos: s.motionOn ? "22px" : "1px",
+      toggleMotion: () => this.updatePreferences({ motionOn: !this.state.motionOn }),
+      resetSettings: () => {
+        if (this.state.voiceOn) this.disableVoiceChat();
+        this.updatePreferences({ soundOn: true, soundVolume: 70, scanlinesOn: true, motionOn: true, voiceOn: false, voiceVolume: 80, pttMode: "hold", pttKey: "V" });
+      },
+      clearArchive: () => {
+        try { localStorage.removeItem("trifusal-archive"); } catch (e) {}
+        this.setState({ archive: [] });
+      },
+      difficulty: s.difficulty,
+      cycleDifficulty: () => {
+        const order = ["STANDARD", "HARD", "EXTREME"];
+        const next = order[(order.indexOf(this.state.difficulty) + 1) % order.length];
+        this.changeDifficulty(next);
+      },
+      setStandard: () => this.changeDifficulty("STANDARD"),
+      setHard: () => this.changeDifficulty("HARD"),
+      setExtreme: () => this.changeDifficulty("EXTREME"),
+      difficultySpecs: DIFFICULTY_DETAILS[s.difficulty].specs,
+      difficultyDescription: DIFFICULTY_DETAILS[s.difficulty].description,
+      standardStyle: s.difficulty === "STANDARD" ? "background:#D8A34A;color:#0A0804;font-weight:700;" : "color:rgba(216,163,74,0.6);",
+      hardStyle: s.difficulty === "HARD" ? "background:#D8A34A;color:#0A0804;font-weight:700;" : "color:rgba(216,163,74,0.6);",
+      extremeStyle: s.difficulty === "EXTREME" ? "background:#D8A34A;color:#0A0804;font-weight:700;" : "color:rgba(216,163,74,0.6);",
+      archiveRows: s.archive,
+      archiveEmpty: s.archive.length === 0,
+      terminalClass: `${s.scanlinesOn ? "" : "scanlines-off"} ${s.motionOn ? "" : "motion-off"}`.trim(),
+      analystSlotLabel: a.label, analystSlotStatus: a.status, analystSlotStatusColor: a.color, analystSlotBorder: a.border,
+      technicianSlotLabel: t.label, technicianSlotStatus: t.status, technicianSlotStatusColor: t.color, technicianSlotBorder: t.border,
+      operatorSlotLabel: o.label, operatorSlotStatus: o.status, operatorSlotStatusColor: o.color, operatorSlotBorder: o.border,
+      deployLabel: s.lobbyClaimed ? "DEPLOY TEAM" : "CLAIM A ROLE TO DEPLOY",
+      deployBorder: s.lobbyClaimed ? "#C4A84F" : "rgba(232,220,196,0.2)",
+      deployColor: s.lobbyClaimed ? "#C4A84F" : "rgba(232,220,196,0.3)",
+      operatorCallsign: s.lobbyClaimed === "operator" ? (s.playerName || "SABLE") : "SABLE",
+      wires: s.wires.map((w) => ({
+        id: w.id, label: w.label, sublabel: w.sublabel, color: w.color, cut: w.cut, intact: !w.cut,
+        rowOpacity: w.cut ? 0.42 : 1,
+        rowBorder: w.cut ? "rgba(126,200,227,0.1)" : "rgba(126,200,227,0.24)",
+        rowBg: w.cut ? "rgba(0,0,0,0.16)" : "rgba(126,200,227,0.025)",
+        hoverBorder: w.cut ? "rgba(126,200,227,0.1)" : "#C04040",
+        hoverBg: w.cut ? "rgba(0,0,0,0.16)" : "rgba(192,64,64,0.06)",
+        cursor: w.cut ? "default" : "pointer",
+        statusText: w.cut ? "[CUT]" : "[INTACT]",
+        statusColor: w.cut ? "#444" : "rgba(126,200,227,0.4)",
+        onCut: () => this.cutWire(w.id),
+      })),
+      hasCutResult: !!s.cutResult,
+      cutResultText: s.cutResult ? `CIRCUIT ${s.cutResult.id}: ${s.cutResult.safe ? "SAFE -- SYSTEM NOMINAL" : "DETONATOR TRIGGERED -- ABORT ABORT ABORT"}` : "",
+      cutResultColor: s.cutResult ? (s.cutResult.safe ? "#7EC8E3" : "#C04040") : "",
+      cutResultBg: s.cutResult ? (s.cutResult.safe ? "rgba(126,200,227,0.1)" : "rgba(192,64,64,0.12)") : "",
+      commsMessages: s.comms.map((m) => ({ ...m, timeColor: msgColor(m.from) })),
+      commsListRef: this.commsListRef,
+      commsInput: s.commsInput,
+      setCommsInput: (e) => this.setState({ commsInput: e.target.value }),
+      commsKeyDown: (e) => { if (e.key === "Enter") this.sendComms(); },
+      sendComms: () => this.sendComms(),
+      goMenu: () => {
+        this.beep(400, 0.08, "square");
+        if (this._room) { this._room.leave(); this._room = null; }
+        this.disconnectVoiceSession();
+        this.setState({ screen: "menu", role: "analyst", lobbyClaimed: null, players: [], roomName: "", connectionStatus: "OFFLINE", soloDemo: false, connectionError: "", checkedObjectives: [] });
+      },
+      goRoster: () => { this.beep(500, 0.08, "square"); this.setState({ screen: "roster" }); },
+      goArchive: () => { this.beep(500, 0.08, "square"); this.setState({ screen: "archive" }); },
+      goLobby: () => {
+        this.beep(600, 0.1, "square");
+        const enteredCode = this.state.roomName.trim().toUpperCase();
+        this.setState({
+          screen: "lobby",
+          roomName: enteredCode || generateRoomCode(),
+          connectionMode: enteredCode ? "join" : "host",
+          soloDemo: false,
+          checkedObjectives: [],
+          connectionStatus: enteredCode ? "SELECT A ROLE TO JOIN" : "HOST LOBBY READY — SELECT A ROLE",
+          connectionError: "",
+          roomCodeCopied: false,
+        });
+      },
+      goSoloDemo: () => this.startSoloDemo(),
+      lobbyStatusText: s.connectionError || (s.players.length === 3
+        ? "3/3 OPERATIVES ON SECURE CHANNEL"
+        : `${s.players.length}/3 OPERATIVES ON SECURE CHANNEL — ${s.connectionStatus}`),
+      lobbyStatusColor: s.connectionError ? "#C04040" : s.players.length === 3 ? "#5A7040" : "#8A9430",
+      copyRoomCode: () => this.copyRoomCode(),
+      roomCodeHint: s.roomCodeCopied ? "COPIED TO CLIPBOARD" : s.soloDemo ? "SOLO TRAINING CHANNEL" : "CLICK OPERATION TO COPY",
+      claimAnalyst: () => this.connectRole("analyst"),
+      claimTechnician: () => this.connectRole("technician"),
+      claimOperator: () => this.connectRole("operator"),
+      deploy: () => {
+        if (!this.state.lobbyClaimed || !this._room) return;
+        if (this.state.players.length !== 3) {
+          this.setState({ connectionError: "ALL THREE ROLES MUST BE CLAIMED BEFORE DEPLOYMENT" });
+          return;
+        }
+        this.beep(660, 0.2);
+        this._room.send("startMission");
+      },
+      setAnalyst: () => this.setState({ role: "analyst" }),
+      setTechnician: () => this.setState({ role: "technician" }),
+      setOperator: () => this.setState({ role: "operator" }),
+      swapAnalyst: () => this.setState({ role: "analyst" }),
+      swapTechnician: () => this.setState({ role: "technician" }),
+      swapOperator: () => this.setState({ role: "operator" }),
+      swapAnalystBorder: s.role === "analyst" ? "#4DDB7A" : "rgba(232,220,196,0.25)",
+      swapAnalystColor: s.role === "analyst" ? "#4DDB7A" : "rgba(232,220,196,0.4)",
+      swapTechnicianBorder: s.role === "technician" ? "#7EC8E3" : "rgba(232,220,196,0.25)",
+      swapTechnicianColor: s.role === "technician" ? "#7EC8E3" : "rgba(232,220,196,0.4)",
+      swapOperatorBorder: s.role === "operator" ? "#D8A34A" : "rgba(232,220,196,0.25)",
+      swapOperatorColor: s.role === "operator" ? "#D8A34A" : "rgba(232,220,196,0.4)",
+      triggerWin: () => this.simulateOutcome("defused"),
+      triggerLose: () => this.simulateOutcome("detonated"),
+      roomName: s.roomName,
+      rosterOperation: s.roomName || "UNASSIGNED",
+      setRoomName: (e) => this.setState({ roomName: e.target.value.toUpperCase() }),
+      roomFieldStatus: s.roomName.trim() ? "[ JOIN ]" : "[ HOST ]",
+      bombId: s.bombId || "PENDING",
+      voiceOn: s.voiceOn,
+      toggleVoice: () => this.toggleVoiceChat(),
+      voiceLabel: s.voiceStatus === "active" ? (s.pttMode === "hold" && !this._pttPressed ? `HOLD ${s.pttKey}` : "VOICE LIVE") : s.voiceStatus === "error" ? "VOICE ERROR" : s.voiceStatus === "requesting" ? "STARTING..." : "VOICE OFF",
+      voiceColor: s.voiceStatus === "active" ? "#4DDB7A" : s.voiceStatus === "error" ? "#C04040" : "rgba(216,163,74,0.5)",
+      voiceBg: s.voiceStatus === "active" ? "rgba(77,219,122,0.12)" : "transparent",
+      voiceOnBg: s.voiceOn ? "rgba(90,112,64,0.3)" : "transparent",
+      voiceOnPos: s.voiceOn ? "22px" : "1px",
+      voiceVolume: s.voiceVolume,
+      voiceControlOpacity: s.voiceOn ? 1 : 0.4,
+      voiceStatusText: s.voiceStatus === "active" ? (s.pttMode === "hold" ? `READY — HOLD ${s.pttKey} TO TRANSMIT` : "OPEN MICROPHONE ACTIVE") : s.voiceStatus === "requesting" ? "REQUESTING MICROPHONE ACCESS..." : s.voiceStatus === "error" ? s.voiceError : "MICROPHONE DISABLED",
+      voiceStatusColor: s.voiceStatus === "active" ? "#4DDB7A" : s.voiceStatus === "error" ? "#C04040" : "rgba(216,163,74,0.45)",
+      setVoiceVolume: (e) => this.updatePreferences({ voiceVolume: Number(e.target.value) }, () => this.applyVoiceVolume()),
+      isPttHold: s.pttMode === "hold",
+      setPttHold: () => this.updatePreferences({ pttMode: "hold" }, () => this.syncVoiceTransmit()),
+      setPttOpen: () => this.updatePreferences({ pttMode: "open" }, () => this.syncVoiceTransmit()),
+      pttHoldStyle: s.pttMode === "hold" ? "background:#D8A34A;color:#0A0703;" : "color:#D8A34A;",
+      pttOpenStyle: s.pttMode === "open" ? "background:#D8A34A;color:#0A0703;" : "color:#D8A34A;",
+      setPttKeyV: () => this.updatePreferences({ pttKey: "V" }),
+      setPttKeyT: () => this.updatePreferences({ pttKey: "T" }),
+      setPttKeySpace: () => this.updatePreferences({ pttKey: "SPACE" }),
+      pttKeyVStyle: s.pttKey === "V" ? "background:#D8A34A;color:#0A0703;" : "color:#D8A34A;",
+      pttKeyTStyle: s.pttKey === "T" ? "background:#D8A34A;color:#0A0703;" : "color:#D8A34A;",
+      pttKeySpaceStyle: s.pttKey === "SPACE" ? "background:#D8A34A;color:#0A0703;" : "color:#D8A34A;",
+      pttHintText: s.voiceStatus === "active" ? (s.pttMode === "hold" ? `VOICE READY — HOLD ${s.pttKey}` : "VOICE OPEN MIC") : "TEXT CHANNEL — VOICE OFF",
+    };
+  }
+
+  updatePreferences(patch, callback) {
+    const next = {
+      soundOn: patch.soundOn ?? this.state.soundOn,
+      soundVolume: patch.soundVolume ?? this.state.soundVolume,
+      scanlinesOn: patch.scanlinesOn ?? this.state.scanlinesOn,
+      motionOn: patch.motionOn ?? this.state.motionOn,
+      voiceOn: patch.voiceOn ?? this.state.voiceOn,
+      voiceVolume: patch.voiceVolume ?? this.state.voiceVolume,
+      pttMode: patch.pttMode ?? this.state.pttMode,
+      pttKey: patch.pttKey ?? this.state.pttKey,
+    };
+    this.setState(next, callback);
+    try { localStorage.setItem("trifusal-settings", JSON.stringify(next)); } catch (e) {}
+  }
+
+  simulateOutcome(outcome) {
+    if (!this.state.soloDemo || !this._room) return;
+    this._room.send("simulateOutcome", { outcome });
+  }
+
+  changeDifficulty(difficulty) {
+    if (this._room && this.state.connectionMode === "join") return;
+    this.setState({ difficulty, checkedObjectives: [] });
+    if (this._room) this._room.send("setDifficulty", { difficulty });
+  }
+
+  startSoloDemo() {
+    this.beep(600, 0.1, "square");
+    this.setState({
+      screen: "lobby",
+      roomName: generateRoomCode(),
+      connectionMode: "host",
+      soloDemo: true,
+      checkedObjectives: [],
+      connectionStatus: "PREPARING SOLO TRAINING CHANNEL...",
+      connectionError: "",
+      roomCodeCopied: false,
+    }, () => this.connectRole("analyst"));
+  }
+
+  async copyRoomCode() {
+    try {
+      await navigator.clipboard.writeText(this.state.roomName);
+      this.setState({ roomCodeCopied: true });
+      setTimeout(() => this.setState({ roomCodeCopied: false }), 1800);
+    } catch (e) {
+      this.setState({ roomCodeCopied: false });
+    }
+  }
+
+  async connectRole(role) {
+    this.beep(700, 0.08);
+    this.setState({ connectionStatus: "ESTABLISHING SECURE LINK...", connectionError: "" });
+    try {
+      if (this._room) {
+        await this._room.leave();
+        this._room = null;
+      }
+      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+      const host = window.location.hostname || "127.0.0.1";
+      const port = window.location.port === "8080" || window.location.protocol === "file:" ? "2567" : window.location.port;
+      const endpoint = `${protocol}://${host}${port ? ":" + port : ""}`;
+      if (!this._client) this._client = new Colyseus.Client(endpoint);
+      let userId = localStorage.getItem("trifusal-user-id");
+      if (!userId) {
+        userId = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+        localStorage.setItem("trifusal-user-id", userId);
+      }
+      const operation = (this.state.roomName || "BLACKTHORN").trim().toUpperCase();
+      const tokenKey = `trifusal-reconnect:${operation}:${role}`;
+      const reconnectToken = this.state.soloDemo ? null : localStorage.getItem(tokenKey);
+      let room;
+      if (reconnectToken) {
+        try { room = await this._client.reconnect(reconnectToken); }
+        catch (e) { localStorage.removeItem(tokenKey); }
+      }
+      if (!room) {
+        const options = {
+          operation,
+          role,
+          userId,
+          playerName: this.state.playerName || CALLSIGNS[role],
+          difficulty: this.state.difficulty,
+          soloDemo: this.state.soloDemo,
+        };
+        room = this.state.connectionMode === "join"
+          ? await this._client.join("tri_fusal", options)
+          : await this._client.create("tri_fusal", options);
+      }
+      this._room = room;
+      localStorage.setItem(tokenKey, room.reconnectionToken);
+      this._finished = false;
+      room.onStateChange((state) => this.syncRoomState(state));
+      room.onMessage("comms", (message) => this.receiveComms(message));
+      room.onMessage("voiceSignal", (message) => this.handleVoiceSignal(message));
+      room.onMessage("penalty", (message) => {
+        this.receiveComms({ from: "SYSTEM", text: `⚠ ${message.reason} — ${message.seconds}s TIME PENALTY`, timestamp: message.timestamp });
+        this.setState({ flashActive: true });
+        setTimeout(() => this.setState({ flashActive: false }), 350);
+      });
+      room.onMessage("missionRejected", (message) => this.setState({ connectionError: String(message.reason || "DEPLOYMENT REJECTED").toUpperCase() }));
+      room.onLeave(() => {
+        this.closeVoicePeers();
+        if (!this._finished) this.setState({ connectionStatus: "LINK LOST — SELECT ROLE TO RECONNECT" });
+      });
+      this.setState({ lobbyClaimed: role, role, connectionStatus: "SECURE LINK ACTIVE" });
+      this.syncRoomState(room.state);
+      if (this.state.voiceOn) await this.ensureVoiceChat();
+    } catch (error) {
+      const raw = String(error && error.message ? error.message : error).toUpperCase();
+      const message = this.state.connectionMode === "join" && (raw.includes("NO ROOMS") || raw.includes("MATCHMAKE") || raw.includes("4210"))
+        ? "OPERATION NOT FOUND — VERIFY THE OPERATION NAME"
+        : raw;
+      this.setState({ connectionStatus: "OFFLINE", connectionError: message });
+    }
+  }
+
+  syncRoomState(roomState) {
+    if (!roomState) return;
+    const players = [];
+    if (roomState.players && roomState.players.forEach) {
+      roomState.players.forEach((player) => players.push({
+        sessionId: player.sessionId,
+        userId: player.userId,
+        name: player.name,
+        role: player.role,
+        connected: player.connected,
+      }));
+    }
+    const count = DIFFICULTY_WIRES[roomState.difficulty] || 3;
+    const cutIds = roomState.cutWireIds ? Array.from(roomState.cutWireIds) : [];
+    const next = {
+      players,
+      difficulty: roomState.difficulty || this.state.difficulty,
+      seconds: Number(roomState.seconds),
+      bombId: roomState.bombId || this.state.bombId,
+      frequency: Number(roomState.frequency),
+      authSolved: Boolean(roomState.authSolved),
+      patternSolved: Boolean(roomState.patternSolved),
+      relay1: Boolean(roomState.relay1),
+      relay2: Boolean(roomState.relay2),
+      relaySolved: Boolean(roomState.relaySolved),
+      orderSolved: Boolean(roomState.orderSolved),
+      cutOrder: cutIds,
+      wires: WIRES_POOL.slice(0, count).map((wire) => ({ ...wire, cut: cutIds.includes(wire.id) })),
+      connectionError: "",
+    };
+    if (roomState.gameStarted) next.screen = "mission";
+    this.setState(next, () => {
+      if (this.state.voiceStatus === "active") this.syncVoicePeers(players);
+    });
+    if (!this._finished && roomState.bombStatus === "defused") {
+      this._finished = true;
+      this.logOutcome("SUCCESS");
+    } else if (!this._finished && roomState.bombStatus === "detonated") {
+      this._finished = true;
+      this.logOutcome("FAILED");
+    }
+  }
+
+  pttKeyMatches(event) {
+    if (this.state.pttKey === "SPACE") return event.code === "Space";
+    return String(event.key || "").toUpperCase() === this.state.pttKey;
+  }
+
+  async toggleVoiceChat() {
+    this.beep(this.state.voiceOn ? 300 : 700, 0.08, "square");
+    if (this.state.voiceOn) {
+      this.disableVoiceChat();
+      return;
+    }
+    this.updatePreferences({ voiceOn: true }, () => this.ensureVoiceChat());
+  }
+
+  async ensureVoiceChat() {
+    if (this._localStream) {
+      this.setState({ voiceStatus: "active", voiceError: "" }, () => {
+        this.syncVoiceTransmit();
+        this.syncVoicePeers(this.state.players);
+      });
+      return;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.RTCPeerConnection) {
+      this.setState({ voiceStatus: "error", voiceError: "VOICE CHAT IS NOT SUPPORTED IN THIS BROWSER" });
+      return;
+    }
+    this.setState({ voiceStatus: "requesting", voiceError: "" });
+    try {
+      this._localStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
+      this.setState({ voiceStatus: "active", voiceError: "" }, () => {
+        this.syncVoiceTransmit();
+        this.syncVoicePeers(this.state.players);
+      });
+    } catch (error) {
+      const denied = error && (error.name === "NotAllowedError" || error.name === "PermissionDeniedError");
+      this.updatePreferences({ voiceOn: false });
+      this.setState({ voiceStatus: "error", voiceError: denied ? "MICROPHONE PERMISSION DENIED" : "MICROPHONE COULD NOT BE STARTED" });
+    }
+  }
+
+  disableVoiceChat() {
+    this.disconnectVoiceSession();
+    this.updatePreferences({ voiceOn: false });
+    this.setState({ voiceStatus: "off", voiceError: "" });
+  }
+
+  disconnectVoiceSession() {
+    this.closeVoicePeers();
+    if (this._localStream) {
+      this._localStream.getTracks().forEach((track) => track.stop());
+      this._localStream = null;
+    }
+    if (this.state && this.state.voiceStatus !== "off") this.setState({ voiceStatus: "off", speakingId: null });
+  }
+
+  closeVoicePeers() {
+    if (this._voicePeers) {
+      this._voicePeers.forEach((entry) => {
+        try { entry.pc.close(); } catch (e) {}
+      });
+      this._voicePeers.clear();
+    }
+    if (this._voiceAudios) {
+      this._voiceAudios.forEach((audio) => audio.remove());
+      this._voiceAudios.clear();
+    }
+  }
+
+  syncVoiceTransmit() {
+    if (!this._localStream) return;
+    const transmitting = this.state.voiceOn && this.state.voiceStatus === "active" && (this.state.pttMode === "open" || this._pttPressed);
+    this._localStream.getAudioTracks().forEach((track) => { track.enabled = transmitting; });
+  }
+
+  applyVoiceVolume() {
+    if (!this._voiceAudios) return;
+    this._voiceAudios.forEach((audio, sessionId) => {
+      const player = this.state.players.find((item) => item.sessionId === sessionId);
+      audio.volume = Math.max(0, Math.min(1, this.state.voiceVolume / 100));
+      audio.muted = Boolean(player && this.state.mutedTeam.includes(player.role));
+    });
+  }
+
+  syncVoicePeers(players) {
+    if (!this._room || !this._localStream || !this._voicePeers) return;
+    const peerIds = players
+      .filter((player) => player.connected && player.sessionId !== this._room.sessionId && !String(player.sessionId).startsWith("demo-"))
+      .map((player) => player.sessionId);
+    this._voicePeers.forEach((entry, peerId) => {
+      if (!peerIds.includes(peerId)) this.removeVoicePeer(peerId);
+    });
+    peerIds.forEach((peerId) => this.getOrCreateVoicePeer(peerId, String(this._room.sessionId) < String(peerId)));
+  }
+
+  removeVoicePeer(peerId) {
+    const entry = this._voicePeers && this._voicePeers.get(peerId);
+    if (entry) {
+      try { entry.pc.close(); } catch (e) {}
+      this._voicePeers.delete(peerId);
+    }
+    const audio = this._voiceAudios && this._voiceAudios.get(peerId);
+    if (audio) {
+      audio.remove();
+      this._voiceAudios.delete(peerId);
+    }
+  }
+
+  getOrCreateVoicePeer(peerId, shouldOffer) {
+    if (!peerId || !this._localStream || !this._room) return null;
+    const existing = this._voicePeers.get(peerId);
+    if (existing) return existing;
+    const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+    const entry = { pc, pendingCandidates: [], offered: false };
+    this._voicePeers.set(peerId, entry);
+    this._localStream.getTracks().forEach((track) => pc.addTrack(track, this._localStream));
+    pc.onicecandidate = (event) => {
+      if (event.candidate && this._room) this._room.send("voiceSignal", { target: peerId, data: { candidate: event.candidate } });
+    };
+    pc.ontrack = (event) => {
+      let audio = this._voiceAudios.get(peerId);
+      if (!audio) {
+        audio = document.createElement("audio");
+        audio.autoplay = true;
+        audio.playsInline = true;
+        audio.style.display = "none";
+        document.body.appendChild(audio);
+        this._voiceAudios.set(peerId, audio);
+      }
+      audio.srcObject = event.streams[0];
+      this.applyVoiceVolume();
+      audio.play().catch(() => {});
+    };
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === "failed" || pc.connectionState === "closed") this.removeVoicePeer(peerId);
+    };
+    if (shouldOffer) {
+      entry.offered = true;
+      Promise.resolve().then(async () => {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        if (this._room) this._room.send("voiceSignal", { target: peerId, data: { description: pc.localDescription } });
+      }).catch(() => this.removeVoicePeer(peerId));
+    }
+    return entry;
+  }
+
+  async handleVoiceSignal(message) {
+    if (!message || !message.from || !message.data || !this.state.voiceOn) return;
+    if (!this._localStream) await this.ensureVoiceChat();
+    if (!this._localStream) return;
+    const peerId = String(message.from);
+    const entry = this.getOrCreateVoicePeer(peerId, false);
+    if (!entry) return;
+    try {
+      if (message.data.description) {
+        await entry.pc.setRemoteDescription(message.data.description);
+        while (entry.pendingCandidates.length) await entry.pc.addIceCandidate(entry.pendingCandidates.shift());
+        if (message.data.description.type === "offer") {
+          const answer = await entry.pc.createAnswer();
+          await entry.pc.setLocalDescription(answer);
+          if (this._room) this._room.send("voiceSignal", { target: peerId, data: { description: entry.pc.localDescription } });
+        }
+      } else if (message.data.candidate) {
+        if (entry.pc.remoteDescription) await entry.pc.addIceCandidate(message.data.candidate);
+        else entry.pendingCandidates.push(message.data.candidate);
+      }
+    } catch (e) {
+      this.setState({ voiceStatus: "error", voiceError: "VOICE PEER CONNECTION FAILED" });
+    }
+  }
+
+  sendPuzzle(action, value) {
+    if (this._room) this._room.send("puzzleAction", { action, value });
+  }
+
+  receiveComms(message) {
+    const d = new Date(message.timestamp || Date.now());
+    const time = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+    const role = String(message.from || "");
+    const from = role === "SYSTEM" ? "SYSTEM" : (CALLSIGNS[role] || role.toUpperCase() || "CTRL");
+    this.setState({ comms: [...this.state.comms, { time, from, text: String(message.text || "") }] });
+  }
+
+  logOutcome(outcome) {
+    if (outcome === "SUCCESS") {
+      this.beep(523, 0.12); setTimeout(() => this.beep(659, 0.12), 120); setTimeout(() => this.beep(784, 0.25), 240);
+    } else {
+      this.beep(160, 0.5, "sawtooth"); setTimeout(() => this.beep(110, 0.6, "sawtooth"), 200);
+    }
+    const d = new Date();
+    const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    const dateStr = `${String(d.getDate()).padStart(2, "0")} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    const time = outcome === "SUCCESS" ? `${this.state.timeStrNow ? "" : ""}${String(Math.floor(this.state.seconds/60)).padStart(2,"0")}:${String(this.state.seconds%60).padStart(2,"0")} REMAINING` : "00:00 — DETONATED";
+    const entry = { codename: this.state.roomName || "BLACKTHORN", date: dateStr, outcome, color: outcome === "SUCCESS" ? "#4DDB7A" : "#E05A3E", time, bombId: this.state.bombId };
+    const archive = [entry, ...this.state.archive].slice(0, 50);
+    try { localStorage.setItem("trifusal-archive", JSON.stringify(archive)); } catch (e) {}
+    this.setState({ screen: outcome === "SUCCESS" ? "win" : "lose", archive });
+  }
+
+  beep(freq, dur, type) {
+    if (!this.state.soundOn) return;
+    try {
+      if (!this._actx) this._actx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = this._actx;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type || "sine";
+      osc.frequency.value = freq;
+      const vol = ((this.state.soundVolume ?? 70) / 100) * 0.15;
+      gain.gain.setValueAtTime(vol, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + dur);
+    } catch (e) {}
+  }
+
+  applyPenalty(reason) {
+    this.beep(180, 0.4, "sawtooth");
+    const from = CALLSIGNS[this.state.role] || "OPS";
+    const d = new Date();
+    const time = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+    this.setState({
+      seconds: Math.max(0, this.state.seconds - 15),
+      comms: [...this.state.comms, { time, from: "SYSTEM", text: `⚠ ${reason} — 15s TIME PENALTY (${from})` }],
+      flashActive: true,
+    });
+    setTimeout(() => this.setState({ flashActive: false }), 350);
+  }
+
+  submitAuth() {
+    const ok = this.state.authInput.trim().toUpperCase() === AUTH_CODE;
+    this.setState({ authStatus: ok ? "ok" : "fail" });
+    this.sendPuzzle("auth", this.state.authInput);
+    if (ok) this.beep(880, 0.15);
+    setTimeout(() => this.setState({ authStatus: "idle" }), 3000);
+  }
+
+  pressSymbol(sym) {
+    const next = [...this.state.patternInput, sym];
+    if (next.length < Component.PATTERN_TARGET.length) {
+      this.setState({ patternInput: next, patternStatus: "idle" });
+      return;
+    }
+    const ok = next.every((v, i) => v === Component.PATTERN_TARGET[i]);
+    this.setState({ patternInput: next, patternStatus: ok ? "ok" : "fail" });
+    this.sendPuzzle("pattern", next);
+    if (ok) this.beep(880, 0.15);
+    setTimeout(() => this.setState({ patternInput: [], patternStatus: "idle" }), 1800);
+  }
+
+  checkRelays() {
+    const freqDiff = Math.abs(this.state.frequency - TARGET_FREQ);
+    const freqLocked = freqDiff < 0.6;
+    const ok = this.state.relay1 === freqLocked && this.state.relay2 === this.state.patternSolved;
+    this.setState({ relayStatus: ok ? "ok" : "fail" });
+    this.sendPuzzle("relay", { relay1: this.state.relay1, relay2: this.state.relay2 });
+    if (ok) this.beep(880, 0.15);
+  }
+
+  chooseOrder(choice) {
+    const ok = choice === "B";
+    this.setState({ orderStatus: ok ? "ok" : "fail" });
+    this.sendPuzzle("order", choice);
+    if (ok) this.beep(880, 0.15);
+    setTimeout(() => this.setState({ orderStatus: "idle" }), 2500);
+  }
+
+  cutWire(id) {
+    const wire = this.state.wires.find((w) => w.id === id);
+    if (!wire || wire.cut) return;
+    this.setState({ cutResult: { id, safe: wire.safe } });
+    this.sendPuzzle("wire", id);
+    if (wire.safe) this.beep(660, 0.12);
+    else this.beep(180, 0.35, "sawtooth");
+    setTimeout(() => this.setState({ cutResult: null }), 3000);
+  }
+
+  toggleObjective(id) {
+    const checked = this.state.checkedObjectives.includes(id);
+    this.setState({
+      checkedObjectives: checked
+        ? this.state.checkedObjectives.filter((objectiveId) => objectiveId !== id)
+        : [...this.state.checkedObjectives, id],
+    });
+  }
+
+  sendComms() {
+    const text = this.state.commsInput.trim();
+    if (!text) return;
+    const from = CALLSIGNS[this.state.role] || "OPS";
+    this.beep(520, 0.06, "square");
+    if (this._room) this._room.send("comms", { text });
+    else {
+      const d = new Date();
+      const time = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+      this.setState({ comms: [...this.state.comms, { time, from, text }] });
+    }
+    this.setState({ commsInput: "" });
+  }
+}
+</script>
+</body>
 </html>

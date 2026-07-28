@@ -1247,7 +1247,33 @@ export const GameScreen = ({
   };
 
   return (
-    <div className="isolate w-full h-screen relative overflow-hidden bg-canvas">
+    <div className="tri-game-shell isolate w-full h-screen relative overflow-hidden bg-canvas">
+      <header className="tri-live-command" aria-label="Mission status">
+        <div className="tri-live-brand">
+          <span>TF</span>
+          <div><strong>TRI-FUSAL</strong><small>OPERATION THREEFOLD</small></div>
+        </div>
+        <div className="tri-live-unit" aria-label="Operative channels">
+          {(["RED", "GREEN", "BLUE"] as PlayerColor[]).map((color, index) => {
+            const operative = Array.from(players.values()).find((player) => player.color === color);
+            return (
+              <div key={color} className={operative ? "is-online" : ""}>
+                <i style={{ background: getPlayerUiLabelHex(color) }} />
+                <span>CH-{index + 1}</span>
+                <strong>{operative?.name?.trim() || getPlayerDisplayLabel(color)}</strong>
+              </div>
+            );
+          })}
+        </div>
+        <div className="tri-live-readouts">
+          <div><span>STAGE</span><strong>{String(effectiveStage).padStart(2, "0")}</strong></div>
+          <div><span>MODULES</span><strong>{solvedPuzzleCount}/{requiredPuzzleCount || bombPuzzles.length}</strong></div>
+          <div className={bombStatus === "detonated" ? "is-critical" : ""}>
+            <span>{bombStatusLabel}</span>
+            <strong>{bombMinutes}:{bombSeconds}</strong>
+          </div>
+        </div>
+      </header>
       {/* Cloud nebula backdrop is rendered inside the R3F Canvas (NebulaBackdrop). */}
       <div
         className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-t from-canvas/25 via-transparent to-transparent"
@@ -1335,7 +1361,7 @@ export const GameScreen = ({
       `}</style>
 
       {/* HUD: frosted HUD chrome (match timer / stage chips); settings swap into same shell */}
-      <div className="absolute left-4 top-4 z-20 flex w-[min(11.5rem,calc(100vw-2rem))] flex-col gap-2">
+      <div className="absolute left-4 top-[4.75rem] z-20 flex w-[min(11.5rem,calc(100vw-2rem))] flex-col gap-2">
         <div
           className="relative flex flex-col overflow-hidden rounded-none border border-solid bg-canvas/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-inset ring-white/[0.06] backdrop-blur-[4px]"
           style={{ borderColor: HUD_CHROME.border }}
@@ -1579,7 +1605,7 @@ export const GameScreen = ({
       </div>
 
       {/* Stage Display - Top Center (HUD chrome) */}
-      <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2">
+      <div className="tri-legacy-stage absolute left-1/2 top-[4.75rem] z-10 -translate-x-1/2">
         {/* Outer glow — intensity scales with stage + bloom pulse on transition */}
         <div
           className="absolute -inset-3 rounded-sm"
@@ -1614,7 +1640,7 @@ export const GameScreen = ({
       </div>
 
       {/* Right side: stage target, vertical meter, high score marker, current below bar */}
-      <div className="absolute right-4 top-1/2 z-10 max-h-[calc(100vh-2rem)] -translate-y-1/2 sm:right-6">
+      <div className="absolute right-4 top-1/2 z-10 max-h-[calc(100vh-5.5rem)] -translate-y-[45%] sm:right-6">
         <aside
           className="flex w-auto max-w-[min(18rem,calc(100vw-2rem))] flex-col items-end"
           aria-label="Stage target and scores"
@@ -1862,7 +1888,7 @@ export const GameScreen = ({
       )}
 
       {/* Timer Display - Bottom Center (HUD chrome) */}
-      <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2">
+      <div className="tri-legacy-timer absolute bottom-4 left-1/2 z-10 -translate-x-1/2">
         <div
           className="relative min-w-[8.5rem] whitespace-nowrap rounded-none border border-solid bg-canvas/50 px-4 py-2.5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-inset ring-white/[0.06] backdrop-blur-[4px]"
           style={{
@@ -1901,7 +1927,7 @@ export const GameScreen = ({
       </div>
 
       {/* Bomb module checklist - Top Left */}
-      <div className="absolute left-4 top-4 z-10 w-[min(18rem,calc(100vw-2rem))] sm:left-6">
+      <div className="absolute right-4 top-[4.75rem] z-10 w-[min(18rem,calc(100vw-2rem))] sm:right-6">
         <aside
           className="relative rounded-none border border-solid bg-canvas/50 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-inset ring-white/[0.06] backdrop-blur-[4px]"
           style={{ borderColor: HUD_CHROME.border }}

@@ -15,6 +15,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 import { GameRoom } from "./rooms/GameRoom";
+import { TriFusalRoom } from "./rooms/TriFusalRoom";
 import { parseUnrealExport } from "./config/LevelSpec";
 
 const port = Number(process.env.PORT || 2567);
@@ -89,6 +90,7 @@ const gameServer = new Server({
 // and players join an existing game by its Colyseus room id (client.joinById),
 // so no matchmaking filter is needed.
 gameServer.define("game_room", GameRoom);
+gameServer.define("tri_fusal", TriFusalRoom).filterBy(["operation"]);
 
 // Attach Colyseus monitor
 app.use("/colyseus", monitor());
