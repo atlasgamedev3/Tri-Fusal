@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainMenu from "./pages/MainMenu";
 import Index from "./pages/Index";
+import ColdWarInterface from "./pages/ColdWarInterface";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -16,7 +17,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<MainMenu />} />
+          <Route path="/" element={<ColdWarInterface />} />
+          <Route path="/deploy" element={<MainMenu />} />
           <Route path="/play" element={<Index />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

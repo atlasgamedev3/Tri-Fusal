@@ -108,8 +108,32 @@ export class GameRoom extends Room<GameState> {
 
     // Load collectible spawn configuration first to get seed
     const configPath = join(__dirname, "../config/collectible-spawn.json");
-    const configData = readFileSync(configPath, "utf-8");
-    this.collectibleSpawnConfig = JSON.parse(configData);
+    try {
+      const configData = readFileSync(configPath, "utf-8");
+      this.collectibleSpawnConfig = JSON.parse(configData);
+    } catch (error) {
+      // A room should still be playable if a packaged deployment cannot read
+      // the optional tuning file. These values mirror the checked-in config.
+      console.warn(`Unable to read collectible spawn config at ${configPath}; using defaults.`, error);
+      this.collectibleSpawnConfig = {
+        seed: 40,
+        custom_target_scores: [50, 130, 290, 520, 860, 1090, 1550],
+        collectible_spawn_rules: [
+          {
+            clue_type: "network",
+            first_stage: 1,
+            num_initial: 5,
+            num_subsequent: 3,
+          },
+          {
+            clue_type: "polyomino",
+            first_stage: 3,
+            num_initial: 7,
+            num_subsequent: 4,
+          },
+        ],
+      };
+    }
 
     // Try to load level spec — from inline JSON (levelSpecJson) or file reference (levelSpec)
     if (options.levelSpecJson) {

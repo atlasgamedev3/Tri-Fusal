@@ -1,10 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { GameInitPayload } from "@/lib/session-storage";
-import { Users, Swords, LogIn } from "lucide-react";
+import { ArrowRight, Radio, Shield, UserRound, Users } from "lucide-react";
 
 const NAME_STORAGE_KEY = "tri-fusal-player-name";
 
@@ -13,33 +11,29 @@ const MainMenu = () => {
   const { toast } = useToast();
   const [playerName, setPlayerName] = useState("");
   const [joinRoomId, setJoinRoomId] = useState("");
+  const [clock, setClock] = useState(new Date());
 
-  // Remember the player's name across sessions (no auth in standalone build).
   useEffect(() => {
     const saved = localStorage.getItem(NAME_STORAGE_KEY);
     if (saved) setPlayerName(saved);
+    const timer = window.setInterval(() => setClock(new Date()), 1000);
+    return () => window.clearInterval(timer);
   }, []);
 
   const resolvedName = playerName.trim();
 
-  // Create a fresh room (solo or multiplayer), or join an existing one by its
-  // Colyseus room id. roomId === undefined → client.create; otherwise joinById.
   const startGame = (soloMode: boolean, roomId?: string) => {
     const name = resolvedName;
     if (!name) {
       toast({
-        title: "Enter a name",
-        description: "Please enter a player name before starting.",
+        title: "Operative identity required",
+        description: "Enter a field name before deployment.",
         variant: "destructive",
       });
       return;
     }
     localStorage.setItem(NAME_STORAGE_KEY, name);
 
-    // Same-origin by default: in a combined (single-instance) deploy the client
-    // is served by the Colyseus server, so connect back to the host it loaded
-    // from. VITE_SERVER_URL overrides this (e.g. split client/server deploys);
-    // in local dev fall back to the standalone server port.
     const serverUrl =
       import.meta.env.VITE_SERVER_URL ||
       (import.meta.env.DEV
@@ -55,110 +49,152 @@ const MainMenu = () => {
     navigate("/play", { state: { initPayload } });
   };
 
-  const handleSolo = () => startGame(true);
-  const handleMultiplayer = () => startGame(false);
   const handleJoinRoom = () => {
     const id = joinRoomId.trim();
-    if (!id) return;
-    startGame(false, id);
+    if (id) startGame(false, id);
   };
 
+  const utcTime = clock.toLocaleTimeString("en-GB", {
+    hour12: false,
+    timeZone: "UTC",
+  });
+
   return (
-    <div className="w-full min-h-screen bg-canvas flex items-center justify-center px-4 py-10 sm:py-14">
-      <main
-        className="w-full max-w-sm mx-auto text-center space-y-8 sm:space-y-9 rounded-sm border border-hairline/55 bg-canvas-elevated/35 px-6 py-9 backdrop-blur-[6px] sm:px-8 sm:py-10"
-        aria-labelledby="main-menu-title"
-      >
-        <header className="space-y-2">
-          <h1
-            id="main-menu-title"
-            className="text-4xl font-bold text-white tracking-tight"
-          >
-            Tri-Fusal
-          </h1>
-          <p className="text-slate-500 text-sm">Enter a name and pick a mode to play.</p>
-        </header>
+    <div className="tri-briefing min-h-dvh w-full overflow-hidden">
+      <div className="tri-noise" aria-hidden />
 
-        <section className="space-y-3 text-left" aria-label="Player name">
-          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
-            Player name
-          </p>
-          <Input
-            id="player-name"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            placeholder="Your name"
-            autoComplete="off"
-            spellCheck={false}
-            maxLength={24}
-            className="h-14 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
-            aria-label="Player name"
-          />
-        </section>
+      <header className="tri-command-bar">
+        <div className="tri-wordmark">
+          <span className="tri-mark">TF</span>
+          <div>
+            <strong>TRI-FUSAL</strong>
+            <span>COOPERATIVE DEFUSAL COMMAND</span>
+          </div>
+        </div>
+        <div className="tri-operation">
+          <span>ACTIVE DIRECTIVE</span>
+          <strong>OPERATION THREEFOLD</strong>
+        </div>
+        <div className="tri-header-status">
+          <span><i /> SECURE LINK</span>
+          <strong>{utcTime} ZULU</strong>
+        </div>
+      </header>
 
-        <section className="space-y-3 text-left" aria-label="Start playing">
-          <p className="text-center text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
-            Play
-          </p>
-          <div className="space-y-3">
-            <Button
-              type="button"
-              onClick={handleSolo}
-              className="w-full h-14 bg-blue-600 text-white hover:bg-blue-700 text-lg font-semibold gap-3"
-            >
-              <Swords className="w-5 h-5 shrink-0" aria-hidden />
-              Solo Game
-            </Button>
+      <main className="tri-briefing-grid">
+        <section className="tri-dossier" aria-labelledby="main-menu-title">
+          <div className="tri-eyebrow">
+            <span>MISSION DOSSIER // TF-03</span>
+            <span className="tri-classified">CLASSIFIED</span>
+          </div>
 
-            <Button
-              type="button"
-              onClick={handleMultiplayer}
-              variant="outline"
-              className="w-full h-14 border border-white/10 bg-white/5 text-white text-lg font-semibold gap-3 hover:bg-white/10 hover:text-white"
-            >
-              <Users className="w-5 h-5 shrink-0" aria-hidden />
-              Multiplayer
-            </Button>
+          <div className="tri-title-block">
+            <p>COOPERATIVE FIELD EXERCISE</p>
+            <h1 id="main-menu-title">THREE MINDS.<br />ONE DEVICE.</h1>
+            <div className="tri-rule"><span /></div>
+            <p className="tri-lede">
+              Navigate the signal grid, coordinate three operatives, and
+              neutralize every device module before the final countdown.
+            </p>
+          </div>
+
+          <div className="tri-brief-stats" aria-label="Mission overview">
+            <div><span>UNIT SIZE</span><strong>01—03</strong><small>OPERATIVES</small></div>
+            <div><span>PROTOCOL</span><strong>TRIAD</strong><small>COOPERATIVE</small></div>
+            <div><span>THREAT</span><strong>ACTIVE</strong><small>TIME CRITICAL</small></div>
+          </div>
+
+          <div className="tri-field-note">
+            <span>FIELD NOTE 07-B</span>
+            <p>Every movement alters the network. No operative completes the circuit alone.</p>
           </div>
         </section>
 
-        <section className="space-y-3 text-left" aria-label="Join a room by id">
-          <div className="space-y-1 text-left">
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-slate-500">
-              Play with friends
-            </p>
-            <p className="text-xs text-slate-500 leading-snug pr-1">
-              Enter a room code to join a friend's multiplayer room. Start a
-              Multiplayer game above, then share your room code with friends.
-            </p>
+        <section className="tri-deployment" aria-label="Deployment controls">
+          <div className="tri-panel-heading">
+            <div>
+              <span>DEPLOYMENT TERMINAL</span>
+              <strong>IDENTIFY &amp; ASSIGN</strong>
+            </div>
+            <span>STATION 03</span>
           </div>
-          <div className="flex gap-2">
-            <Input
-              id="room-id"
-              value={joinRoomId}
-              onChange={(e) => setJoinRoomId(e.target.value)}
-              placeholder="Room code"
+
+          <label className="tri-field">
+            <span><UserRound size={13} /> OPERATIVE FIELD NAME</span>
+            <input
+              value={playerName}
+              onChange={(event) => setPlayerName(event.target.value)}
+              placeholder="ENTER CALLSIGN"
               autoComplete="off"
               spellCheck={false}
-              className="h-14 min-w-0 flex-1 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
-              aria-label="Room code to join"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleJoinRoom();
+              maxLength={24}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") startGame(true);
               }}
             />
-            <Button
-              type="button"
-              onClick={handleJoinRoom}
-              disabled={!joinRoomId.trim()}
-              variant="outline"
-              className="h-14 shrink-0 border border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white px-3 sm:px-4 gap-2 shadow-none"
-            >
-              <LogIn className="w-5 h-5 shrink-0" aria-hidden />
-              <span className="text-sm font-semibold">Join</span>
-            </Button>
+          </label>
+
+          <div className="tri-mode-label">
+            <span>SELECT DEPLOYMENT PROTOCOL</span>
+            <small>02 OPTIONS</small>
+          </div>
+
+          <div className="tri-mode-grid">
+            <button type="button" onClick={() => startGame(true)} className="tri-mode-card">
+              <span className="tri-mode-index">01</span>
+              <Shield size={23} strokeWidth={1.4} />
+              <span className="tri-mode-copy">
+                <strong>SOLO COMMAND</strong>
+                <small>CONTROL ALL THREE OPERATIVES</small>
+              </span>
+              <ArrowRight size={18} />
+            </button>
+
+            <button type="button" onClick={() => startGame(false)} className="tri-mode-card tri-mode-primary">
+              <span className="tri-mode-index">02</span>
+              <Users size={23} strokeWidth={1.4} />
+              <span className="tri-mode-copy">
+                <strong>FORM A UNIT</strong>
+                <small>OPEN A MULTIPLAYER ROOM</small>
+              </span>
+              <ArrowRight size={18} />
+            </button>
+          </div>
+
+          <div className="tri-divider"><span>OR JOIN ACTIVE FREQUENCY</span></div>
+
+          <div className="tri-join">
+            <label>
+              <span><Radio size={13} /> ROOM FREQUENCY</span>
+              <input
+                value={joinRoomId}
+                onChange={(event) => setJoinRoomId(event.target.value.toUpperCase())}
+                placeholder="ENTER ROOM CODE"
+                autoComplete="off"
+                spellCheck={false}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") handleJoinRoom();
+                }}
+              />
+            </label>
+            <button type="button" onClick={handleJoinRoom} disabled={!joinRoomId.trim()}>
+              JOIN UNIT <ArrowRight size={15} />
+            </button>
+          </div>
+
+          <div className="tri-terminal-log" aria-hidden>
+            <span>&gt; COMMAND RELAY ONLINE</span>
+            <span>&gt; THREE CHANNELS AVAILABLE</span>
+            <span>&gt; AWAITING OPERATIVE IDENTIFICATION<span className="tri-cursor">█</span></span>
           </div>
         </section>
       </main>
+
+      <footer className="tri-footer">
+        <span>DEFUSAL COMMAND NETWORK // REV. 3.7.1</span>
+        <span>UNAUTHORIZED ACCESS WILL BE LOGGED</span>
+        <span>CHANNEL: BRAVO-7</span>
+      </footer>
     </div>
   );
 };

@@ -1,13 +1,13 @@
-/** HUD chrome (sky / ice) — shared by game HUD and lobby panels. */
+/** Cold-war instrument chrome shared by the live game HUD. */
 export const HUD_CHROME = {
-  border: "rgba(56, 189, 248, 0.2)",
-  barBorder: "rgba(56, 189, 248, 0.2)",
-  barInset: "rgba(14, 165, 233, 0.2)",
-  connectorFrom: "rgba(255,255,255,0.2)",
-  connectorVia: "rgba(56, 189, 248, 0.2)",
-  connectorTo: "rgba(125, 211, 252, 0.2)",
-  marker: "#7dd3fc",
-  markerRing: "rgba(186, 230, 253, 0.2)",
+  border: "rgba(196, 168, 79, 0.34)",
+  barBorder: "rgba(196, 168, 79, 0.38)",
+  barInset: "rgba(200, 134, 26, 0.22)",
+  connectorFrom: "rgba(232, 223, 196, 0.24)",
+  connectorVia: "rgba(196, 168, 79, 0.28)",
+  connectorTo: "rgba(90, 112, 64, 0.32)",
+  marker: "#c4a84f",
+  markerRing: "rgba(196, 168, 79, 0.24)",
 } as const;
 
 /** Tiny corner L-brackets (sky hairline). Parent should be `relative overflow-hidden`. */

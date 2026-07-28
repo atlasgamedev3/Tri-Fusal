@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import * as Client from "colyseus.js";
 import { toast } from "sonner";
-import { GameScreen } from "@/screens/GameScreen";
+import ColdWarInterface from "@/pages/ColdWarInterface";
 import type { GameInitPayload } from "@/lib/session-storage";
 import { useSounds } from "@/hooks/use-sounds";
 import { ResultsOverlay } from "@/components/game/ResultsOverlay";
@@ -147,6 +147,7 @@ const Index = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [phase, setPhase] = useState<Phase>("connecting");
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   // Init payload comes from the standalone main menu.
   const routerState = location.state as { initPayload?: GameInitPayload } | null;
@@ -395,6 +396,7 @@ const Index = () => {
     }
 
     const connect = async () => {
+      setConnectionError(null);
       try {
         const client = new Client.Client(initPayload.serverUrl);
         clientRef.current = client;
@@ -438,6 +440,10 @@ const Index = () => {
         });
       } catch (e) {
         console.error("Failed to join game room:", e);
+        const message = e instanceof Error && e.message
+          ? e.message
+          : "The game server did not respond.";
+        setConnectionError(message);
         toast.error("Failed to connect to game server.");
       }
     };
@@ -513,7 +519,7 @@ const Index = () => {
         <div className="text-center max-w-md">
           <p className="text-slate-300 text-lg mb-2">Session expired</p>
           <p className="text-slate-500 text-sm mb-6">Start or rejoin a room from the main menu.</p>
-          <button onClick={() => navigate("/boot", { replace: true })} className="text-sky-400 hover:text-sky-300 underline text-sm">
+          <button onClick={() => navigate("/deploy", { replace: true })} className="text-sky-400 hover:text-sky-300 underline text-sm">
             Back to main menu
           </button>
         </div>
@@ -522,16 +528,35 @@ const Index = () => {
   }
 
   if (phase === "connecting") {
+    if (connectionError) {
+      return (
+        <div className="tri-briefing min-h-dvh w-full items-center justify-center px-5">
+          <div className="tri-connection-error" role="alert">
+            <span>CONNECTION FAULT // CHANNEL BRAVO-7</span>
+            <h1>DEPLOYMENT ABORTED</h1>
+            <p>{connectionError}</p>
+            <div>
+              <button type="button" onClick={() => window.location.reload()}>
+                Retry connection
+              </button>
+              <button type="button" onClick={() => navigate("/", { replace: true })}>
+                Return to command
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
-      <div className="w-full h-screen bg-canvas flex items-center justify-center">
+      <div className="tri-briefing w-full h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4" role="status" aria-live="polite" aria-label="Connecting to game…">
           <div
             className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
-            style={{ borderColor: "rgba(0, 149, 255, 0.3)", borderTopColor: "transparent" }}
+            style={{ borderColor: "rgba(196, 168, 79, 0.5)", borderTopColor: "transparent" }}
             aria-hidden
           />
-          <p className="font-montreal text-[0.6875rem] uppercase tracking-[0.06em] text-sky-200/90">
-            Connecting to game…
+          <p className="font-pp-mono text-[0.6875rem] uppercase tracking-[0.18em] text-[#c4a84f]">
+            Establishing secure channel…
           </p>
         </div>
       </div>
@@ -540,40 +565,33 @@ const Index = () => {
 
   return (
     <div className="relative min-h-dvh w-full bg-canvas text-foreground">
-      <GameScreen
-        room={room}
-        players={gameState.players}
-        gridColors={gameState.gridColors}
-        collectibles={gameState.collectibles}
-        enemies={gameState.enemies}
-        gridWidth={gameState.gridWidth}
-        gridHeight={gameState.gridHeight}
-        myColor={myColor}
-        isSoloMode={initPayload?.soloMode || false}
-        scores={gameState.scores}
-        totalScore={gameState.totalScore}
-        highScore={gameState.highScore}
-        stage={gameState.stage}
-        stageThresholds={gameState.stageThresholds}
-        timeRemaining={gameState.timeRemaining}
-        bombStatus={gameState.bombStatus}
-        bombDuration={gameState.bombDuration}
-        bombRemaining={gameState.bombRemaining}
-        solvedPuzzleCount={gameState.solvedPuzzleCount}
-        requiredPuzzleCount={gameState.requiredPuzzleCount}
-        bombPuzzles={gameState.bombPuzzles}
-        isDevMode={initPayload?.devMode || false}
-        isSpectator={isSpectator}
-        seed={gameState.seed}
-        isGameOver={gameState.isGameOver}
-        countdown={gameState.countdown}
-        bgMusicVolume={initPayload?.bgMusicUrl ? bgMusicVolume : undefined}
-        onBgMusicVolumeChange={initPayload?.bgMusicUrl ? setBgMusicVolume : undefined}
-        challengeName={initPayload?.challengeName}
-        onGameAbandoned={() => {
-          room?.leave();
-          resultsReasonRef.current = "abandoned";
-          setShowResults(true);
+      <ColdWarInterface
+        seconds={gameState.bombRemaining}
+        modules={gameState.bombPuzzles.map((puzzle, index) => ({
+          id: `M-${String(index + 1).padStart(2, "0")}`,
+          label: (puzzle.label || puzzle.id).toUpperCase(),
+          status: puzzle.isSolved
+            ? "complete"
+            : index === gameState.bombPuzzles.findIndex((item) => !item.isSolved)
+              ? "active"
+              : "pending",
+          owner: index % 2 === 0 ? "analyst" : "technician",
+        }))}
+        team={(["RED", "GREEN", "BLUE"] as PlayerColor[]).map((color, index) => {
+          const player = Array.from(gameState.players.values()).find((item) => item.color === color);
+          return {
+            code: player?.name?.trim() || ["WREN", "BRIDGE", "SABLE"][index],
+            role: ["ANALYST", "TECHNICIAN", "OPERATOR"][index],
+            active: Boolean(player),
+          };
+        })}
+        onPuzzleComplete={(source) => {
+          if (!room || isSpectator || gameState.bombStatus !== "running") return;
+          const keyword = source === "wire" ? "wire" : "signal";
+          const puzzle =
+            gameState.bombPuzzles.find((item) => !item.isSolved && item.label.toLowerCase().includes(keyword)) ??
+            gameState.bombPuzzles.find((item) => !item.isSolved);
+          if (puzzle) room.send("completePuzzle", { puzzleId: puzzle.id });
         }}
       />
       {(gameState.countdown > 0 || showGo) && (() => {
@@ -706,7 +724,7 @@ const Index = () => {
             color: p.color,
           }))}
           onBack={() => {
-            navigate("/", { replace: true });
+            navigate("/deploy", { replace: true });
           }}
         />
       )}
