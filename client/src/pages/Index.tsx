@@ -7,6 +7,16 @@ import ColdWarInterface from "@/pages/ColdWarInterface";
 import type { GameInitPayload } from "@/lib/session-storage";
 import { useSounds } from "@/hooks/use-sounds";
 import { ResultsOverlay } from "@/components/game/ResultsOverlay";
+import {
+  FAILURE_THEME_URL,
+  FAILURE_THEME_VOLUME,
+  MUSIC_CREDIT,
+  ROUND_MUSIC_VOLUME,
+  VICTORY_THEME_URL,
+  VICTORY_THEME_VOLUME,
+  pickRoundMusicTrack,
+} from "@/audio/gameAudio";
+import type { RoundMusicTrack } from "@/audio/gameAudio";
 
 // Types
 type PlayerColor = "RED" | "GREEN" | "BLUE";
@@ -143,6 +153,45 @@ function gameReducer(_state: GameStateLocal, action: GameAction): GameStateLocal
 
 type Phase = "connecting" | "game";
 
+function playWithGestureFallback(audio: HTMLAudioElement) {
+  audio.play().catch(() => {
+    const resume = () => {
+      audio.play().catch(() => {});
+      window.removeEventListener("pointerdown", resume);
+      window.removeEventListener("keydown", resume);
+    };
+
+    window.addEventListener("pointerdown", resume, { once: true });
+    window.addEventListener("keydown", resume, { once: true });
+  });
+}
+
+function stopAndUnload(audio: HTMLAudioElement | null) {
+  if (!audio) return;
+  audio.pause();
+  audio.src = "";
+}
+
+function fadeOutAudio(audio: HTMLAudioElement, durationMs = 700) {
+  const startingVolume = audio.volume;
+  const steps = 14;
+  const stepMs = durationMs / steps;
+  let step = 0;
+
+  const fade = window.setInterval(() => {
+    step += 1;
+    audio.volume = Math.max(0, startingVolume * (1 - step / steps));
+
+    if (step >= steps || audio.volume <= 0.01) {
+      window.clearInterval(fade);
+      audio.pause();
+      audio.volume = startingVolume;
+    }
+  }, stepMs);
+
+  return fade;
+}
+
 const Index = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -173,8 +222,11 @@ const Index = () => {
   const [showResults, setShowResults] = useState(false);
   const resultsReasonRef = useRef<"gameover" | "abandoned">("gameover");
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
-  const [bgMusicVolume, setBgMusicVolume] = useState(0.3);
-  const { play: playSound } = useSounds();
+  const endingAudioRef = useRef<HTMLAudioElement | null>(null);
+  const selectedRoundMusicRef = useRef<RoundMusicTrack | null>(null);
+  const playedOutcomeRef = useRef<BombStatus | null>(null);
+  const lastBombSecondRef = useRef<number | null>(null);
+  const { play: playSound, playBombTick } = useSounds();
   const isSpectator = initPayload?.spectator ?? false;
 
   // Show results overlay when game ends.
@@ -463,55 +515,79 @@ const Index = () => {
     }
   }, [gameState.gameStarted, phase, room]);
 
-  // Background music — start when game phase begins, stop on game over or unmount
+  // Background music: start a random quiet round track while the bomb is active.
   useEffect(() => {
-    const url = initPayload?.bgMusicUrl;
-    if (!url || phase !== "game") return;
+    if (phase !== "game" || gameState.bombStatus !== "running") return;
 
-    const audio = new Audio(url);
+    const selectedTrack = selectedRoundMusicRef.current ?? (
+      initPayload?.bgMusicUrl
+        ? { title: "Selected mission track", artist: "Mission audio", url: initPayload.bgMusicUrl }
+        : pickRoundMusicTrack()
+    );
+    selectedRoundMusicRef.current = selectedTrack;
+
+    const audio = new Audio(selectedTrack.url);
     audio.loop = true;
-    audio.volume = 0.3;
+    audio.volume = ROUND_MUSIC_VOLUME;
     bgMusicRef.current = audio;
-    audio.play().catch(() => {
-      // Autoplay blocked — start on first user interaction
-      const resume = () => {
-        audio.play().catch(() => {});
-        window.removeEventListener("pointerdown", resume);
-        window.removeEventListener("keydown", resume);
-      };
-      window.addEventListener("pointerdown", resume, { once: true });
-      window.addEventListener("keydown", resume, { once: true });
-    });
+    playWithGestureFallback(audio);
 
     return () => {
-      audio.pause();
-      audio.src = "";
-      bgMusicRef.current = null;
-    };
-  }, [phase, initPayload?.bgMusicUrl]);
-
-  // Sync volume slider to audio element
-  useEffect(() => {
-    if (bgMusicRef.current) {
-      bgMusicRef.current.volume = bgMusicVolume;
-    }
-  }, [bgMusicVolume]);
-
-  // Fade out music on game over
-  useEffect(() => {
-    if (!gameState.isGameOver || !bgMusicRef.current) return;
-    const audio = bgMusicRef.current;
-    const fade = setInterval(() => {
-      if (audio.volume > 0.05) {
-        audio.volume = Math.max(0, audio.volume - 0.02);
-      } else {
-        clearInterval(fade);
-        audio.pause();
+      fadeOutAudio(audio);
+      if (bgMusicRef.current === audio) {
+        bgMusicRef.current = null;
       }
-    }, 100);
-    return () => clearInterval(fade);
-  }, [gameState.isGameOver]);
+    };
+  }, [phase, gameState.bombStatus, initPayload?.bgMusicUrl]);
 
+  // Bomb ambience: play one generated tick each second, alternating between two pitches.
+  useEffect(() => {
+    if (phase !== "game" || gameState.bombStatus !== "running" || gameState.countdown > 0) {
+      lastBombSecondRef.current = null;
+      return;
+    }
+
+    const currentSecond = Math.ceil(gameState.bombRemaining);
+    if (currentSecond <= 0 || lastBombSecondRef.current === currentSecond) return;
+
+    lastBombSecondRef.current = currentSecond;
+    playBombTick(currentSecond % 2 === 0 ? "low" : "high");
+  }, [phase, gameState.bombStatus, gameState.bombRemaining, gameState.countdown, playBombTick]);
+
+  // Ending audio: victory theme for defusal, looping sad violin for detonation.
+  useEffect(() => {
+    if (gameState.bombStatus === "ready" || gameState.bombStatus === "running") {
+      playedOutcomeRef.current = null;
+      stopAndUnload(endingAudioRef.current);
+      endingAudioRef.current = null;
+      return;
+    }
+
+    if (gameState.bombStatus !== "defused" && gameState.bombStatus !== "detonated") return;
+    if (playedOutcomeRef.current === gameState.bombStatus) return;
+
+    playedOutcomeRef.current = gameState.bombStatus;
+
+    if (bgMusicRef.current) {
+      fadeOutAudio(bgMusicRef.current, 500);
+      bgMusicRef.current = null;
+    }
+
+    stopAndUnload(endingAudioRef.current);
+
+    const audio = new Audio(gameState.bombStatus === "defused" ? VICTORY_THEME_URL : FAILURE_THEME_URL);
+    audio.loop = gameState.bombStatus === "detonated";
+    audio.volume = gameState.bombStatus === "defused" ? VICTORY_THEME_VOLUME : FAILURE_THEME_VOLUME;
+    endingAudioRef.current = audio;
+    playWithGestureFallback(audio);
+  }, [gameState.bombStatus]);
+
+  useEffect(() => {
+    return () => {
+      stopAndUnload(bgMusicRef.current);
+      stopAndUnload(endingAudioRef.current);
+    };
+  }, []);
 
   if (!initPayload) {
     return (
@@ -594,6 +670,14 @@ const Index = () => {
           if (puzzle) room.send("completePuzzle", { puzzleId: puzzle.id });
         }}
       />
+      <section
+        className="pointer-events-none fixed bottom-3 right-3 z-30 max-w-[min(23rem,calc(100vw-1.5rem))] border border-white/10 bg-black/45 px-3 py-2 text-right font-pp-mono text-[0.56rem] uppercase tracking-[0.12em] text-[#d8c58b]/80 backdrop-blur"
+        aria-label="Music credits"
+      >
+        <p className="text-[#f0e0aa]">Music by {MUSIC_CREDIT.artist}</p>
+        <p>{MUSIC_CREDIT.tracks.join(" / ")}</p>
+        <p className="mt-1 normal-case tracking-normal text-[#b7aa87]/75">{MUSIC_CREDIT.note}</p>
+      </section>
       {(gameState.countdown > 0 || showGo) && (() => {
         const from = 10;
         const glowIntensity = showGo ? 0.5 : Math.max(0, (from - gameState.countdown) / from) * 0.35;

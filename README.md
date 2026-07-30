@@ -19,3 +19,7 @@ Communication is the key to success. Each player has access to unique clues, too
 - Running out of time, or pressing the demo detonation button, triggers the explosion-to-black failure state.
 
 Open index.html in a browser to try the current prototype screen.
+
+## Audio Credits
+- Round music: "Closed Casket Funeral", "The Park On The Old Mountain", and "The Walls Are Painted With Blood" by NoLongerNull.
+- This is a non-commercial prototype. All music rights remain with the original creators; confirm permission/licensing before any public release or monetized use.
