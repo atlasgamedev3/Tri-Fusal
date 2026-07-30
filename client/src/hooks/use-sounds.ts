@@ -59,17 +59,17 @@ export const useSounds = () => {
     const gain = audioContext.createGain();
 
     oscillator.type = "square";
-    oscillator.frequency.setValueAtTime(pitch === "high" ? 1180 : 760, startTime);
+    oscillator.frequency.setValueAtTime(pitch === "high" ? 520 : 360, startTime);
 
     gain.gain.setValueAtTime(0.0001, startTime);
-    gain.gain.exponentialRampToValueAtTime(0.11, startTime + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.07);
+    gain.gain.exponentialRampToValueAtTime(0.1, startTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.085);
 
     oscillator.connect(gain);
     gain.connect(audioContext.destination);
 
     oscillator.start(startTime);
-    oscillator.stop(startTime + 0.08);
+    oscillator.stop(startTime + 0.095);
   }, [getAudioContext]);
 
   const setSfxVolume = useCallback((volume: number) => {

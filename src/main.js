@@ -1,4 +1,5 @@
 import soundManager, { SOUND_KEYS } from "./audio/soundManager.js";
+import { prototypeAudio } from "./audio/prototypeAudio.js";
 import { BOMB_EVENTS, BOMB_STATUS, BombSystem, TWO_PUZZLE_BOMB_CONFIG } from "./game/bombSystem.js";
 import { TIMING_PUZZLE_EVENTS, TimingPuzzleSystem } from "./game/timingPuzzleSystem.js";
 import { WIRE_PUZZLE_EVENTS, WirePuzzleSystem } from "./game/wirePuzzleSystem.js";
@@ -16,6 +17,7 @@ const bombSystem = new BombSystem(TWO_PUZZLE_BOMB_CONFIG);
 const wirePuzzle = new WirePuzzleSystem();
 const timingPuzzle = new TimingPuzzleSystem();
 let activePuzzleId = "puzzle-1";
+let previousTimingState = timingPuzzle.getState();
 let activeRoleLabels = {
   "puzzle-1": "Player 1 - Wire Panel",
   "puzzle-2": "Player 1 - Skill Check",
@@ -61,6 +63,7 @@ function startRound() {
   const bombState = bombSystem.getState();
 
   soundManager.unlock();
+  prototypeAudio.unlock();
 
   if (bombState.status === BOMB_STATUS.DEFUSED || bombState.status === BOMB_STATUS.DETONATED) {
     wirePuzzle.reset();
@@ -68,10 +71,12 @@ function startRound() {
   }
 
   bombSystem.start();
+  prototypeAudio.startRoundMusic();
   updateModuleSwitcherState();
 }
 
 function resetRound() {
+  prototypeAudio.reset();
   bombSystem.reset();
   updateModuleSwitcherState();
 }
@@ -91,10 +96,16 @@ function wireBombEvents() {
   bombSystem.on(BOMB_EVENTS.STARTED, () => {
     wirePuzzle.arm();
     timingPuzzle.arm();
+    prototypeAudio.startRoundMusic();
     syncOverlayStatus();
   });
 
+  bombSystem.on(BOMB_EVENTS.TICK, (event) => {
+    prototypeAudio.playBombTick(event.state.remainingMs);
+  });
+
   bombSystem.on(BOMB_EVENTS.RESET, () => {
+    prototypeAudio.reset();
     wirePuzzle.reset();
     timingPuzzle.reset();
     syncOverlayStatus();
@@ -110,6 +121,7 @@ function wireBombEvents() {
     wirePuzzle.disarm();
     timingPuzzle.disarm();
     soundManager.queueSoundEffect(SOUND_KEYS.DEFUSE_SUCCESS);
+    prototypeAudio.playVictoryTheme();
     syncOverlayStatus();
   });
 
@@ -117,18 +129,27 @@ function wireBombEvents() {
     wirePuzzle.disarm();
     timingPuzzle.disarm();
     soundManager.queueSoundEffect(SOUND_KEYS.DETONATION);
+    prototypeAudio.playFailureTheme();
     syncOverlayStatus();
   });
 }
 
 function timingPuzzleEvents() {
   timingPuzzle.on(TIMING_PUZZLE_EVENTS.SOLVED, () => {
+    prototypeAudio.stopBalanceEngine();
+    previousTimingState = timingPuzzle.getState();
     solvePuzzle("puzzle-2");
     syncOverlayStatus();
   });
 
   timingPuzzle.on(TIMING_PUZZLE_EVENTS.STRIKE, (event) => {
     soundManager.queueSoundEffect(SOUND_KEYS.MODULE_FAILED);
+    prototypeAudio.stopBalanceEngine();
+
+    if (event.detail.reason === "skillMiss" || event.detail.reason === "reactionMiss") {
+      prototypeAudio.playPuzzleFail();
+    }
+
     const penaltyMs = event.detail.reason === "skillMiss" ? 5000 : 30000;
     bombSystem.applyTimePenalty(penaltyMs);
     syncOverlayStatus();
@@ -136,13 +157,14 @@ function timingPuzzleEvents() {
 
   timingPuzzle.on(TIMING_PUZZLE_EVENTS.SECTION_COMPLETED, () => {
     soundManager.queueSoundEffect(SOUND_KEYS.BUTTON_PRESS);
+    prototypeAudio.stopBalanceEngine();
     syncOverlayStatus();
   });
 
-  timingPuzzle.on(TIMING_PUZZLE_EVENTS.ARMED, syncOverlayStatus);
-  timingPuzzle.on(TIMING_PUZZLE_EVENTS.DISARMED, syncOverlayStatus);
-  timingPuzzle.on(TIMING_PUZZLE_EVENTS.RESET, syncOverlayStatus);
-  timingPuzzle.on(TIMING_PUZZLE_EVENTS.UPDATED, syncOverlayStatus);
+  timingPuzzle.on(TIMING_PUZZLE_EVENTS.ARMED, handleTimingStateReset);
+  timingPuzzle.on(TIMING_PUZZLE_EVENTS.DISARMED, handleTimingStateReset);
+  timingPuzzle.on(TIMING_PUZZLE_EVENTS.RESET, handleTimingStateReset);
+  timingPuzzle.on(TIMING_PUZZLE_EVENTS.UPDATED, handleTimingUpdated);
 }
 
 function wirePuzzleEvents() {
@@ -277,4 +299,35 @@ function formatTenths(milliseconds) {
   const remainingSeconds = (seconds % 60).toString().padStart(2, "0");
 
   return minutes + ":" + remainingSeconds + "." + tenths;
+}
+
+function handleTimingStateReset() {
+  previousTimingState = timingPuzzle.getState();
+  prototypeAudio.stopBalanceEngine();
+  syncOverlayStatus();
+}
+
+function handleTimingUpdated(event) {
+  const nextTimingState = event.state;
+
+  if (nextTimingState.skill.streak > previousTimingState.skill.streak) {
+    prototypeAudio.playSkillStep(nextTimingState.skill.streak);
+  }
+
+  if (nextTimingState.reaction.hits > previousTimingState.reaction.hits) {
+    prototypeAudio.playReflexDing();
+  }
+
+  if (
+    nextTimingState.balance.state === "active" &&
+    nextTimingState.balance.isInside &&
+    !nextTimingState.balance.isComplete
+  ) {
+    prototypeAudio.startBalanceEngine();
+  } else {
+    prototypeAudio.stopBalanceEngine();
+  }
+
+  previousTimingState = nextTimingState;
+  syncOverlayStatus();
 }
