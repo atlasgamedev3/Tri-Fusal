@@ -841,6 +841,9 @@
 <div style="position: fixed; inset: 0; pointer-events: none; z-index: 61; mix-blend-mode: overlay; background: radial-gradient(ellipse at center, rgba(255,255,255,0.12) 0%, transparent 65%); animation: scanGlow 2.6s ease-in-out infinite reverse;"></div>
 <div style="position: fixed; inset: 0; pointer-events: none; z-index: 62; background: #fff; mix-blend-mode: overlay; animation: randomFlicker 26s linear infinite;"></div>
 <div style="position: fixed; inset: 0; pointer-events: none; z-index: 62; background: #000; opacity: 0; animation: randomFlicker 34s linear infinite 11s both;"></div>
+<sc-if value="{{ hasEventBanner }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;top:48px;left:50%;transform:translateX(-50%);z-index:69;pointer-events:none;border:1px solid {{ eventBannerColor }};background:rgba(2,5,4,.94);color:{{ eventBannerColor }};box-shadow:0 0 24px {{ eventBannerColor }};padding:9px 24px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.18em;white-space:nowrap;animation:popIn .18s ease-out,fadeUp .4s ease-out .75s reverse forwards;">{{ eventBannerText }}</div>
+</sc-if>
 <sc-if value="{{ flashActive }}" hint-placeholder-val="{{ false }}">
   <div style="position: fixed; inset: 0; pointer-events: none; z-index: 70; background: rgba(192,32,32,0.5); animation: penaltyBlink 0.35s steps(2);"></div>
 </sc-if>
@@ -981,6 +984,8 @@ class Component extends DCLogic {
     orderStatus: "idle",
     flashActive: false,
     finalSequenceStage: 0,
+    eventBanner: "",
+    eventTone: "good",
     authSolved: false,
     patternSolved: false,
     relaySolved: false,
@@ -1009,8 +1014,7 @@ class Component extends DCLogic {
       activate: "/sounds/activate.mp3",
       deactivate: "/sounds/deactivate.mp3",
       clear: "/sounds/clear.mp3",
-      abandon: "/sounds/abandon.mp3",
-      complete: "/sounds/puzzle/fuel-engines-task-complete.mp3",
+      gold: "/sounds/gold.mp3",
       failed: "/sounds/puzzle/apple-pay-failed.mp3",
     };
     this._roundTracks = [
@@ -1062,6 +1066,7 @@ class Component extends DCLogic {
     window.removeEventListener("resize", this._onResize);
     window.removeEventListener("keydown", this._onPttDown);
     window.removeEventListener("keyup", this._onPttUp);
+    if (this._bannerTimer) clearTimeout(this._bannerTimer);
     this.stopMusic();
   }
 
@@ -1229,6 +1234,9 @@ class Component extends DCLogic {
       finalStage1Mark: s.finalSequenceStage >= 1 ? "[SAFE]" : "[PENDING]",
       finalStage2Mark: s.finalSequenceStage >= 2 ? "[SAFE]" : "[PENDING]",
       finalStage3Mark: s.finalSequenceStage >= 3 ? "[SAFE]" : "[PENDING]",
+      hasEventBanner: Boolean(s.eventBanner),
+      eventBannerText: s.eventBanner,
+      eventBannerColor: s.eventTone === "danger" ? "#E05A3E" : s.eventTone === "warning" ? "#C4A84F" : "#4DDB7A",
       objectives,
       moduleCount,
       completedModules: completedObjectiveCount,
@@ -1674,19 +1682,22 @@ class Component extends DCLogic {
       room.onMessage("voiceSignal", (message) => this.handleVoiceSignal(message));
       room.onMessage("penalty", (message) => {
         this.receiveComms({ from: "SYSTEM", text: `⚠ STRIKE ${message.strikes}/${message.maxStrikes}: ${message.reason} — ${message.seconds}s PENALTY`, timestamp: message.timestamp });
-        this.playSfx("abandon", 0.46);
+        this.playSfx("deactivate", 0.48);
+        this.showEventBanner(`PROTOCOL STRIKE ${message.strikes}/${message.maxStrikes}`, "danger");
         this.setState({ flashActive: true });
         setTimeout(() => this.setState({ flashActive: false }), 350);
       });
       room.onMessage("missionComplication", (message) => {
         this.receiveComms({ from: "SYSTEM", text: `⚠ ${String(message.text || "MISSION STATE CHANGED")}`, timestamp: message.timestamp });
         this.playSfx("deactivate", 0.42);
+        this.showEventBanner(String(message.text || "MISSION STATE CHANGED"), "warning");
         this.beep(240, 0.22, "sawtooth");
       });
       room.onMessage("moduleSolved", (message) => {
         const role = String(message.role || "SYSTEM").toUpperCase();
         this.receiveComms({ from: "SYSTEM", text: `✓ ${String(message.label || "MODULE SECURED")} — ${role}`, timestamp: message.timestamp });
         this.playSfx("clear", 0.3);
+        this.showEventBanner(String(message.label || "MODULE SECURED"), "good");
       });
       room.onMessage("missionRejected", (message) => this.setState({ connectionError: String(message.reason || "DEPLOYMENT REJECTED").toUpperCase() }));
       room.onMessage("puzzleLocked", (message) => this.notifyLocked(String(message.reason || "ACTION LOCKED")));
@@ -2006,18 +2017,26 @@ class Component extends DCLogic {
     if (this._finished) return;
     this._finished = true;
     this.stopMusic();
-    this.playSfx("complete", 0.55);
+    this.playSfx("clear", 0.52);
     this.setState({ screen: "finalSequence", finalSequenceStage: 1 });
     this.beep(320, 0.12, "square");
     setTimeout(() => {
       this.setState({ finalSequenceStage: 2 });
       this.beep(480, 0.14, "square");
+      this.playSfx("activate", 0.42);
     }, 700);
     setTimeout(() => {
       this.setState({ finalSequenceStage: 3 });
       this.beep(680, 0.18, "square");
+      this.playSfx("gold", 0.48);
     }, 1400);
     setTimeout(() => this.logOutcome("SUCCESS"), 2300);
+  }
+
+  showEventBanner(text, tone = "good") {
+    if (this._bannerTimer) clearTimeout(this._bannerTimer);
+    this.setState({ eventBanner: String(text || "").toUpperCase(), eventTone: tone });
+    this._bannerTimer = setTimeout(() => this.setState({ eventBanner: "" }), 1150);
   }
 
   playSfx(name, intensity = 1) {
@@ -2145,7 +2164,7 @@ class Component extends DCLogic {
     const ok = this.state.relay1 === this.state.relay1Target && this.state.relay2 === this.state.relay2Target;
     this.setState({ relayStatus: ok ? "ok" : "fail" });
     this.sendPuzzle("relay", { relay1: this.state.relay1, relay2: this.state.relay2 });
-    if (ok) { this.beep(880, 0.15); this.playSfx("complete", 0.38); }
+    if (ok) { this.beep(880, 0.15); this.playSfx("gold", 0.38); }
   }
 
   chooseOrder(choice) {
