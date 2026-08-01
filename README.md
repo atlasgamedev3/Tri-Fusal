@@ -12,13 +12,15 @@ Communication is the key to success. Each player has access to unique clues, too
 - Engaging UI
 - Leaderboard / ranking system
 
-## Bomb Prototype
-- The first bomb setup uses a 15-minute timer and two required puzzles.
-- The bomb is displayed as a persistent top HUD with the active puzzle board below it.
-- Completing both puzzle modules calls the defused state.
-- Running out of time, or pressing the demo detonation button, triggers the explosion-to-black failure state.
+## Local Development
+1. Run `npm install` in the repo root, then run `npm install` inside `client/` and `server/` if needed.
+2. Start the app with `npm run dev` from the repo root.
+3. Open `http://localhost:8080/deploy` for the main menu, or `http://localhost:8080/` for the in-progress bomb interface.
 
-Open index.html in a browser to try the current prototype screen.
+## Current Structure
+- `client/` contains the React + Vite frontend and the current UI.
+- `server/` contains the Colyseus multiplayer server and API routes.
+- The old standalone prototype `index.html` flow has been retired in favor of the client/server app.
 
 ## Audio Credits
 - Round music: "Closed Casket Funeral", "The Park On The Old Mountain", and "The Walls Are Painted With Blood" by NoLongerNull.
