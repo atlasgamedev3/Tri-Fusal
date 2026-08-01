@@ -8,11 +8,20 @@ const WIRES_PER_DIFFICULTY: Record<string, number> = { STANDARD: 3, HARD: 5, EXT
 const SAFE_WIRE_COUNT: Record<string, number> = { STANDARD: 1, HARD: 2, EXTREME: 3 };
 const RADAR_TOLERANCE: Record<string, number> = { STANDARD: 10, HARD: 6, EXTREME: 3 };
 const RELAY_WINDOW_SECONDS: Record<string, number> = { STANDARD: 50, HARD: 35, EXTREME: 25 };
+const CRISIS_WINDOW_SECONDS: Record<string, number> = { STANDARD: 15, HARD: 12, EXTREME: 9 };
+const CRISIS_COOLDOWN_SECONDS: Record<string, number> = { STANDARD: 55, HARD: 42, EXTREME: 32 };
+const BOARDS_PER_DIFFICULTY: Record<string, number> = { STANDARD: 1, HARD: 2, EXTREME: 3 };
 const ROLE_ACTIONS: Record<MissionRole, Set<string>> = {
-  analyst: new Set(["radar", "frequency", "pattern", "ack"]),
-  technician: new Set(["relay", "relaySet", "wire", "ack"]),
-  operator: new Set(["auth", "order", "ack"]),
+  analyst: new Set(["radar", "frequency", "pattern", "ack", "crisis"]),
+  technician: new Set(["relay", "relaySet", "wire", "ack", "crisis"]),
+  operator: new Set(["auth", "order", "ack", "crisis"]),
 };
+
+const CRISIS_EVENTS: Array<{ role: MissionRole; label: string; action: string }> = [
+  { role: "analyst", label: "SIGNAL PHASE COLLAPSE", action: "RECALIBRATE ARRAY" },
+  { role: "technician", label: "GROUND LOOP SURGE", action: "SHUNT GROUND LOOP" },
+  { role: "operator", label: "DEAD-MAN AUTH PING", action: "CONFIRM COMMAND CHANNEL" },
+];
 
 const MISSION_PROFILES = [
   { name: "NIGHT GLASS", contact: "TGT-01", frequency: 143.2, lat: "51°30.7'N", lon: "000°07.4'W", grid: "LD-3184", code: "1-4-2-3", pattern: "△◇○□", auth: "ORBIT-4-LIMA", order: "A" },
@@ -22,6 +31,22 @@ const MISSION_PROFILES = [
   { name: "SABLE STAR", contact: "TGT-02", frequency: 162.3, lat: "59°19.8'N", lon: "018°04.1'E", grid: "SK-9086", code: "4-3-1-4", pattern: "◇□△◇", auth: "FROST-6-NOVEMBER", order: "A" },
   { name: "COLD LANTERN", contact: "UNK-A", frequency: 167.1, lat: "41°54.0'N", lon: "012°29.0'E", grid: "RM-2651", code: "2-4-1-3", pattern: "○◇△□", auth: "CINDER-8-SIERRA", order: "C" },
 ] as const;
+
+export interface TriFusalLeaderboardEntry {
+  operation: string;
+  difficulty: string;
+  elapsedSeconds: number;
+  remainingSeconds: number;
+  score: number;
+  strikes: number;
+  completedAt: string;
+}
+
+const TRI_FUSAL_LEADERBOARD: TriFusalLeaderboardEntry[] = [];
+
+export function getTriFusalLeaderboard() {
+  return [...TRI_FUSAL_LEADERBOARD];
+}
 
 function makeBombId() {
   const words = ["ALPHA", "ECHO", "KILO", "OSCAR", "TANGO", "ZULU"];
@@ -38,12 +63,14 @@ export class TriFusalRoom extends Room<MissionState> {
   private timer: ReturnType<typeof setInterval> | null = null;
   private userRoles = new Map<string, MissionRole>();
   private isSoloDemo = false;
+  private operation = "BLACKTHORN";
 
   onCreate(options: Record<string, unknown>) {
     this.autoDispose = false;
     this.setState(new MissionState());
     const requestedDifficulty = String(options.difficulty || "STANDARD").toUpperCase();
     this.state.difficulty = DIFFICULTY_SECONDS[requestedDifficulty] ? requestedDifficulty : "STANDARD";
+    this.operation = String(options.operation || "BLACKTHORN").trim().toUpperCase().slice(0, 32) || "BLACKTHORN";
     this.resetMission();
 
     this.onMessage("setDifficulty", (client, message: { difficulty?: string }) => {
@@ -55,10 +82,11 @@ export class TriFusalRoom extends Room<MissionState> {
     });
 
     this.onMessage("startMission", (client) => {
-      if (this.state.gameStarted || this.state.players.size !== 3) {
-        client.send("missionRejected", { reason: "All three roles must be claimed before deployment." });
+      if (this.state.gameStarted || this.state.players.size < 2) {
+        client.send("missionRejected", { reason: "At least two operatives are required before deployment." });
         return;
       }
+      this.assignRandomRoles();
       this.state.gameStarted = true;
       this.state.bombStatus = "running";
       void this.setPrivate(true);
@@ -78,7 +106,22 @@ export class TriFusalRoom extends Room<MissionState> {
       let failedReason = "";
       let lockedReason = "";
 
-      if (action === "radar") {
+      if (action === "crisis") {
+        if (!this.state.crisisActive) return;
+        const requestedRole = String(message.value || "") as MissionRole;
+        const sharedStations = this.isSoloDemo || this.state.players.size === 2;
+        const responderRole = sharedStations && ROLE_SET.has(requestedRole) ? requestedRole : player.role;
+        if (responderRole !== this.state.crisisRole) {
+          failedReason = `${responderRole.toUpperCase()} RESPONDED TO ${this.state.crisisRole.toUpperCase()} EMERGENCY CHANNEL`;
+        } else {
+          const label = this.state.crisisLabel;
+          this.state.crisisActive = false;
+          this.state.crisisSeconds = 0;
+          this.state.crisisCooldown = this.nextCrisisCooldown();
+          this.state.seconds = Math.min(DIFFICULTY_SECONDS[this.state.difficulty], this.state.seconds + 5);
+          this.broadcast("crisisResolved", { label, role: responderRole, bonus: 5, timestamp: Date.now() });
+        }
+      } else if (action === "radar") {
         const contact = String(message.value || "").toUpperCase();
         if (!["TGT-01", "TGT-02", "UNK-A"].includes(contact)) return;
         this.state.radarSelection = contact;
@@ -161,7 +204,8 @@ export class TriFusalRoom extends Room<MissionState> {
         if (!this.areCorePuzzlesSolved()) lockedReason = "FINAL TRI-LOCK SEALED — COMPLETE ALL SIX CORE OBJECTIVES";
         else {
           const requestedRole = String(message.value || "") as MissionRole;
-          const ackRole = this.isSoloDemo && ROLE_SET.has(requestedRole) ? requestedRole : player.role;
+          const sharedStations = this.isSoloDemo || this.state.players.size === 2;
+          const ackRole = sharedStations && ROLE_SET.has(requestedRole) ? requestedRole : player.role;
           if (ackRole === "analyst") this.state.analystAck = true;
           if (ackRole === "technician") this.state.technicianAck = true;
           if (ackRole === "operator") this.state.operatorAck = true;
@@ -265,7 +309,7 @@ export class TriFusalRoom extends Room<MissionState> {
   private canAct(client: Client, action?: string) {
     const player = this.state.players.get(client.sessionId);
     if (!player || !this.state.gameStarted || this.state.isGameOver || this.state.bombStatus !== "running") return false;
-    if (this.isSoloDemo) return ["radar", "frequency", "pattern", "relaySet", "relay", "wire", "auth", "order", "ack"].includes(String(action));
+    if (this.isSoloDemo || this.state.players.size === 2) return ["radar", "frequency", "pattern", "relaySet", "relay", "wire", "auth", "order", "ack", "crisis"].includes(String(action));
     return ROLE_ACTIONS[player.role].has(String(action));
   }
 
@@ -279,7 +323,10 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.players.set(player.sessionId, player);
   }
 
-  private resetMission() {
+  private resetMission(preserveRun = false) {
+    const preservedSeconds = this.state.seconds;
+    const preservedStrikes = this.state.strikes;
+    const preservedBoardNumber = this.state.boardNumber;
     const profile = MISSION_PROFILES[Math.floor(Math.random() * MISSION_PROFILES.length)];
     const wireCount = WIRES_PER_DIFFICULTY[this.state.difficulty];
     const safeCount = SAFE_WIRE_COUNT[this.state.difficulty];
@@ -334,7 +381,6 @@ export class TriFusalRoom extends Room<MissionState> {
 
     this.state.bombId = makeBombId();
     this.state.seconds = DIFFICULTY_SECONDS[this.state.difficulty];
-    this.state.requiredPuzzleCount = REQUIRED_PUZZLES[this.state.difficulty];
     this.state.missionVariant = profile.name;
     this.state.radarContact = profile.contact;
     this.state.radarLat = profile.lat;
@@ -381,12 +427,24 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.operatorAck = false;
     this.state.interlockSolved = false;
     this.state.cutWireIds.splice(0, this.state.cutWireIds.length);
-    this.state.solvedPuzzleCount = 0;
     this.state.isGameOver = false;
     this.state.gameStarted = false;
     this.state.bombStatus = "ready";
     this.state.strikes = 0;
-    this.state.maxStrikes = 3;
+    this.state.crisisActive = false;
+    this.state.crisisSeconds = 0;
+    this.state.crisisCooldown = 24 + Math.floor(Math.random() * 12);
+    if (preserveRun) {
+      this.state.seconds = preservedSeconds;
+      this.state.strikes = preservedStrikes;
+      this.state.boardNumber = preservedBoardNumber;
+      this.state.gameStarted = true;
+      this.state.bombStatus = "running";
+    } else {
+      this.state.boardNumber = 1;
+      this.state.boardCount = BOARDS_PER_DIFFICULTY[this.state.difficulty];
+      this.state.score = 0;
+    }
   }
 
   private startTimer() {
@@ -399,6 +457,20 @@ export class TriFusalRoom extends Room<MissionState> {
           if (!this.state.isGameOver) this.state.relayWindow = this.state.relayWindowMax;
         }
       }
+      if (!this.areCorePuzzlesSolved()) {
+        if (this.state.crisisActive) {
+          this.state.crisisSeconds = Math.max(0, this.state.crisisSeconds - 1);
+          if (this.state.crisisSeconds === 0) {
+            const expiredLabel = this.state.crisisLabel;
+            this.state.crisisActive = false;
+            this.state.crisisCooldown = this.nextCrisisCooldown();
+            this.applyPenalty("system", `${expiredLabel} RESPONSE WINDOW EXPIRED`);
+          }
+        } else {
+          this.state.crisisCooldown = Math.max(0, this.state.crisisCooldown - 1);
+          if (this.state.crisisCooldown === 0) this.triggerCrisis();
+        }
+      }
       if (this.state.seconds === 0) this.finish("detonated");
     }, 1000);
   }
@@ -407,11 +479,29 @@ export class TriFusalRoom extends Room<MissionState> {
     this.broadcast("moduleSolved", { label, role, timestamp: Date.now() });
   }
 
+  private nextCrisisCooldown() {
+    const base = CRISIS_COOLDOWN_SECONDS[this.state.difficulty];
+    return base + Math.floor(Math.random() * 16);
+  }
+
+  private triggerCrisis() {
+    const event = CRISIS_EVENTS[Math.floor(Math.random() * CRISIS_EVENTS.length)];
+    this.state.crisisActive = true;
+    this.state.crisisRole = event.role;
+    this.state.crisisLabel = event.label;
+    this.state.crisisAction = event.action;
+    this.state.crisisSeconds = CRISIS_WINDOW_SECONDS[this.state.difficulty];
+    this.broadcast("missionComplication", {
+      text: `${event.label} — ${event.role.toUpperCase()} RESPOND WITHIN ${this.state.crisisSeconds}s`,
+      timestamp: Date.now(),
+    });
+  }
+
   private applyPenalty(role: MissionRole | "system", reason: string) {
     this.state.strikes += 1;
     this.state.seconds = Math.max(0, this.state.seconds - 15);
-    this.broadcast("penalty", { from: role, reason, seconds: 15, strikes: this.state.strikes, maxStrikes: this.state.maxStrikes, timestamp: Date.now() });
-    if (this.state.seconds === 0 || this.state.strikes >= this.state.maxStrikes) this.finish("detonated");
+    this.broadcast("penalty", { from: role, reason, seconds: 15, strikes: this.state.strikes, maxStrikes: 3, timestamp: Date.now() });
+    if (this.state.seconds === 0 || this.state.strikes >= 3) this.finish("detonated");
   }
 
   private updateProgress() {
@@ -424,8 +514,22 @@ export class TriFusalRoom extends Room<MissionState> {
       this.state.relaySolved,
       this.state.interlockSolved,
     ];
-    this.state.solvedPuzzleCount = base.filter(Boolean).length;
-    if (this.state.solvedPuzzleCount >= this.state.requiredPuzzleCount) this.finish("defused");
+    const solvedPuzzleCount = base.filter(Boolean).length;
+    if (solvedPuzzleCount >= REQUIRED_PUZZLES[this.state.difficulty]) {
+      if (this.state.boardNumber < this.state.boardCount) {
+        const completedBoard = this.state.boardNumber;
+        this.state.boardNumber += 1;
+        this.broadcast("boardAdvanced", {
+          completedBoard,
+          nextBoard: this.state.boardNumber,
+          boardCount: this.state.boardCount,
+          timestamp: Date.now(),
+        });
+        this.resetMission(true);
+      } else {
+        this.finish("defused");
+      }
+    }
   }
 
   private isWireSolved() {
@@ -446,11 +550,44 @@ export class TriFusalRoom extends Room<MissionState> {
     if (this.state.isGameOver) return;
     this.state.bombStatus = status;
     this.state.isGameOver = true;
+    if (status === "defused") {
+      const elapsedSeconds = Math.max(0, DIFFICULTY_SECONDS[this.state.difficulty] - this.state.seconds);
+      const difficultyBonus = this.state.difficulty === "EXTREME" ? 5000 : this.state.difficulty === "HARD" ? 2500 : 1000;
+      this.state.score = Math.max(0, this.state.seconds * 100 + difficultyBonus + this.state.boardCount * 1000 - this.state.strikes * 500);
+      TRI_FUSAL_LEADERBOARD.push({
+        operation: this.operation,
+        difficulty: this.state.difficulty,
+        elapsedSeconds,
+        remainingSeconds: this.state.seconds,
+        score: this.state.score,
+        strikes: this.state.strikes,
+        completedAt: new Date().toISOString(),
+      });
+      const topByDifficulty = new Map<string, TriFusalLeaderboardEntry[]>();
+      for (const entry of TRI_FUSAL_LEADERBOARD) {
+        const entries = topByDifficulty.get(entry.difficulty) || [];
+        entries.push(entry);
+        entries.sort((a, b) => a.elapsedSeconds - b.elapsedSeconds || b.score - a.score);
+        topByDifficulty.set(entry.difficulty, entries.slice(0, 10));
+      }
+      TRI_FUSAL_LEADERBOARD.splice(0, TRI_FUSAL_LEADERBOARD.length, ...[...topByDifficulty.values()].flat());
+    }
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
     }
-    this.broadcast(status === "defused" ? "bombDefused" : "bombDetonated", { seconds: this.state.seconds });
+    this.broadcast(status === "defused" ? "bombDefused" : "bombDetonated", { seconds: this.state.seconds, score: this.state.score });
     this.clock.setTimeout(() => void this.disconnect(), 30_000);
+  }
+
+  private assignRandomRoles() {
+    if (this.isSoloDemo) return;
+    const roles = shuffled(["analyst", "technician", "operator"] as MissionRole[]);
+    let index = 0;
+    this.state.players.forEach((player) => {
+      player.role = roles[index++];
+      this.userRoles.set(player.userId, player.role);
+    });
+    this.broadcast("rolesAssigned", { timestamp: Date.now() });
   }
 }

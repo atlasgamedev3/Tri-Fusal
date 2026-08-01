@@ -65,8 +65,14 @@ export class MissionState extends Schema {
   @type("boolean") operatorAck = false;
   @type("boolean") interlockSolved = false;
   @type(["string"]) cutWireIds = new ArraySchema<string>();
-  @type("number") solvedPuzzleCount = 0;
-  @type("number") requiredPuzzleCount = 7;
   @type("number") strikes = 0;
-  @type("number") maxStrikes = 3;
+  @type("number") boardNumber = 1;
+  @type("number") boardCount = 1;
+  @type("number") score = 0;
+  @type("boolean") crisisActive = false;
+  @type("string") crisisRole: MissionRole = "analyst";
+  @type("string") crisisLabel = "SIGNAL PHASE COLLAPSE";
+  @type("string") crisisAction = "RECALIBRATE ARRAY";
+  @type("number") crisisSeconds = 0;
+  @type("number") crisisCooldown = 30;
 }

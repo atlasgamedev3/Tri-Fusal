@@ -15,7 +15,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 import { GameRoom } from "./rooms/GameRoom";
-import { TriFusalRoom } from "./rooms/TriFusalRoom";
+import { getTriFusalLeaderboard, TriFusalRoom } from "./rooms/TriFusalRoom";
 import { parseUnrealExport } from "./config/LevelSpec";
 
 const port = Number(process.env.PORT || 2567);
@@ -31,6 +31,15 @@ app.use(express.json());
 // Health check endpoint
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.get("/api/tri-fusal/leaderboard", (req, res) => {
+  const difficulty = String(req.query.difficulty || "").toUpperCase();
+  const entries = getTriFusalLeaderboard()
+    .filter((entry) => !difficulty || entry.difficulty === difficulty)
+    .sort((a, b) => a.elapsedSeconds - b.elapsedSeconds || b.score - a.score)
+    .slice(0, 10);
+  res.json({ entries });
 });
 
 // Admin endpoint: update collectible spawn config or level spec
