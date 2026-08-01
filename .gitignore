@@ -1,0 +1,9 @@
+# Dependencies are restored from package.json / lockfiles.
+node_modules/
+**/node_modules/
+
+# Local runtime and editor files.
+.DS_Store
+.env
+.env.local
+*.log
