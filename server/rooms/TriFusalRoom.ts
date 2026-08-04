@@ -255,9 +255,7 @@ export class TriFusalRoom extends Room<MissionState> {
           }
         }
       } else if (action === "order") {
-        if (!this.state.authSolved) {
-          lockedReason = "CUT PROTOCOL SEALED — COMPLETE AUTHORIZATION FIRST";
-        } else if (!this.state.orderSolved) {
+        if (!this.state.orderSolved) {
           const choice = String(message.value || "").toUpperCase();
           const protocolTarget = this.state.orderTarget.split("|")[0];
           if (choice === protocolTarget) {
@@ -321,19 +319,33 @@ export class TriFusalRoom extends Room<MissionState> {
           const expectedWire = this.state.safeWireIds[this.state.cutWireIds.length];
           if (!this.state.safeWireIds.includes(id)) {
             this.resetCutStage();
-            failedReason = `WIRE ${id} WAS NOT THE DESIGNATED TARGET`;
+            failedReason = this.boardProfile() === "BRAVO"
+              ? `FUSE ${id} IS OUTSIDE THE HIGH-LOAD BANK`
+              : this.boardProfile() === "CHARLIE"
+                ? `BREAKER ${id} DOES NOT HAVE A PRIME INDEX`
+                : this.boardProfile() === "DELTA"
+                  ? `ISOLATOR ${id} IS NOT ON AN ODD CIRCUIT`
+                  : `WIRE ${id} WAS NOT THE DESIGNATED TARGET`;
             failedSeverity = "major";
-          } else if (this.state.difficulty === "EXTREME" && id !== expectedWire) {
+          } else if ((this.state.difficulty === "EXTREME" || this.boardProfile() === "BRAVO") && id !== expectedWire) {
             this.state.cutWireIds.splice(0, this.state.cutWireIds.length);
             this.resetCutStage();
-            failedReason = `WIRE SEQUENCE VIOLATION — EXPECTED ${expectedWire} NEXT`;
+            failedReason = this.boardProfile() === "BRAVO"
+              ? `FUSE ARMING SEQUENCE FAILED — EXPECTED ${expectedWire} NEXT`
+              : `WIRE SEQUENCE VIOLATION — EXPECTED ${expectedWire} NEXT`;
             failedSeverity = "major";
           } else {
             this.state.cutWireIds.push(id);
             if (this.isWireSolved()) {
               this.state.relayWindowActive = false;
               this.state.relayWindow = 0;
-              this.announceModule(this.state.safeWireIds.length === 1 ? "TARGET WIRE SEVERED" : "TARGET WIRES SEVERED", player.role);
+              this.announceModule(this.boardProfile() === "BRAVO"
+                ? "FUSE BANK ARMED IN SEQUENCE"
+                : this.boardProfile() === "CHARLIE"
+                  ? "PRIME BREAKERS OPENED"
+                  : this.boardProfile() === "DELTA"
+                    ? "ODD CIRCUITS ISOLATED"
+                    : this.state.safeWireIds.length === 1 ? "TARGET WIRE SEVERED" : "TARGET WIRES SEVERED", player.role);
             }
           }
         }
@@ -477,7 +489,7 @@ export class TriFusalRoom extends Room<MissionState> {
       : this.state.difficulty === "HARD"
         ? ["WINDOW", "NEAREST", "FARTHEST", "ODD_RANGE"]
         : ["WINDOW", "NEAREST", "FARTHEST", "ODD_RANGE", "NORTHMOST"];
-    const radarRule = shuffled(radarRules, random)[0];
+    const radarRule = ({ ALPHA: "WINDOW", BRAVO: "NEAREST", CHARLIE: "ODD_RANGE", DELTA: "NORTHMOST" } as Record<string, string>)[boardProfile] || shuffled(radarRules, random)[0];
     const radarTolerance = RADAR_TOLERANCE[this.state.difficulty];
     const targetBearing = 20 + Math.floor(random() * 321);
     const decoyBearings = shuffled([
@@ -515,41 +527,77 @@ export class TriFusalRoom extends Room<MissionState> {
       : relay2Rule === "ENDS_MATCH"
         ? digitValues[0] === digitValues[digitValues.length - 1]
         : digitValues[digitValues.length - 1] > digitValues[0];
-    const wireRule = randomItem(["EVEN", "HIGH", "PRIME"] as const, random);
-    const passingCodes = wireRule === "EVEN" ? [2, 4, 6, 8] : wireRule === "HIGH" ? [6, 7, 8, 9] : [2, 3, 5, 7];
-    const failingCodes = wireRule === "EVEN" ? [1, 3, 5, 7, 9] : wireRule === "HIGH" ? [1, 2, 3, 4, 5] : [1, 4, 6, 8, 9];
+    const wireRule = ({ ALPHA: "EVEN", BRAVO: "HIGH", CHARLIE: "PRIME", DELTA: "ODD" } as Record<string, "EVEN" | "HIGH" | "PRIME" | "ODD">)[boardProfile] || "EVEN";
+    const passingCodes = wireRule === "EVEN" ? [2, 4, 6, 8] : wireRule === "HIGH" ? [6, 7, 8, 9] : wireRule === "ODD" ? [1, 3, 5, 7, 9] : [2, 3, 5, 7];
+    const failingCodes = wireRule === "EVEN" ? [1, 3, 5, 7, 9] : wireRule === "HIGH" ? [1, 2, 3, 4, 5] : wireRule === "ODD" ? [2, 4, 6, 8] : [1, 4, 6, 8, 9];
     const safeCodePool = shuffled(passingCodes, random).slice(0, safeCount);
     const codeByWire = Object.fromEntries(availableWireIds.map((id) => [
       id,
       selectedSafeIds.includes(id) ? safeCodePool[selectedSafeIds.indexOf(id)] : randomItem(failingCodes, random),
     ]));
-    const orderedSafeIds = this.state.difficulty === "EXTREME"
+    const orderedSafeIds = this.state.difficulty === "EXTREME" || boardProfile === "BRAVO"
       ? [...selectedSafeIds].sort((a, b) => codeByWire[a] - codeByWire[b])
       : selectedSafeIds;
     const safeWireIds = orderedSafeIds.join("");
     const wireCodes = availableWireIds.map((id) => String(codeByWire[id])).join("");
 
     const bombId = makeBombId(random);
-    const protocolRules = this.state.difficulty === "STANDARD" ? ["SUM"] : this.state.difficulty === "HARD" ? ["SUM", "SERIAL"] : ["SUM", "SERIAL", "FREQUENCY"];
-    const protocolRule = randomItem(protocolRules, random);
+    const protocolRule = boardProfile === "ALPHA" || boardProfile === "CHARLIE" ? "FREQUENCY" : "SERIAL";
     const protocolIndex = protocolRule === "SUM"
       ? digitValues.reduce((sum, digit) => sum + digit, 0) % 3
       : protocolRule === "SERIAL"
         ? (bombId.charCodeAt(bombId.length - 1) - 65) % 3
         : Math.round(targetFrequency * 10) % 3;
     const orderTarget = `${["A", "B", "C"][protocolIndex]}|${protocolRule}`;
-    const start = 1 + Math.floor(random() * 7);
-    const step = 2 + Math.floor(random() * 6);
-    const sequence = Array.from({ length: 5 }, (_, index) => start + step * index);
-    const matrixAnswer = sequence[sequence.length - 1] + step;
-    const matrixOptions = shuffled([matrixAnswer, matrixAnswer + step, Math.max(0, matrixAnswer - 1), matrixAnswer + 1], random);
-    patternCode = String(matrixAnswer);
-    patternTarget = `${sequence.join(",")}|${matrixOptions.join(",")}|ADD ${step} EACH STEP`;
+    let visibleSequence: Array<number | string> = [];
+    let matrixAnswers: Array<number | string> = [];
+    let matrixOptions: Array<number | string> = [];
+    let matrixRule = "";
+    if (boardProfile === "BRAVO") {
+      const channelValues = shuffled([3, 6, 9, 12, 15, 18, 21], random).slice(0, 4);
+      visibleSequence = channelValues.map((value, index) => `${String.fromCharCode(65 + index)}:${value}`);
+      matrixAnswers = channelValues.map((value, index) => ({ value, channel: String.fromCharCode(65 + index) })).sort((a, b) => a.value - b.value).map((item) => item.channel);
+      matrixOptions = ["A", "B", "C", "D"];
+      matrixRule = "CHANNEL SORT: ENTER CHANNEL LETTERS FROM LOWEST READING TO HIGHEST";
+    } else if (boardProfile === "CHARLIE") {
+      const lamps = Array.from({ length: 4 }, () => Math.floor(random() * 2));
+      visibleSequence = lamps.map((value, index) => `IN${index + 1}:${value}`);
+      matrixAnswers = lamps.map((value, index) => value ^ lamps[(index + 1) % lamps.length]);
+      matrixOptions = [0, 1];
+      matrixRule = "XOR RING: EACH OUTPUT IS 1 WHEN ITS INPUT PAIR DIFFERS; PAIRS 1-2, 2-3, 3-4, 4-1";
+    } else if (boardProfile === "DELTA") {
+      const symbols = ["△", "○", "□", "◇"];
+      const letters = shuffled(["K", "M", "R", "T"], random);
+      visibleSequence = Array.from({ length: 3 }, () => randomItem(symbols, random));
+      matrixAnswers = visibleSequence.map((symbol) => letters[symbols.indexOf(String(symbol))]);
+      matrixOptions = letters;
+      matrixRule = `ONE-TIME CODEBOOK: ${symbols.map((symbol, index) => `${symbol}=${letters[index]}`).join("  ")}`;
+    } else {
+      const start = 1 + Math.floor(random() * 4);
+      const addStep = 2 + Math.floor(random() * 4);
+      const multiplier = 2 + Math.floor(random() * 2);
+      const fullSequence = [start];
+      for (let index = 1; index < 7; index += 1) fullSequence.push(index % 2 === 1 ? fullSequence[index - 1] + addStep : fullSequence[index - 1] * multiplier);
+      visibleSequence = fullSequence.slice(0, 5);
+      matrixAnswers = fullSequence.slice(5, 7);
+      matrixRule = `ALTERNATING SERIES: +${addStep}, THEN ×${multiplier}`;
+      const numericAnswers = matrixAnswers.map(Number);
+      const distractors = [numericAnswers[0] + 1, Math.max(0, numericAnswers[0] - 1), numericAnswers[1] + 2, Math.max(0, numericAnswers[1] - 2)];
+      matrixOptions = shuffled([...new Set([...matrixAnswers, ...distractors])], random);
+    }
+    patternCode = matrixAnswers.join("-");
+    patternTarget = `${visibleSequence.join(",")}|${matrixOptions.join(",")}|${matrixRule}`;
     const gaugeA = 12 + Math.floor(random() * 18);
     const gaugeB = 3 + Math.floor(random() * 8);
-    const useDifference = random() > 0.5;
-    const calibrationTarget = useDifference ? gaugeA * 2 - gaugeB : gaugeA + gaugeB * 2;
-    const calibrationClue = `${gaugeA}|${gaugeB}|${useDifference ? "A × 2 − B" : "A + B × 2"}`;
+    const calibrationSpec = boardProfile === "BRAVO"
+      ? { target: gaugeA * 2 - gaugeB, formula: "A × 2 − B" }
+      : boardProfile === "CHARLIE"
+        ? { target: gaugeA + gaugeB, formula: "A + B" }
+        : boardProfile === "DELTA"
+          ? { target: Math.abs(gaugeA - gaugeB) * 2, formula: "ABS(A − B) × 2" }
+          : { target: gaugeA + gaugeB * 2, formula: "A + B × 2" };
+    const calibrationTarget = calibrationSpec.target;
+    const calibrationClue = `${gaugeA}|${gaugeB}|${calibrationSpec.formula}`;
     authCode = `${calibrationClue}|${calibrationTarget}`;
     this.state.bombId = bombId;
     this.state.missionSeed = this.runSeed;
@@ -560,9 +608,9 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.radarLon = location.lon;
     this.state.radarGrid = location.grid;
     this.state.radarSelection = "";
-    const signalActive = ["ALPHA", "BRAVO", "DELTA"].includes(boardProfile);
-    const matrixActive = ["ALPHA", "CHARLIE", "DELTA"].includes(boardProfile);
-    const calibrationActive = ["BRAVO", "CHARLIE", "DELTA"].includes(boardProfile);
+    const signalActive = true;
+    const matrixActive = true;
+    const calibrationActive = true;
     this.state.radarSolved = !signalActive;
     this.state.radarTargetBearing = targetBearing;
     this.state.radarBearing1 = bearings[0];
@@ -597,7 +645,7 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.relay1 = false;
     this.state.relay2 = true;
     this.state.relaySolved = true;
-    this.state.orderSolved = true;
+    this.state.orderSolved = false;
     this.state.cutWireIds.splice(0, this.state.cutWireIds.length);
     this.state.isGameOver = false;
     this.state.gameStarted = false;
@@ -658,10 +706,10 @@ export class TriFusalRoom extends Room<MissionState> {
 
   private hasModule(module: "SIGNAL" | "MATRIX" | "CALIBRATION" | "WIRES") {
     const modules: Record<string, string[]> = {
-      ALPHA: ["SIGNAL", "MATRIX", "WIRES"],
-      BRAVO: ["SIGNAL", "CALIBRATION", "WIRES"],
-      CHARLIE: ["MATRIX", "CALIBRATION", "WIRES"],
-      DELTA: ["SIGNAL", "MATRIX", "CALIBRATION"],
+      ALPHA: ["SIGNAL", "MATRIX", "CALIBRATION", "WIRES"],
+      BRAVO: ["SIGNAL", "MATRIX", "CALIBRATION", "WIRES"],
+      CHARLIE: ["SIGNAL", "MATRIX", "CALIBRATION", "WIRES"],
+      DELTA: ["SIGNAL", "MATRIX", "CALIBRATION", "WIRES"],
     };
     return (modules[this.boardProfile()] || modules.ALPHA).includes(module);
   }

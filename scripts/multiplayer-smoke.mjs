@@ -43,7 +43,7 @@ const solveBoard = async (rooms, solo = false) => {
   const mission = rooms[0].state;
   const boardNumber = mission.boardNumber;
   const profile = mission.missionVariant.split("|")[0] || "ALPHA";
-  const modules = { ALPHA: ["SIGNAL", "MATRIX", "WIRES"], BRAVO: ["SIGNAL", "CALIBRATION", "WIRES"], CHARLIE: ["MATRIX", "CALIBRATION", "WIRES"], DELTA: ["SIGNAL", "MATRIX", "CALIBRATION"] }[profile];
+  const modules = ["SIGNAL", "MATRIX", "CALIBRATION", "WIRES"];
   const analyst = solo ? rooms[0] : roomForRole(rooms, "analyst");
   const technician = solo ? rooms[0] : roomForRole(rooms, "technician");
   const operator = solo ? rooms[0] : roomForRole(rooms, "operator");
@@ -60,13 +60,19 @@ const solveBoard = async (rooms, solo = false) => {
   if (modules.includes("CALIBRATION")) {
     technician.send("puzzleAction", { action: "calibration", value: Number(mission.authCode.split("|")[3]) });
   }
+  operator.send("puzzleAction", { action: "order", value: mission.orderTarget.split("|")[0] });
   if (modules.includes("WIRES")) {
     const targetIds = mission.safeWireIds.split("");
     const expectedTargetCount = { STANDARD: 1, HARD: 2, EXTREME: 3 }[mission.difficulty];
     if (targetIds.length !== expectedTargetCount) throw new Error(`Expected ${expectedTargetCount} ${mission.difficulty} targets, received ${targetIds.length}`);
     for (const id of targetIds) technician.send("puzzleAction", { action: "wire", value: id });
   }
-  await waitFor(() => rooms.every((room) => room.state.isGameOver || room.state.boardNumber > boardNumber), `board ${boardNumber} ${profile} completion`);
+  try {
+    await waitFor(() => rooms.every((room) => room.state.isGameOver || room.state.boardNumber > boardNumber), `board ${boardNumber} ${profile} completion`);
+  } catch (error) {
+    const state = rooms[0].state;
+    throw new Error(`${error.message}; state=${JSON.stringify({ radar: state.radarSolved, frequency: state.frequencySolved, pattern: state.patternSolved, calibration: state.authSolved, order: state.orderSolved, safeWireIds: state.safeWireIds, cutWireIds: [...state.cutWireIds], strikes: state.strikes })}`);
+  }
 };
 
 const operation = `SMOKE-${Date.now()}`;
@@ -139,7 +145,7 @@ try {
   deterministicA.send("startMission");
   await waitFor(() => deterministicA.state.gameStarted, "seeded validation mission start");
   const validationProfile = deterministicA.state.missionVariant.split("|")[0];
-  const validationModules = { ALPHA: ["SIGNAL", "MATRIX", "WIRES"], BRAVO: ["SIGNAL", "CALIBRATION", "WIRES"], CHARLIE: ["MATRIX", "CALIBRATION", "WIRES"], DELTA: ["SIGNAL", "MATRIX", "CALIBRATION"] }[validationProfile];
+  const validationModules = ["SIGNAL", "MATRIX", "CALIBRATION", "WIRES"];
   if (validationModules.includes("SIGNAL")) {
     const wrongContact = ["TGT-01", "TGT-02", "UNK-A"].find((contact) => contact !== deterministicA.state.radarContact);
     deterministicA.send("puzzleAction", { action: "radar", value: wrongContact });
