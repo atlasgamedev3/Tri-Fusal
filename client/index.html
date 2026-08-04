@@ -33,12 +33,26 @@
     .menu-option:hover { background: rgba(216,163,74,0.08) !important; border-left-color: #D8A34A !important; color: #E8DFC4 !important; }
     .wire-scissors:hover { color: #FF6B58 !important; transform: scale(1.16) rotate(-8deg); text-shadow: 0 0 10px rgba(224,90,62,0.7); }
     .wire-row:hover { background: rgba(126,200,227,0.09) !important; border-color: rgba(126,200,227,0.62) !important; }
-    [style*="repeating-linear-gradient(0deg"] { background: none !important; }
+    .scanlines-off [style*="repeating-linear-gradient(0deg"] { background: none !important; }
     .motion-off * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+    .frequency-range { min-height: 30px; cursor: ew-resize; }
+    .mission-shell input, .mission-shell button, .mission-shell [role="button"] { touch-action: manipulation; }
+    .mission-heading { min-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .team-flow, .objective-count, .operator-objectives { display: none !important; }
+    @media (max-width: 719px) {
+      body { min-width: 0; }
+      .terminal-root { width: 100vw !important; max-width: none !important; height: 100dvh !important; }
+      .mission-shell { overflow: auto !important; }
+      .mission-shell > div:first-child > div:last-child { flex-wrap: wrap; }
+      .mission-heading { min-width: 100%; white-space: normal; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
   </style>
 </helmet>
 
-<div class="{{ terminalClass }}" style="font-family: 'DM Mono', monospace; background: #0A0A08; color: #E8DFC4; max-width: 1480px; margin: 0 auto; height: 100vh; position: relative; display: flex; flex-direction: column; overflow: hidden;">
+<div class="terminal-root {{ terminalClass }}" style="font-family: 'DM Mono', monospace; background: #0A0A08; color: #E8DFC4; max-width: 1480px; margin: 0 auto; height: 100vh; position: relative; display: flex; flex-direction: column; overflow: hidden;">
 
 <sc-if value="{{ isMenu }}" hint-placeholder-val="{{ true }}">
   <!-- MAIN MENU — MILITARY MAINFRAME TERMINAL -->
@@ -50,6 +64,12 @@
     <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 45%, transparent 75%);"></div>
 
     <div onclick="{{ toggleSettings }}" style="position: absolute; bottom: 22px; right: 28px; font-size: 11px; letter-spacing: 0.15em; color: rgba(216,163,74,0.5); cursor: pointer; z-index: 5;">[ SETTINGS ]</div>
+
+    <sc-if value="{{ isFileLaunch }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;top:34px;left:50%;transform:translateX(-50%);z-index:6;width:min(760px,calc(100vw - 32px));border:1px solid #E8A04B;background:rgba(20,10,2,.96);color:#F0C36A;padding:9px 14px;text-align:center;font-size:11px;line-height:1.5;letter-spacing:.08em;">
+        LOCAL FILE MODE // SOLO AND MULTIPLAYER REQUIRE THE TRI-FUSAL SERVER AT 127.0.0.1:2567. USE <strong>npm run dev</strong>, THEN OPEN <strong>http://localhost:8080</strong>.
+      </div>
+    </sc-if>
 
     <div style="position: relative; width: 100%; max-width: 620px;">
       <div style="border: 1px solid rgba(216,163,74,0.5); padding: 40px 48px; background: rgba(216,163,74,0.04);">
@@ -189,11 +209,11 @@
     <div style="font-size: 12px; color: rgba(216,163,74,0.5); letter-spacing: 0.1em; margin-bottom: 12px; position: relative;">FASTEST TEAM TIMES — FILTERED BY DIFFICULTY</div>
     <div style="display:flex;gap:8px;margin-bottom:18px;position:relative;"><div onclick="{{ leaderboardStandard }}" style="border:1px solid #D8A34A;padding:5px 12px;cursor:pointer;{{ leaderboardStandardStyle }}">STANDARD</div><div onclick="{{ leaderboardHard }}" style="border:1px solid #D8A34A;padding:5px 12px;cursor:pointer;{{ leaderboardHardStyle }}">HARD</div><div onclick="{{ leaderboardExtreme }}" style="border:1px solid #D8A34A;padding:5px 12px;cursor:pointer;{{ leaderboardExtremeStyle }}">EXTREME</div></div>
     <div style="border: 1px solid rgba(216,163,74,0.5); background: rgba(216,163,74,0.04); position: relative;">
-      <div style="display: grid; grid-template-columns: .4fr 1.4fr 1fr 1fr .8fr; padding: 10px 16px; font-size: 10px; letter-spacing: 0.15em; color: rgba(216,163,74,0.6); border-bottom: 1px solid rgba(216,163,74,0.4);">
+      <div style="display: grid; grid-template-columns: .4fr 1.5fr 1fr 1fr .7fr; padding: 10px 16px; font-size: 10px; letter-spacing: 0.12em; color: rgba(216,163,74,0.6); border-bottom: 1px solid rgba(216,163,74,0.4);">
         <span>RANK</span><span>OPERATION</span><span>DEFUSAL TIME</span><span>SCORE</span><span>STRIKES</span>
       </div>
       <sc-for list="{{ archiveRows }}" as="row" hint-placeholder-count="5">
-        <div style="display: grid; grid-template-columns: .4fr 1.4fr 1fr 1fr .8fr; padding: 10px 16px; font-size: 12px; border-bottom: 1px solid rgba(216,163,74,0.15); align-items: center; color: #E8DFC4;">
+        <div style="display: grid; grid-template-columns: .4fr 1.5fr 1fr 1fr .7fr; padding: 10px 16px; font-size: 12px; border-bottom: 1px solid rgba(216,163,74,0.15); align-items: center; color: #E8DFC4;">
           <span style="color:#D8A34A;">#{{ row.rank }}</span>
           <span style="font-family: 'Oswald', sans-serif; letter-spacing: 0.06em;">{{ row.operation }}</span>
           <span>{{ row.time }}</span>
@@ -218,7 +238,7 @@
     <div style="position: relative; width: 100%; max-width: 640px;">
       <div style="border: 1px solid rgba(216,163,74,0.5); padding: 40px 48px; background: rgba(216,163,74,0.04);">
         <div style="text-align: center; font-family: 'Oswald', sans-serif; font-size: 28px; letter-spacing: 0.15em; color: #D8A34A; margin-bottom: 6px;">DEPLOYMENT LOBBY</div>
-        <div style="text-align: center; font-size: 11px; letter-spacing: 0.12em; color: rgba(216,163,74,0.55); margin-bottom: 8px;">CLAIM A STATION - YOUR SELECTED ROLE PERSISTS INTO DEPLOYMENT</div>
+        <div style="text-align: center; font-size: 11px; letter-spacing: 0.12em; color: rgba(216,163,74,0.55); margin-bottom: 8px;">CHOOSE A STATION</div>
         <div style="text-align: center; font-size: 9px; letter-spacing: 0.15em; color: {{ lobbyStatusColor }}; margin-bottom: 20px;">{{ lobbyStatusText }}</div>
 
         <div onclick="{{ copyRoomCode }}" style="border: 1px dashed rgba(216,163,74,0.45); background: rgba(216,163,74,0.04); text-align: center; padding: 10px 12px; margin-bottom: 18px; cursor: pointer;">
@@ -268,12 +288,12 @@
 </sc-if>
 
 <sc-if value="{{ isMission }}" hint-placeholder-val="{{ false }}">
-  <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+  <div class="mission-shell" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
   <!-- SLIM CLASSIFICATION BAR -->
   <div style="background: #0A0A08; border-bottom: 2px solid {{ roleAccent }}; flex-shrink: 0;">
     <div style="background: #8B1E1E; color: #F0E8D0; text-align: center; padding: 4px 0; font-size: 9px; letter-spacing: 0.35em; animation: flicker 6s infinite;">▓ TOP SECRET // OPERATION {{ roomName }} // BOMB {{ bombId }} ▓</div>
     <div style="display: flex; align-items: center; min-width: 0;">
-      <div style="flex: 1; padding: 8px 16px; letter-spacing: 0.15em; font-size: 11px; font-family: 'Oswald', sans-serif; color: {{ roleAccent }};">STATION: {{ roleLabel }} <span style="opacity: 0.5; font-size: 9px;">{{ roleSub }} // {{ boardProgressLabel }} // AUDIO: {{ musicTrackTitle }}</span></div>
+      <div class="mission-heading" style="flex: 1; padding: 8px 16px; letter-spacing: 0.15em; font-size: 11px; font-family: 'Oswald', sans-serif; color: {{ roleAccent }};">STATION: {{ roleLabel }} <span style="opacity: 0.5; font-size: 9px;">{{ roleSub }} // {{ boardProgressLabel }} // AUDIO: {{ musicTrackTitle }}</span></div>
       <div style="display: flex; align-items: center; gap: 6px; padding: 0 16px; flex-shrink: 1; min-width: 0; overflow-x: auto;">
         <sc-if value="{{ canViewStations }}" hint-placeholder-val="{{ false }}">
           <span style="font-size: 8px; letter-spacing: 0.1em; color: rgba(232,220,196,0.3);">{{ stationSwitchLabel }}:</span>
@@ -284,15 +304,96 @@
             <span style="font-size: 8px; letter-spacing: 0.08em; color: rgba(232,220,196,0.4); white-space: nowrap;">{{ soloSwapHint }}</span>
           </sc-if>
           <sc-if value="{{ isSoloDemo }}" hint-placeholder-val="{{ false }}">
-            <button type="button" onclick="{{ triggerWin }}" style="border: 1px solid rgba(90,112,64,0.5); background:transparent; color: #5A7040; font-family:'DM Mono',monospace; font-size: 9px; letter-spacing: 0.1em; padding: 4px 10px; cursor: pointer;">SIM: DEFUSE</button>
-            <button type="button" onclick="{{ triggerLose }}" style="border: 1px solid rgba(139,30,30,0.5); background:transparent; color: #8B1E1E; font-family:'DM Mono',monospace; font-size: 9px; letter-spacing: 0.1em; padding: 4px 10px; cursor: pointer;">SIM: DETONATE</button>
+            <button type="button" onclick="{{ toggleAutoSolve }}" style="border: 1px solid {{ autoSolveColor }}; background:{{ autoSolveBg }}; color: {{ autoSolveColor }}; font-family:'DM Mono',monospace; font-size: 9px; letter-spacing: 0.1em; padding: 4px 10px; cursor: pointer;">{{ autoSolveLabel }}</button>
           </sc-if>
         </sc-if>
       </div>
     </div>
   </div>
 
-  <sc-if value="{{ isAnalyst }}" hint-placeholder-val="{{ true }}">
+  <sc-if value="{{ isCompositeBoard }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;display:grid;grid-template-columns:220px minmax(0,1fr) 270px;background:#070806;color:{{ roleAccent }};overflow:hidden;">
+      <div style="border-right:1px solid {{ roleAccentDim }};padding:16px;overflow-y:auto;">
+        <div style="font-size:9px;letter-spacing:.2em;opacity:.5;margin-bottom:12px;">// ACTIVE BOARD</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:.1em;margin-bottom:18px;">{{ boardProfileLabel }}</div>
+        <div style="font-size:9px;opacity:.5;margin-bottom:5px;">TIME REMAINING</div><div style="font-size:34px;margin-bottom:18px;">{{ timeStr }}</div>
+        <sc-for list="{{ compositeModules }}" as="module" hint-placeholder-count="3"><div style="border:1px solid {{ module.color }};color:{{ module.color }};padding:9px;margin-bottom:8px;font-size:10px;display:flex;justify-content:space-between;"><span>{{ module.label }}</span><span>{{ module.status }}</span></div></sc-for>
+        <div style="margin-top:18px;border:1px solid {{ currentTaskBorder }};padding:10px;font-size:10px;line-height:1.5;color:{{ currentTaskColor }};"><div style="font-size:8px;opacity:.55;margin-bottom:4px;">// YOUR WORK</div>{{ compositeTask }}</div>
+      </div>
+
+      <div style="padding:18px;overflow-y:auto;min-width:0;">
+        <sc-if value="{{ isAnalyst }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:9px;letter-spacing:.22em;opacity:.5;margin-bottom:12px;">+--[ ANALYST WORKBENCH ]--+</div>
+          <sc-if value="{{ hasSignalModule }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid rgba(77,219,122,.45);padding:14px;margin-bottom:14px;"><div style="font-size:11px;margin-bottom:9px;">CONTACT ARRAY</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px;"><sc-for list="{{ radarContacts }}" as="contact" hint-placeholder-count="3"><button type="button" onclick="{{ contact.select }}" style="border:1px solid {{ contact.border }};background:{{ contact.bg }};color:#4DDB7A;padding:9px 4px;font-family:'DM Mono',monospace;cursor:pointer;">{{ contact.id }}<br/><span style="font-size:9px;">{{ contact.bearing }}° / {{ contact.range }}KM</span></button></sc-for></div><div style="font-size:28px;margin-bottom:5px;">{{ frequencyStr }} MHz</div><input type="range" min="140" max="170" step="0.1" value="{{ frequencyStr }}" oninput="{{ setFrequency }}" style="width:100%;accent-color:#4DDB7A;"/><div style="font-size:9px;margin-top:5px;">{{ freqStatusText }}</div></div></sc-if>
+          <sc-if value="{{ hasMatrixModule }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid rgba(216,163,74,.45);padding:14px;margin-bottom:14px;color:#D8A34A;">MATRIX RULE CARD: {{ matrixRule }}</div></sc-if>
+          <sc-if value="{{ hasCalibrationModule }}" hint-placeholder-val="{{ false }}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div style="border:1px solid #4DDB7A;padding:18px;text-align:center;">GAUGE A<div style="font-size:32px;">{{ gaugeA }}</div></div><div style="border:1px solid #4DDB7A;padding:18px;text-align:center;">GAUGE B<div style="font-size:32px;">{{ gaugeB }}</div></div></div></sc-if>
+        </sc-if>
+
+        <sc-if value="{{ isOperator }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:9px;letter-spacing:.22em;opacity:.5;margin-bottom:12px;">+--[ OPERATOR LOGIC DESK ]--+</div>
+          <sc-if value="{{ hasSignalModule }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid rgba(216,163,74,.45);padding:12px;margin-bottom:12px;">{{ operatorRadarOrder }}</div></sc-if>
+          <sc-if value="{{ hasMatrixModule }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid rgba(216,163,74,.45);padding:14px;margin-bottom:12px;"><div style="display:flex;gap:7px;margin-bottom:12px;"><sc-for list="{{ matrixSequence }}" as="cell" hint-placeholder-count="5"><div style="flex:1;border:1px solid rgba(216,163,74,.35);padding:12px;text-align:center;font-size:19px;">{{ cell.value }}</div></sc-for><div style="flex:1;border:1px solid #E05A3E;padding:12px;text-align:center;font-size:19px;color:#E05A3E;">?</div></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;"><sc-for list="{{ matrixOptions }}" as="option" hint-placeholder-count="4"><button type="button" onclick="{{ option.choose }}" style="border:1px solid #D8A34A;background:transparent;color:#D8A34A;padding:10px;font-family:'DM Mono',monospace;cursor:pointer;">{{ option.value }}</button></sc-for></div></div></sc-if>
+          <sc-if value="{{ hasCalibrationModule }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid #7EC8E3;color:#7EC8E3;padding:14px;margin-bottom:12px;">MANIFOLD FORMULA: {{ calibrationFormula }}</div></sc-if>
+          <sc-if value="{{ hasWireModule }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid #E05A3E;color:#E05A3E;padding:14px;">WIRE RULE: {{ wireRuleLabel }}</div></sc-if>
+        </sc-if>
+
+        <sc-if value="{{ isTechnician }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:9px;letter-spacing:.22em;opacity:.5;margin-bottom:12px;">+--[ TECHNICIAN CONTROL DECK ]--+</div>
+          <sc-if value="{{ hasCalibrationModule }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid rgba(126,200,227,.5);padding:14px;margin-bottom:14px;text-align:center;"><div style="font-size:32px;">{{ calibrationValue }}</div><input type="range" min="0" max="99" step="1" value="{{ calibrationValue }}" oninput="{{ setCalibration }}" style="width:100%;margin:8px 0;"/><button type="button" onclick="{{ submitCalibration }}" style="border:1px solid #7EC8E3;background:transparent;color:#7EC8E3;padding:9px 18px;font-family:'DM Mono',monospace;cursor:pointer;">COMMIT PRESSURE</button></div></sc-if>
+          <sc-if value="{{ hasWireModule }}" hint-placeholder-val="{{ false }}"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:9px;"><sc-for list="{{ wires }}" as="wire" hint-placeholder-count="5"><button type="button" onclick="{{ wire.onCut }}" style="border:1px solid {{ wire.border }};background:{{ wire.bg }};color:#7EC8E3;padding:14px 8px;font-family:'DM Mono',monospace;cursor:pointer;"><div style="font-size:21px;">{{ wire.id }}</div><div style="font-size:10px;">MARK {{ wire.code }}</div><div style="font-size:8px;">{{ wire.status }}</div></button></sc-for></div></sc-if>
+        </sc-if>
+      </div>
+
+      <div style="border-left:1px solid {{ roleAccentDim }};padding:14px;display:flex;flex-direction:column;min-height:0;">
+        <div style="font-size:9px;letter-spacing:.18em;opacity:.5;margin-bottom:8px;">░░ TEAM COMMS ░░</div>
+        <div ref="{{ commsListRef }}" style="flex:1;overflow-y:auto;min-height:0;margin-bottom:8px;"><sc-for list="{{ commsMessages }}" as="msg" hint-placeholder-count="4"><div style="font-size:10px;line-height:1.45;margin-bottom:5px;"><span style="opacity:.4;">[{{ msg.time }}]</span> <span style="color:{{ msg.timeColor }};">{{ msg.from }}:</span> {{ msg.text }}</div></sc-for></div>
+        <div style="display:flex;gap:5px;"><input value="{{ commsInput }}" oninput="{{ setCommsInput }}" onkeydown="{{ commsKeyDown }}" placeholder="MESSAGE..." style="min-width:0;flex:1;background:transparent;border:1px solid {{ roleAccentDim }};color:{{ roleAccent }};padding:7px;font-family:'DM Mono',monospace;"/><button type="button" onclick="{{ sendComms }}" style="border:1px solid {{ roleAccentDim }};background:transparent;color:{{ roleAccent }};font-family:'DM Mono',monospace;">SEND</button></div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isMatrixBoard }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;background:#090703;color:#D8A34A;display:flex;align-items:center;justify-content:center;padding:32px;position:relative;overflow:auto;">
+      <div style="position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.25) 2px,rgba(0,0,0,.25) 3px);"></div>
+      <div style="width:min(900px,94vw);border:1px solid rgba(216,163,74,.55);padding:28px;position:relative;background:rgba(0,0,0,.35);">
+        <div style="font-size:9px;letter-spacing:.25em;opacity:.55;margin-bottom:10px;">+--[ SEQUENCE MATRIX // OPERATOR CONTROL ]--+</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:25px;letter-spacing:.13em;margin-bottom:8px;">COMPLETE THE NUMBER SEQUENCE</div>
+        <div style="font-size:11px;color:rgba(232,220,196,.58);margin-bottom:24px;">ANALYST HAS THE TRANSFORMATION RULE. OPERATOR HAS THE SEQUENCE AND RESPONSE KEYS.</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:22px;flex-wrap:wrap;">
+          <sc-for list="{{ matrixSequence }}" as="cell" hint-placeholder-count="6"><div style="width:78px;border:1px solid rgba(216,163,74,.5);padding:16px 8px;text-align:center;font-size:23px;background:rgba(216,163,74,.05);">{{ cell.value }}</div></sc-for>
+          <div style="width:78px;border:1px solid #E05A3E;padding:16px 8px;text-align:center;font-size:23px;color:#E05A3E;">?</div>
+        </div>
+        <sc-if value="{{ matrixIsAnalyst }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid #4DDB7A;color:#4DDB7A;padding:14px;text-align:center;font-size:14px;letter-spacing:.08em;">RULE CARD: {{ matrixRule }}</div></sc-if>
+        <sc-if value="{{ matrixIsOperator }}" hint-placeholder-val="{{ false }}"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;"><sc-for list="{{ matrixOptions }}" as="option" hint-placeholder-count="4"><button type="button" onclick="{{ option.choose }}" style="border:1px solid #D8A34A;background:rgba(216,163,74,.06);color:#D8A34A;padding:14px;font-family:'DM Mono',monospace;font-size:18px;cursor:pointer;">{{ option.value }}</button></sc-for></div></sc-if>
+        <sc-if value="{{ matrixIsObserver }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;color:rgba(232,220,196,.45);padding:14px;">OBSERVE COMMS — THIS CONTROL BELONGS TO ANALYST AND OPERATOR.</div></sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isCalibrationBoard }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;background:#07101A;color:#7EC8E3;display:flex;align-items:center;justify-content:center;padding:32px;position:relative;overflow:auto;">
+      <div style="width:min(900px,94vw);border:1px solid rgba(126,200,227,.55);padding:28px;background:rgba(0,0,0,.3);">
+        <div style="font-size:9px;letter-spacing:.25em;opacity:.55;margin-bottom:10px;">+--[ PRESSURE MANIFOLD // CALIBRATION ]--+</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:25px;letter-spacing:.13em;margin-bottom:22px;">BALANCE THE MANIFOLD</div>
+        <sc-if value="{{ calibrationIsAnalyst }}" hint-placeholder-val="{{ false }}"><div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;"><div style="border:1px solid #4DDB7A;padding:24px;text-align:center;"><div style="font-size:10px;opacity:.6;">GAUGE A</div><div style="font-size:42px;">{{ gaugeA }}</div></div><div style="border:1px solid #4DDB7A;padding:24px;text-align:center;"><div style="font-size:10px;opacity:.6;">GAUGE B</div><div style="font-size:42px;">{{ gaugeB }}</div></div></div></sc-if>
+        <sc-if value="{{ calibrationIsOperator }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid #D8A34A;color:#D8A34A;padding:28px;text-align:center;font-size:24px;">CALIBRATION FORMULA: {{ calibrationFormula }}</div></sc-if>
+        <sc-if value="{{ calibrationIsTechnician }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;"><div style="font-size:42px;margin-bottom:10px;">{{ calibrationValue }}</div><input type="range" min="0" max="99" step="1" value="{{ calibrationValue }}" oninput="{{ setCalibration }}" style="width:100%;margin-bottom:20px;"/><button type="button" onclick="{{ submitCalibration }}" style="border:1px solid #7EC8E3;background:rgba(126,200,227,.08);color:#7EC8E3;padding:12px 28px;font-family:'DM Mono',monospace;cursor:pointer;">COMMIT PRESSURE</button></div></sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isWireBoard }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;background:#07101A;color:#7EC8E3;display:flex;align-items:center;justify-content:center;padding:32px;overflow:auto;">
+      <div style="width:min(950px,95vw);border:1px solid rgba(126,200,227,.55);padding:28px;">
+        <div style="font-size:9px;letter-spacing:.25em;opacity:.55;margin-bottom:10px;">+--[ WIRE LOGIC ARRAY // INDEPENDENT BOARD ]--+</div>
+        <sc-if value="{{ wireIsOperator }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid #D8A34A;color:#D8A34A;padding:20px;text-align:center;font-size:18px;">RULE CARD: {{ wireRuleLabel }}</div></sc-if>
+        <sc-if value="{{ wireIsTechnician }}" hint-placeholder-val="{{ false }}"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;"><sc-for list="{{ wires }}" as="wire" hint-placeholder-count="5"><button type="button" onclick="{{ wire.onCut }}" style="border:1px solid {{ wire.border }};background:{{ wire.bg }};color:#7EC8E3;padding:18px 10px;font-family:'DM Mono',monospace;cursor:pointer;"><div style="font-size:24px;">{{ wire.id }}</div><div style="font-size:11px;margin-top:6px;">MARK {{ wire.code }}</div><div style="font-size:9px;margin-top:6px;">{{ wire.status }}</div></button></sc-for></div></sc-if>
+        <sc-if value="{{ wireIsAnalyst }}" hint-placeholder-val="{{ false }}"><div style="text-align:center;color:rgba(126,200,227,.5);padding:24px;">MONITOR THE CUT ORDER AND RELAY COMMS.</div></sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showSignalAnalyst }}" hint-placeholder-val="{{ true }}">
     <!-- ANALYST SCREEN — CRT PHOSPHOR GREEN -->
     <div style="background: #030A05; color: #4DDB7A; position: relative; overflow: hidden; flex: 1; display: flex; flex-direction: column; min-height: 0;">
       <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 3px);"></div>
@@ -329,7 +430,7 @@
             </svg>
           </div>
           <div style="padding:0 12px 12px;">
-            <div style="font-size:10px;color:rgba(77,219,122,0.65);letter-spacing:0.12em;margin-bottom:7px;">// TARGET CONTACT DESIGNATION — SELECT FROM OPERATOR ORDER</div>
+            <div style="font-size:10px;color:rgba(77,219,122,0.65);letter-spacing:0.12em;margin-bottom:7px;">// TARGET CONTACT — USE OPERATOR'S ORDER</div>
             <div style="display:flex;gap:5px;margin-bottom:7px;">
               <sc-for list="{{ radarContacts }}" as="contact" hint-placeholder-count="3">
                 <div role="button" aria-label="Designate {{ contact.id }}" onclick="{{ contact.select }}" style="flex:1;border:1px solid {{ contact.border }};background:{{ contact.bg }};color:{{ contact.color }};padding:7px 3px;text-align:center;cursor:pointer;font-size:10px;letter-spacing:0.06em;"><div>{{ contact.id }}</div><div style="font-size:9px;opacity:.8;margin-top:3px;">{{ contact.bearing }}° / {{ contact.range }}KM</div></div>
@@ -342,7 +443,6 @@
             <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span style="color: rgba(77,219,122,0.4);">LAT</span><span>{{ radarLat }}</span></div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 3px;"><span style="color: rgba(77,219,122,0.4);">LON</span><span>{{ radarLon }}</span></div>
             <div style="display: flex; justify-content: space-between;"><span style="color: rgba(77,219,122,0.4);">GRID</span><span>{{ radarGrid }}</span></div>
-            <div style="margin-top:10px;padding:8px;border:1px solid rgba(77,219,122,0.42);color:#E4C55C;font-size:10px;line-height:1.55;letter-spacing:0.05em;">{{ radarInstruction }}</div>
           </div>
           <div style="margin: 4px 12px 12px; padding-top: 12px; border-top: 1px solid rgba(77,219,122,0.18); text-align: center;">
             <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">TIME REMAINING</div>
@@ -353,11 +453,11 @@
             <div style="font-size: 8px; margin-top: 5px; letter-spacing: 0.15em; color: {{ timerColor }};">{{ timerStatus }}</div>
             <div style="font-size:8px;margin-top:5px;letter-spacing:0.14em;color:{{ strikeColor }};">{{ strikeText }}</div>
             <div style="margin-top:8px;padding:7px;border:1px solid {{ currentTaskBorder }};background:{{ currentTaskBg }};text-align:left;">
-              <div style="font-size:8px;color:rgba(232,220,196,0.45);letter-spacing:0.16em;margin-bottom:4px;">// CURRENT TASK</div>
+              <div style="font-size:8px;color:rgba(232,220,196,0.62);letter-spacing:0.16em;margin-bottom:4px;">// DO NOW</div>
               <div style="font-size:10px;line-height:1.55;color:{{ currentTaskColor }};">{{ currentTaskText }}</div>
             </div>
-            <div style="font-size: 9px; margin-top: 10px; letter-spacing: 0.15em; color: rgba(77,219,122,0.45);">MISSION OBJECTIVES: {{ moduleCount }}</div>
-            <div style="margin:12px 0 0;padding:8px;border:1px solid {{ flowPanelBorder }};background:{{ flowPanelBg }};text-align:left;">
+            <div class="objective-count" style="font-size: 9px; margin-top: 10px; letter-spacing: 0.15em; color: rgba(77,219,122,0.45);">MISSION OBJECTIVES: {{ moduleCount }}</div>
+            <div class="team-flow" style="margin:12px 0 0;padding:8px;border:1px solid {{ flowPanelBorder }};background:{{ flowPanelBg }};text-align:left;">
               <div style="font-size:8px;color:rgba(232,220,196,0.45);letter-spacing:0.16em;margin-bottom:6px;">// TEAM FLOW</div>
               <div style="display:flex;gap:4px;margin-bottom:6px;"><span style="flex:1;text-align:center;border:1px solid {{ analystFlowColor }};color:{{ analystFlowColor }};font-size:8px;padding:3px;">A {{ analystFlowMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ technicianFlowColor }};color:{{ technicianFlowColor }};font-size:8px;padding:3px;">T {{ technicianFlowMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ operatorFlowColor }};color:{{ operatorFlowColor }};font-size:8px;padding:3px;">O {{ operatorFlowMark }}</span></div>
               <div style="text-align:center;border:1px solid {{ flowStatusColor }};color:{{ flowStatusColor }};padding:5px;font-size:8px;letter-spacing:0.08em;">{{ flowStatusText }}</div>
@@ -372,20 +472,17 @@
               <div style="font-size: 10px; letter-spacing: 0.1em; color: {{ freqStatusColor }};">{{ freqStatusText }}</div>
             </div>
             <div style="font-family: 'Oswald', sans-serif; font-size: 38px; color: #4DDB7A; letter-spacing: 0.05em; text-shadow: 0 0 24px rgba(77,219,122,0.35); line-height: 1;">{{ frequencyStr }}<span style="font-size: 16px; opacity: 0.4; margin-left: 6px;">MHZ</span></div>
-            <input type="range" min="140" max="170" step="0.1" value="{{ frequencyStr }}" oninput="{{ setFrequency }}" style="width: 100%; margin-top: 10px; accent-color: #4DDB7A;" />
+            <input class="frequency-range" aria-label="Target frequency in megahertz" type="range" min="140" max="170" step="0.1" value="{{ frequencyStr }}" oninput="{{ setFrequency }}" onkeydown="{{ frequencyKeyDown }}" style="width: 100%; margin-top: 10px; accent-color: #4DDB7A;" />
           </div>
           <div style="padding: 14px;">
             <div style="border: 1px solid #4DDB7A; background: rgba(77,219,122,0.13); padding: 8px 10px; margin-bottom: 8px;">
-              <div style="display: flex; justify-content: space-between; font-size: 9px; color: rgba(77,219,122,0.4); margin-bottom: 4px;"><span>TGT-01</span><span>{{ contact1Bearing }}° / {{ contact1Range }}KM</span><span>{{ contact1Frequency }} MHZ</span></div>
-              <div style="font-size: 11px;">CONTACT FEED — DIRECTORATE SIGNATURE UNCONFIRMED</div>
+              <div style="display: flex; justify-content: space-between; font-size: 9px; color: rgba(77,219,122,0.4); margin-bottom: 4px;"><span>TGT-01</span><span>{{ contact1Bearing }}° / {{ contact1Range }}KM</span></div>
             </div>
             <div style="border: 1px solid rgba(77,219,122,0.18); padding: 8px 10px; margin-bottom: 8px;">
-              <div style="display: flex; justify-content: space-between; font-size: 9px; color: rgba(77,219,122,0.4); margin-bottom: 4px;"><span>TGT-02</span><span>{{ contact2Bearing }}° / {{ contact2Range }}KM</span><span>{{ contact2Frequency }} MHZ</span></div>
-              <div style="font-size: 11px;">CONTACT FEED — DIRECTORATE SIGNATURE UNCONFIRMED</div>
+              <div style="display: flex; justify-content: space-between; font-size: 9px; color: rgba(77,219,122,0.4); margin-bottom: 4px;"><span>TGT-02</span><span>{{ contact2Bearing }}° / {{ contact2Range }}KM</span></div>
             </div>
             <div style="border: 1px solid rgba(77,219,122,0.18); padding: 8px 10px;">
-              <div style="display: flex; justify-content: space-between; font-size: 9px; color: rgba(77,219,122,0.4); margin-bottom: 4px;"><span>UNK-A</span><span>{{ contact3Bearing }}° / {{ contact3Range }}KM</span><span>{{ contact3Frequency }} MHZ</span></div>
-              <div style="font-size: 11px;">CONTACT FEED — ORIGIN MASKED</div>
+              <div style="display: flex; justify-content: space-between; font-size: 9px; color: rgba(77,219,122,0.4); margin-bottom: 4px;"><span>UNK-A</span><span>{{ contact3Bearing }}° / {{ contact3Range }}KM</span></div>
             </div>
             <div style="border: 1px solid rgba(77,219,122,0.18); padding: 8px 10px; margin-top:8px;">
               <div style="display: flex; justify-content: space-between; font-size: 9px; color: rgba(77,219,122,0.4); margin-bottom: 4px;"><span>CHANNEL-B</span><span>DECRYPT OUTPUT</span><span style="color: #8A9430;">SECURE</span></div>
@@ -395,27 +492,20 @@
         </div>
         <div style="width: 230px; flex-shrink: 0; padding: 12px; display: flex; flex-direction: column; min-height: 0; {{ lastColNarrowOverride }}">
           <div style="flex: 0 1 auto; overflow-y: auto; min-height: 0;">
-            <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 8px;">// CIPHER KEY</div>
-            <div style="border: 1px solid #8A9430; color: #DCC65A; padding: 9px; margin-bottom: 14px;font-size:10px;line-height:1.55;letter-spacing:0.05em;">{{ analystCipherInstruction }}</div>
+            <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 8px;">// CAPTURED BURST</div>
             <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">// SYS STATUS</div>
             <div style="display: flex; justify-content: space-between; font-size: 10px; border-bottom: 1px solid rgba(77,219,122,0.18); padding-bottom: 3px; margin-bottom: 3px;"><span style="color: rgba(77,219,122,0.4);">SIGNAL LOCK</span><span style="color: {{ freqStatusColor }};">{{ freqShortStatus }}</span></div>
             <div style="display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 12px;"><span style="color: rgba(77,219,122,0.4);">CHANNEL-B</span><span style="color: {{ patternStatusColor }};">{{ patternShortStatus }}</span></div>
-            <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">// PATTERN LOCK</div>
-            <div style="font-size: 9px; color: rgba(77,219,122,0.5); margin-bottom: 4px;">ENCRYPTED BURST: {{ patternCode }}</div>
-            <div style="font-size: 8px; color: rgba(77,219,122,0.3); margin-bottom: 8px;">{{ techProgressText }}</div>
+            <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">// RELAY SYMBOLS TO OPERATOR</div>
             <div style="display: flex; gap: 4px; margin-bottom: 8px; opacity: {{ patternControlOpacity }};">
-              <sc-for list="{{ patternSlots }}" as="slot" hint-placeholder-count="4">
-                <div style="width: 24px; height: 24px; border: 1px solid rgba(77,219,122,0.3); display: flex; align-items: center; justify-content: center; font-size: 13px;">{{ slot.filled }}</div>
+              <sc-for list="{{ capturedSymbolSlots }}" as="slot" hint-placeholder-count="4">
+                <div style="flex:1;height:36px;border:1px solid rgba(77,219,122,0.45);display:flex;align-items:center;justify-content:center;font-size:20px;">{{ slot.symbol }}</div>
               </sc-for>
             </div>
-            <div style="display: flex; gap: 4px; margin-bottom: 8px;">
-              <div onclick="{{ pressTriangle }}" style="flex: 1; border: 1px solid #4DDB7A; text-align: center; padding: 5px 0; cursor: pointer; font-size: 14px; transition: background 0.15s;" style-hover="background:rgba(77,219,122,0.2);">△</div>
-              <div onclick="{{ pressCircle }}" style="flex: 1; border: 1px solid #4DDB7A; text-align: center; padding: 5px 0; cursor: pointer; font-size: 14px; transition: background 0.15s;" style-hover="background:rgba(77,219,122,0.2);">○</div>
-              <div onclick="{{ pressSquare }}" style="flex: 1; border: 1px solid #4DDB7A; text-align: center; padding: 5px 0; cursor: pointer; font-size: 14px; transition: background 0.15s;" style-hover="background:rgba(77,219,122,0.2);">□</div>
-              <div onclick="{{ pressDiamond }}" style="flex: 1; border: 1px solid #4DDB7A; text-align: center; padding: 5px 0; cursor: pointer; font-size: 14px; transition: background 0.15s;" style-hover="background:rgba(77,219,122,0.2);">◇</div>
-            </div>
-            <div style="font-size: 9px; letter-spacing: 0.1em; color: {{ patternStatusColor }};">{{ patternStatusText }}</div>
+            <div style="font-size:9px;line-height:1.5;color:{{ patternStatusColor }};">{{ analystBurstStatus }}</div>
           </div>
+          <sc-if value="{{ hasMatrixModule }}" hint-placeholder-val="{{ false }}"><div style="margin-top:9px;padding:9px;border:1px solid rgba(216,163,74,.45);color:#D8A34A;font-size:10px;line-height:1.5;"><div style="font-size:8px;letter-spacing:.16em;opacity:.55;margin-bottom:4px;">// MATRIX RULE CARD</div>{{ matrixRule }}</div></sc-if>
+          <sc-if value="{{ hasCalibrationModule }}" hint-placeholder-val="{{ false }}"><div style="margin-top:9px;display:grid;grid-template-columns:1fr 1fr;gap:6px;"><div style="border:1px solid rgba(77,219,122,.45);padding:7px;text-align:center;font-size:9px;">GAUGE A<div style="font-size:18px;">{{ gaugeA }}</div></div><div style="border:1px solid rgba(77,219,122,.45);padding:7px;text-align:center;font-size:9px;">GAUGE B<div style="font-size:18px;">{{ gaugeB }}</div></div></div></sc-if>
           <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(77,219,122,0.18); flex-shrink: 0;">
             <div style="font-size: 9px; color: rgba(77,219,122,0.4); letter-spacing: 0.2em; margin-bottom: 4px;">// TEAM STATUS</div>
             <sc-for list="{{ teamStatus }}" as="member" hint-placeholder-count="3">
@@ -445,7 +535,7 @@
     </div>
   </sc-if>
 
-  <sc-if value="{{ isTechnician }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ showSignalTechnician }}" hint-placeholder-val="{{ false }}">
     <!-- TECHNICIAN SCREEN — BLUEPRINT -->
     <div style="background: #08101E; color: #7EC8E3; position: relative; overflow: hidden; flex: 1; display: flex; flex-direction: column; min-height: 0;">
       <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; mix-blend-mode: overlay; opacity: 0.7; background-image: radial-gradient(circle at 25% 20%, rgba(255,255,255,0.06) 0%, transparent 2%), radial-gradient(circle at 78% 70%, rgba(255,255,255,0.05) 0%, transparent 1.5%), radial-gradient(circle at 55% 92%, rgba(255,255,255,0.05) 0%, transparent 2%), radial-gradient(circle at 6% 60%, rgba(255,255,255,0.04) 0%, transparent 1.5%), repeating-linear-gradient(100deg, rgba(255,255,255,0.02) 0px, transparent 1px, transparent 5px), repeating-linear-gradient(-35deg, rgba(255,255,255,0.015) 0px, transparent 1px, transparent 8px);"></div>
@@ -495,11 +585,11 @@
             <div style="font-size: 8px; margin-top: 5px; letter-spacing: 0.15em; color: {{ timerColor }};">{{ timerStatus }}</div>
             <div style="font-size:8px;margin-top:5px;letter-spacing:0.14em;color:{{ strikeColor }};">{{ strikeText }}</div>
             <div style="margin-top:8px;padding:7px;border:1px solid {{ currentTaskBorder }};background:{{ currentTaskBg }};text-align:left;">
-              <div style="font-size:8px;color:rgba(232,220,196,0.45);letter-spacing:0.16em;margin-bottom:4px;">// CURRENT TASK</div>
+              <div style="font-size:8px;color:rgba(232,220,196,0.62);letter-spacing:0.16em;margin-bottom:4px;">// DO NOW</div>
               <div style="font-size:10px;line-height:1.55;color:{{ currentTaskColor }};">{{ currentTaskText }}</div>
             </div>
-            <div style="font-size: 9px; margin-top: 10px; letter-spacing: 0.15em; color: rgba(126,200,227,0.45);">MISSION OBJECTIVES: {{ moduleCount }}</div>
-            <div style="margin:12px 0 0;padding:8px;border:1px solid {{ flowPanelBorder }};background:{{ flowPanelBg }};text-align:left;">
+            <div class="objective-count" style="font-size: 9px; margin-top: 10px; letter-spacing: 0.15em; color: rgba(126,200,227,0.45);">MISSION OBJECTIVES: {{ moduleCount }}</div>
+            <div class="team-flow" style="margin:12px 0 0;padding:8px;border:1px solid {{ flowPanelBorder }};background:{{ flowPanelBg }};text-align:left;">
               <div style="font-size:8px;color:rgba(232,220,196,0.45);letter-spacing:0.16em;margin-bottom:6px;">// TEAM FLOW</div>
               <div style="display:flex;gap:4px;margin-bottom:6px;"><span style="flex:1;text-align:center;border:1px solid {{ analystFlowColor }};color:{{ analystFlowColor }};font-size:8px;padding:3px;">A {{ analystFlowMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ technicianFlowColor }};color:{{ technicianFlowColor }};font-size:8px;padding:3px;">T {{ technicianFlowMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ operatorFlowColor }};color:{{ operatorFlowColor }};font-size:8px;padding:3px;">O {{ operatorFlowMark }}</span></div>
               <div style="text-align:center;border:1px solid {{ flowStatusColor }};color:{{ flowStatusColor }};padding:5px;font-size:8px;letter-spacing:0.08em;">{{ flowStatusText }}</div>
@@ -551,6 +641,7 @@
         </div>
         <div style="width: 260px; flex-shrink: 0; padding: 12px; display: flex; flex-direction: column; min-height: 0; {{ lastColNarrowOverride }}">
           <div style="flex: 0 1 auto; overflow-y: auto; min-height: 0;">
+            <sc-if value="{{ hasCalibrationModule }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid rgba(126,200,227,.5);padding:10px;margin-bottom:12px;text-align:center;"><div style="font-size:8px;letter-spacing:.16em;opacity:.55;">// PRESSURE MANIFOLD</div><div style="font-size:24px;margin:5px 0;">{{ calibrationValue }}</div><input type="range" min="0" max="99" step="1" value="{{ calibrationValue }}" oninput="{{ setCalibration }}" style="width:100%;"/><div onclick="{{ submitCalibration }}" style="border:1px solid #7EC8E3;padding:7px;margin-top:7px;cursor:pointer;font-size:9px;">COMMIT PRESSURE</div></div></sc-if>
             <div style="font-size: 9px; color: rgba(126,200,227,0.4); letter-spacing: 0.2em; margin-bottom: 6px;">// STABILIZER CONTROL</div>
             <div style="font-size: 10px; color: rgba(180,225,242,0.82); margin-bottom: 8px; line-height: 1.55;">{{ relayTargetHintText }}</div>
             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -597,7 +688,7 @@
     </div>
   </sc-if>
 
-  <sc-if value="{{ isOperator }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ showSignalOperator }}" hint-placeholder-val="{{ false }}">
     <!-- OPERATOR SCREEN — FIELD COMMAND CRT (AMBER) -->
     <div style="background: #0A0703; color: #D8A34A; position: relative; overflow: hidden; flex: 1; display: flex; flex-direction: column; min-height: 0;">
       <div style="position: absolute; inset: 0; pointer-events: none; z-index: 2; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 3px);"></div>
@@ -617,18 +708,6 @@
               <div style="font-size: 9px; color: rgba(216,163,74,0.5); letter-spacing: 0.2em; margin-bottom: 4px;">OPERATION</div>
               <div style="font-family: 'Oswald', sans-serif; font-size: 24px; color: #D8A34A; font-weight: 700; line-height: 1; text-shadow: 0 0 16px rgba(216,163,74,0.35);">{{ roomName }}</div>
             </div>
-            <div style="padding-top:2px;">
-              <div style="font-size:10px;color:rgba(216,163,74,0.72);letter-spacing:0.14em;margin-bottom:6px;">// RADAR TRACKING ORDER</div>
-              <div style="border:1px solid rgba(216,163,74,0.55);padding:9px;color:#FFF4D8;font-size:11px;line-height:1.55;">{{ operatorRadarOrder }}</div>
-            </div>
-            <div style="margin-top:10px;">
-              <div style="font-size:10px;color:rgba(216,163,74,0.72);letter-spacing:0.14em;margin-bottom:6px;">// DIRECTORATE SYMBOL CIPHER</div>
-              <div style="border:1px solid #C4A84F;padding:9px;text-align:center;color:#E4C55C;">
-                <div style="display:flex;justify-content:center;gap:12px;font-size:16px;font-weight:700;"><sc-for list="{{ operatorCipherEntries }}" as="entry" hint-placeholder-count="4"><span>{{ entry.digit }} = {{ entry.symbol }}</span></sc-for></div>
-                <div style="font-size:11px;letter-spacing:0.12em;margin-top:9px;padding-top:8px;border-top:1px solid rgba(196,168,79,0.45);color:#FFF4D8;">{{ operatorCipherDirection }}</div>
-              </div>
-            </div>
-            <div style="margin-top:10px;border:1px solid rgba(216,163,74,0.55);padding:9px;color:#FFF4D8;font-size:10px;line-height:1.55;">{{ operatorWireDirective }}</div>
           </div>
           <div style="margin: 4px 16px 16px; padding-top: 14px; border-top: 1px solid rgba(216,163,74,0.2); text-align: center;">
             <div style="font-size: 9px; color: rgba(216,163,74,0.5); letter-spacing: 0.2em; margin-bottom: 6px;">TIME REMAINING</div>
@@ -639,15 +718,15 @@
             <div style="font-size: 8px; margin-top: 5px; letter-spacing: 0.15em; color: {{ timerColor }};">{{ timerStatus }}</div>
             <div style="font-size:8px;margin-top:5px;letter-spacing:0.14em;color:{{ strikeColor }};">{{ strikeText }}</div>
             <div style="margin-top:8px;padding:7px;border:1px solid {{ currentTaskBorder }};background:{{ currentTaskBg }};text-align:left;">
-              <div style="font-size:8px;color:rgba(232,220,196,0.45);letter-spacing:0.16em;margin-bottom:4px;">// CURRENT TASK</div>
+              <div style="font-size:8px;color:rgba(232,220,196,0.62);letter-spacing:0.16em;margin-bottom:4px;">// DO NOW</div>
               <div style="font-size:10px;line-height:1.55;color:{{ currentTaskColor }};">{{ currentTaskText }}</div>
             </div>
-            <div style="margin-top: 12px; text-align: left;">
+            <div class="objective-count" style="margin-top: 12px; text-align: left;">
               <div style="display: flex; justify-content: space-between; font-size: 9px; letter-spacing: 0.1em; color: rgba(216,163,74,0.5); margin-bottom: 4px;"><span>OBJECTIVE PROGRESS</span><span>{{ completedModules }}/{{ moduleCount }}</span></div>
               <div style="height: 5px; background: rgba(216,163,74,0.12);"><div style="height: 100%; width: {{ modulePct }}; background: #D8A34A;"></div></div>
               <div style="font-size: 9px; color: rgba(216,163,74,0.6); margin-top: 6px;">CURRENT: {{ activeModuleLabel }}</div>
             </div>
-            <div style="margin:12px 0 0;padding:8px;border:1px solid {{ flowPanelBorder }};background:{{ flowPanelBg }};text-align:left;">
+            <div class="team-flow" style="margin:12px 0 0;padding:8px;border:1px solid {{ flowPanelBorder }};background:{{ flowPanelBg }};text-align:left;">
               <div style="font-size:8px;color:rgba(232,220,196,0.45);letter-spacing:0.16em;margin-bottom:6px;">// TEAM FLOW</div>
               <div style="display:flex;gap:4px;margin-bottom:6px;"><span style="flex:1;text-align:center;border:1px solid {{ analystFlowColor }};color:{{ analystFlowColor }};font-size:8px;padding:3px;">A {{ analystFlowMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ technicianFlowColor }};color:{{ technicianFlowColor }};font-size:8px;padding:3px;">T {{ technicianFlowMark }}</span><span style="flex:1;text-align:center;border:1px solid {{ operatorFlowColor }};color:{{ operatorFlowColor }};font-size:8px;padding:3px;">O {{ operatorFlowMark }}</span></div>
               <div style="text-align:center;border:1px solid {{ flowStatusColor }};color:{{ flowStatusColor }};padding:5px;font-size:8px;letter-spacing:0.08em;">{{ flowStatusText }}</div>
@@ -656,26 +735,42 @@
         </div>
         <div style="flex: 1; border-right: 1px solid rgba(216,163,74,0.2); overflow-y: auto; {{ middleNarrowOverride }}">
           <div style="padding: 6px 16px; border-bottom: 1px solid rgba(216,163,74,0.2); display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 9px; letter-spacing: 0.25em; color: rgba(216,163,74,0.5);">+--[ MISSION OBJECTIVES // OP: {{ roomName }} ]--+</span>
+            <span style="font-size: 9px; letter-spacing: 0.25em; color: rgba(216,163,74,0.5);">+--[ AUTHORIZATION // OP: {{ roomName }} ]--+</span>
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 8px; letter-spacing: 0.15em; color: rgba(216,163,74,0.5);">THREAT: LEVEL 4</span>
               <div style="display: flex; gap: 2px; width: 60px;"><div style="flex:1; height:8px; background:#E05A3E;"></div><div style="flex:1; height:8px; background:#E05A3E;"></div><div style="flex:1; height:8px; background:#E05A3E;"></div><div style="flex:1; height:8px; background:#E05A3E;"></div><div style="flex:1; height:8px; background:rgba(216,163,74,0.15);"></div></div>
             </div>
           </div>
           <div style="padding: 16px;">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px;">
+            <div style="padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(216,163,74,0.2);">
+              <div style="font-size:10px;color:rgba(216,163,74,0.72);letter-spacing:0.14em;margin-bottom:6px;">// RELAY TO ANALYST</div>
+              <div style="border:1px solid rgba(216,163,74,0.38);padding:8px;color:#FFF4D8;font-size:10px;line-height:1.5;">{{ operatorRadarOrder }}</div>
+            </div>
+            <sc-if value="{{ hasMatrixModule }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid rgba(216,163,74,.45);padding:9px;margin-bottom:12px;"><div style="font-size:9px;letter-spacing:.16em;opacity:.6;margin-bottom:7px;">// SEQUENCE MATRIX</div><div style="display:flex;gap:4px;margin-bottom:7px;"><sc-for list="{{ matrixSequence }}" as="cell" hint-placeholder-count="5"><div style="flex:1;border:1px solid rgba(216,163,74,.3);padding:6px 2px;text-align:center;">{{ cell.value }}</div></sc-for><div style="flex:1;border:1px solid #E05A3E;color:#E05A3E;padding:6px 2px;text-align:center;">?</div></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;"><sc-for list="{{ matrixOptions }}" as="option" hint-placeholder-count="4"><div onclick="{{ option.choose }}" style="border:1px solid #D8A34A;padding:5px;text-align:center;cursor:pointer;">{{ option.value }}</div></sc-for></div></div></sc-if>
+            <sc-if value="{{ hasCalibrationModule }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid rgba(126,200,227,.5);color:#7EC8E3;padding:8px;margin-bottom:12px;font-size:10px;">MANIFOLD FORMULA: {{ calibrationFormula }}</div></sc-if>
+            <sc-if value="{{ hasWireModule }}" hint-placeholder-val="{{ false }}"><div style="border:1px solid rgba(224,90,62,.5);color:#E05A3E;padding:8px;margin-bottom:12px;font-size:10px;">WIRE RULE: {{ wireRuleLabel }}</div></sc-if>
+            <div style="padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid rgba(216,163,74,0.2);">
+              <div style="font-size:10px;color:rgba(216,163,74,0.72);letter-spacing:0.14em;margin-bottom:6px;">// SYMBOL CIPHER</div>
+              <div style="border:1px solid #C4A84F;padding:9px;text-align:center;color:#E4C55C;">
+                <div style="display:flex;justify-content:center;gap:18px;font-size:18px;font-weight:700;"><sc-for list="{{ operatorCipherEntries }}" as="entry" hint-placeholder-count="4"><span>{{ entry.digit }} = {{ entry.symbol }}</span></sc-for></div>
+                <div style="font-size:11px;letter-spacing:0.12em;margin-top:9px;padding-top:8px;border-top:1px solid rgba(196,168,79,0.45);color:#FFF4D8;">{{ operatorCipherDirection }}</div>
+              </div>
+              <div style="display:flex;gap:5px;margin-top:8px;opacity:{{ patternControlOpacity }};"><sc-for list="{{ operatorDigitSlots }}" as="slot" hint-placeholder-count="4"><div style="flex:1;height:28px;border:1px solid rgba(216,163,74,0.35);display:flex;align-items:center;justify-content:center;font-size:14px;">{{ slot.filled }}</div></sc-for></div>
+              <div style="display:flex;gap:5px;margin-top:6px;"><div onclick="{{ pressDigit1 }}" style="flex:1;border:1px solid #D8A34A;padding:6px;text-align:center;cursor:pointer;">1</div><div onclick="{{ pressDigit2 }}" style="flex:1;border:1px solid #D8A34A;padding:6px;text-align:center;cursor:pointer;">2</div><div onclick="{{ pressDigit3 }}" style="flex:1;border:1px solid #D8A34A;padding:6px;text-align:center;cursor:pointer;">3</div><div onclick="{{ pressDigit4 }}" style="flex:1;border:1px solid #D8A34A;padding:6px;text-align:center;cursor:pointer;">4</div></div>
+              <div style="font-size:9px;color:{{ patternStatusColor }};margin-top:6px;">{{ patternStatusText }}</div>
+            </div>
+            <div class="operator-objectives" style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px;">
               <div style="font-family: 'Oswald', sans-serif; font-size: 13px; color: #D8A34A; letter-spacing: 0.15em;">MISSION OBJECTIVES</div>
               <div style="font-size: 9px; border: 1px solid rgba(216,163,74,0.3); padding: 2px 8px; color: rgba(216,163,74,0.5);">{{ completedModules }}/{{ moduleCount }} COMPLETE</div>
             </div>
             <sc-for list="{{ objectives }}" as="objective" hint-placeholder-count="4">
-              <div class="mission-objective" onclick="{{ objective.toggle }}" style="display: flex; gap: 10px; margin-bottom: 10px; cursor: pointer; padding: 5px; border: 1px solid {{ objective.border }}; background: {{ objective.bg }};">
+              <div class="mission-objective operator-objectives" onclick="{{ objective.toggle }}" style="display: flex; gap: 10px; margin-bottom: 10px; cursor: pointer; padding: 5px; border: 1px solid {{ objective.border }}; background: {{ objective.bg }};">
                 <div style="width: 14px; height: 14px; border: 1px solid {{ objective.checkBorder }}; background: {{ objective.checkBg }}; flex-shrink: 0; display:flex;align-items:center;justify-content:center;"><span style="color:#0A0703; font-size:9px;">{{ objective.checkmark }}</span></div>
                 <div style="font-size: 10px; line-height: 1.5; opacity: {{ objective.opacity }}; text-decoration: {{ objective.decoration }}; color: #E8DFC4;"><span style="color: rgba(216,163,74,0.5); margin-right: 6px;">{{ objective.number }}.</span>{{ objective.label }}<div style="font-size:8px;color:{{ objective.statusColor }};margin-top:2px;letter-spacing:0.08em;">{{ objective.statusText }}</div></div>
               </div>
             </sc-for>
-            <div style="margin-top: 20px; border-top: 1px solid rgba(216,163,74,0.25); padding-top: 16px;">
-              <div style="font-family: 'Oswald', sans-serif; font-size: 13px; color: #D8A34A; letter-spacing: 0.15em; margin-bottom: 6px;">AUTHORIZATION CODE ENTRY</div>
-              <div style="font-size:10px;color:rgba(255,244,216,0.78);line-height:1.55;margin-bottom:8px;">SOURCE: ANALYST INTEL PACKET. ENTER THE DISPLAYED CODE VALUE.</div>
+            <div>
+              <div style="font-family: 'Oswald', sans-serif; font-size: 13px; color: #D8A34A; letter-spacing: 0.15em; margin-bottom: 8px;">ENTER RELAYED CODE</div>
               <div style="display: flex; gap: 8px; opacity: {{ authControlOpacity }};">
                 <input value="{{ authInput }}" oninput="{{ setAuthInput }}" onkeydown="{{ authKeyDown }}" placeholder="ENTER AUTH CODE" style="flex: 1; border: 1px solid {{ authBorderColor }}; background: rgba(216,163,74,0.06); padding: 6px 10px; font-size: 12px; letter-spacing: 0.12em; color: #E8DFC4; font-family: 'DM Mono', monospace; outline: none;" />
                 <div onclick="{{ submitAuth }}" style="border: 1px solid #D8A34A; color: #D8A34A; padding: 6px 16px; font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 0.15em; cursor: pointer; transition: background 0.15s, color 0.15s;" style-hover="background:#D8A34A;color:#0A0703;">SUBMIT</div>
@@ -684,14 +779,13 @@
                 <div style="margin-top: 8px; font-size: 11px; color: {{ authStatusColor }}; letter-spacing: 0.05em;">{{ authStatusText }}</div>
               </sc-if>
             </div>
+            <div style="margin-top:14px;border:1px solid rgba(216,163,74,0.55);padding:9px;color:#FFF4D8;font-size:10px;line-height:1.55;">{{ operatorWireDirective }}</div>
           </div>
         </div>
         <div style="width: 260px; flex-shrink: 0; padding: 12px; display: flex; flex-direction: column; min-height: 0; {{ lastColNarrowOverride }}">
           <div style="flex: 0 1 auto; overflow-y: auto; min-height: 0;">
-            <div style="font-size: 9px; color: rgba(216,163,74,0.5); letter-spacing: 0.2em; margin-bottom: 8px;">// CUT PROTOCOL CHECK</div>
-            <div style="font-size: 11px; color: #FFF4D8; line-height: 1.6; margin-bottom: 6px;">Which protocol letter did the Analyst relay?</div>
+            <div style="font-size: 9px; color: rgba(216,163,74,0.65); letter-spacing: 0.2em; margin-bottom: 8px;">// DEDUCE CUT PROTOCOL</div>
             <div style="font-size:10px;color:#DCC65A;line-height:1.55;margin-bottom:8px;">{{ orderIntelText }}</div>
-            <div style="font-size: 8px; color: rgba(216,163,74,0.4); margin-bottom: 10px;">{{ techProgressText }}</div>
             <div onclick="{{ chooseOrderA }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; margin-bottom: 6px; cursor: pointer; transition: background 0.15s; opacity:{{ orderControlOpacity }};" style-hover="background:rgba(216,163,74,0.12);">A. PROTOCOL A</div>
             <div onclick="{{ chooseOrderB }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; margin-bottom: 6px; cursor: pointer; transition: background 0.15s; opacity:{{ orderControlOpacity }};" style-hover="background:rgba(216,163,74,0.12);">B. PROTOCOL B</div>
             <div onclick="{{ chooseOrderC }}" style="border: 1px solid rgba(216,163,74,0.3); padding: 6px 10px; font-size: 10px; cursor: pointer; transition: background 0.15s; opacity:{{ orderControlOpacity }};" style-hover="background:rgba(216,163,74,0.12);">C. PROTOCOL C</div>
@@ -754,7 +848,7 @@
       <div style="border: 1px solid #4DDB7A; padding: 48px 64px; text-align: center; position: relative; background: rgba(77,219,122,0.05); animation: popIn 0.5s ease-out;">
         <div style="font-size: 10px; letter-spacing: 0.3em; color: rgba(77,219,122,0.5); margin-bottom: 18px; animation: fadeUp 0.5s ease-out 0.1s both;">+--[ CHANNEL-BRAVO // BOMB {{ bombId }} ]--+</div>
         <div style="font-family: 'Oswald', sans-serif; font-size: 44px; font-weight: 700; letter-spacing: 0.1em; text-shadow: 0 0 26px rgba(77,219,122,0.5); margin-bottom: 16px; animation: fadeUp 0.5s ease-out 0.22s both;">DEVICE NEUTRALIZED</div>
-        <div style="font-size: 13px; line-height: 1.8; max-width: 460px; margin: 0 auto; animation: fadeUp 0.5s ease-out 0.34s both;">&gt; GOOD WORK, TEAM. THE BOMB HAS BEEN DEFUSED.<br/>&gt; SCORE {{ scoreDisplay }} // {{ boardNumber }} BOARD(S) CLEARED.</div>
+        <div style="font-size: 13px; line-height: 1.8; max-width: 560px; margin: 0 auto; animation: fadeUp 0.5s ease-out 0.34s both;">&gt; GOOD WORK, TEAM. THE BOMB HAS BEEN DEFUSED.<br/>&gt; SCORE {{ scoreDisplay }} // {{ boardNumber }} BOARD(S) CLEARED.<br/>&gt; {{ debriefLine }}</div>
       </div>
       <div onclick="{{ goMenu }}" style="margin-top: 32px; border: 1px solid rgba(77,219,122,0.4); color: rgba(77,219,122,0.7); padding: 8px 24px; font-size: 11px; letter-spacing: 0.2em; cursor: pointer; position: relative; animation: fadeUp 0.5s ease-out 0.46s both;">RETURN TO BRIEFING</div>
     </div>
@@ -766,7 +860,7 @@
       <div style="border: 1px solid #7EC8E3; padding: 48px 64px; text-align: center; position: relative; background: rgba(126,200,227,0.05); animation: popIn 0.5s ease-out;">
         <div style="font-size: 10px; letter-spacing: 0.3em; color: rgba(126,200,227,0.5); margin-bottom: 18px; animation: fadeUp 0.5s ease-out 0.1s both;">+--[ DWG BRV-7-041 // FINAL STATUS ]--+</div>
         <div style="font-family: 'Oswald', sans-serif; font-size: 44px; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 16px; animation: fadeUp 0.5s ease-out 0.22s both;">ALL CIRCUITS SAFE</div>
-        <div style="font-size: 13px; line-height: 1.8; max-width: 460px; margin: 0 auto; color: rgba(126,200,227,0.8); animation: fadeUp 0.5s ease-out 0.34s both;">GOOD WORK, TEAM. THE BOMB HAS BEEN DEFUSED.<br/>SCORE {{ scoreDisplay }} // {{ boardNumber }} BOARD(S) CLEARED.</div>
+        <div style="font-size: 13px; line-height: 1.8; max-width: 560px; margin: 0 auto; color: rgba(126,200,227,0.8); animation: fadeUp 0.5s ease-out 0.34s both;">GOOD WORK, TEAM. THE BOMB HAS BEEN DEFUSED.<br/>SCORE {{ scoreDisplay }} // {{ boardNumber }} BOARD(S) CLEARED.<br/>{{ debriefLine }}</div>
       </div>
       <div onclick="{{ goMenu }}" style="margin-top: 32px; border: 1px solid rgba(126,200,227,0.4); color: rgba(126,200,227,0.7); padding: 8px 24px; font-size: 11px; letter-spacing: 0.2em; cursor: pointer; animation: fadeUp 0.5s ease-out 0.46s both;">RETURN TO BRIEFING</div>
     </div>
@@ -779,7 +873,7 @@
       <div style="border: 1px solid #D8A34A; padding: 48px 64px; text-align: center; position: relative; background: rgba(216,163,74,0.05); animation: popIn 0.5s ease-out;">
         <div style="font-size: 10px; letter-spacing: 0.3em; color: rgba(216,163,74,0.5); margin-bottom: 18px; animation: fadeUp 0.5s ease-out 0.1s both;">+--[ BOMB {{ bombId }} // FINAL ENTRY ]--+</div>
         <div style="font-family: 'Oswald', sans-serif; font-size: 44px; font-weight: 700; letter-spacing: 0.1em; color: #4DDB7A; text-shadow: 0 0 26px rgba(77,219,122,0.4); margin-bottom: 16px; animation: stampSlam 0.6s ease-out 0.15s both;">MISSION SUCCESS</div>
-        <div style="font-size: 13px; line-height: 1.8; max-width: 460px; margin: 0 auto; color: #E8DFC4; animation: fadeUp 0.5s ease-out 0.4s both;">Good work, team. The bomb has been defused.<br/>Score {{ scoreDisplay }} // {{ boardNumber }} board(s) cleared.</div>
+        <div style="font-size: 13px; line-height: 1.8; max-width: 560px; margin: 0 auto; color: #E8DFC4; animation: fadeUp 0.5s ease-out 0.4s both;">Good work, team. The bomb has been defused.<br/>Score {{ scoreDisplay }} // {{ boardNumber }} board(s) cleared.<br/>{{ debriefLine }}</div>
       </div>
       <div onclick="{{ goMenu }}" style="margin-top: 32px; border: 1px solid rgba(216,163,74,0.4); color: rgba(216,163,74,0.7); padding: 8px 24px; font-size: 11px; letter-spacing: 0.2em; cursor: pointer; animation: fadeUp 0.5s ease-out 0.55s both;">RETURN TO BRIEFING</div>
     </div>
@@ -861,9 +955,6 @@
     <div onclick="{{ respondCrisis }}" style="border:1px solid {{ crisisColor }};color:{{ crisisColor }};padding:8px;text-align:center;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.16em;cursor:pointer;opacity:{{ crisisButtonOpacity }};">{{ crisisButtonText }}</div>
   </div>
 </sc-if>
-<sc-if value="{{ hasEventBanner }}" hint-placeholder-val="{{ false }}">
-  <div style="position:fixed;top:48px;left:50%;transform:translateX(-50%);z-index:69;pointer-events:none;border:1px solid {{ eventBannerColor }};background:rgba(2,5,4,.94);color:{{ eventBannerColor }};box-shadow:0 0 24px {{ eventBannerColor }};padding:9px 24px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.18em;white-space:nowrap;animation:popIn .18s ease-out,fadeUp .4s ease-out .75s reverse forwards;">{{ eventBannerText }}</div>
-</sc-if>
 <sc-if value="{{ flashActive }}" hint-placeholder-val="{{ false }}">
   <div style="position: fixed; inset: 0; pointer-events: none; z-index: 70; background: rgba(192,32,32,0.5); animation: penaltyBlink 0.35s steps(2);"></div>
 </sc-if>
@@ -885,6 +976,23 @@ function msgColor(from) {
   if (from === "SABLE") return "#D8A34A";
   return "#8A9430";
 }
+function applyCipherReadOrder(values, mode) {
+  if (mode === "RTL") return [...values].reverse();
+  if (mode === "PAIRS") {
+    const result = [...values];
+    for (let i = 0; i + 1 < result.length; i += 2) [result[i], result[i + 1]] = [result[i + 1], result[i]];
+    return result;
+  }
+  if (mode === "OUTSIDE") {
+    const result = [];
+    for (let left = 0, right = values.length - 1; left <= right; left += 1, right -= 1) {
+      result.push(values[left]);
+      if (right !== left) result.push(values[right]);
+    }
+    return result;
+  }
+  return [...values];
+}
 const WIRES_POOL = [
   { id: "A", label: "CIRCUIT A", sublabel: "PRIMARY POWER BUS", color: "#C4A84F", safe: false },
   { id: "B", label: "CIRCUIT B", sublabel: "SIGNAL RELAY — CLASS III", color: "#5A7040", safe: true },
@@ -895,13 +1003,13 @@ const WIRES_POOL = [
   { id: "G", label: "CIRCUIT G", sublabel: "BACKUP TRIGGER", color: "#C48A6A", safe: false },
 ];
 const DIFFICULTY_WIRES = { STANDARD: 3, HARD: 5, EXTREME: 7 };
-const DIFFICULTY_SECONDS = { STANDARD: 540, HARD: 450, EXTREME: 360 };
+const DIFFICULTY_SECONDS = { STANDARD: 480, HARD: 390, EXTREME: 240 };
 const DIFFICULTY_RELAY_REQUIRED = { STANDARD: false, HARD: true, EXTREME: true };
 const DIFFICULTY_MODULES = { STANDARD: 6, HARD: 7, EXTREME: 7 };
 const DIFFICULTY_DETAILS = {
-  STANDARD: { specs: "09:00 // 1 BOARD // 3 WIRES // 18s CUT WINDOW", description: "Intro profile: direct handoff between roles, 3 wires, and no stabilizer step." },
-  HARD: { specs: "07:30 // 2 BOARDS // 5 WIRES // 2 TARGETS // 12s LIVE WINDOW", description: "Field profile: two target wires and the Technician must align the stabilizer before cutting." },
-  EXTREME: { specs: "06:00 // 3 BOARDS // 7 WIRES // 3 TARGETS // 8s LIVE WINDOW", description: "Black profile: three target wires, tighter contact lock, and the shortest live cut window." },
+  STANDARD: { specs: "08:00 // 2 MULTI-MODULE BOARDS", description: "Three roles solve parallel signal, logic, pressure, and wire modules." },
+  HARD: { specs: "06:30 // 3 MULTI-MODULE BOARDS", description: "Three randomized module loadouts with tighter coordination." },
+  EXTREME: { specs: "04:00 // 4 MULTI-MODULE BOARDS", description: "All four loadouts; every operative stays active." },
 };
 const OBJECTIVE_DEFS = {
   contact: { id: "contact", label: "DESIGNATE THE TARGET RADAR CONTACT" },
@@ -918,9 +1026,9 @@ const DIFFICULTY_OBJECTIVE_IDS = {
   EXTREME: ["contact", "frequency", "pattern", "auth", "order", "relay", "wire"],
 };
 const ROLE_BRIEFS = {
-  analyst: "Find the contact, lock the signal, and decode the intel burst.",
-  technician: "Handle the bomb, align the stabilizer when required, and cut every target.",
-  operator: "Issue the tracking order, verify the intel, and clear the cut protocol.",
+  analyst: "Find contact. Tune signal. Decode burst.",
+  technician: "Set relays if shown. Cut relayed wires.",
+  operator: "Decode burst. Enter code. Confirm protocol.",
 };
 const NATO_WORDS = ["ALPHA","BRAVO","CHARLIE","DELTA","ECHO","FOXTROT","GOLF","HOTEL","INDIA","JULIET","KILO","LIMA","MIKE","NOVEMBER","OSCAR","PAPA","QUEBEC","ROMEO","SIERRA","TANGO","UNIFORM","VICTOR","WHISKEY","XRAY","YANKEE","ZULU"];
 function generateBombId() {
@@ -972,6 +1080,10 @@ class Component extends DCLogic {
     seconds: 540,
     frequency: 144.5,
     targetFrequency: 156.8,
+    calibrationValue: 50,
+    calibrationTarget: 50,
+    calibrationClue: "12|8|A + B × 2",
+    calibrationSolved: false,
     missionVariant: "RED MERIDIAN",
     radarContact: "TGT-01",
     radarLat: "47°22.4'N",
@@ -1005,6 +1117,8 @@ class Component extends DCLogic {
     viewportWidth: typeof window !== "undefined" ? window.innerWidth : 1400,
     roomName: "",
     bombId: null,
+    missionSeed: "PENDING",
+    penaltyLog: [],
     voiceOn: false,
     voiceStatus: "off",
     voiceError: "",
@@ -1030,10 +1144,6 @@ class Component extends DCLogic {
     patternSolved: false,
     relaySolved: false,
     orderSolved: false,
-    analystAck: false,
-    technicianAck: false,
-    operatorAck: false,
-    interlockSolved: false,
     strikes: 0,
     maxStrikes: 3,
     crisisActive: false,
@@ -1048,12 +1158,15 @@ class Component extends DCLogic {
     connectionError: "",
     connectionMode: "host",
     soloDemo: false,
+    autoSolving: false,
     roomCodeCopied: false,
     motionOn: true,
     checkedObjectives: [],
   };
 
   componentDidMount() {
+    this._patternBuffer = [];
+    this._patternPending = false;
     this._audioBank = {
       move: assetUrl("sounds/move.mp3"),
       ping: assetUrl("sounds/ping.mp3"),
@@ -1189,7 +1302,7 @@ class Component extends DCLogic {
     const isNarrow = s.viewportWidth < 720;
     const moduleCount = DIFFICULTY_MODULES[s.difficulty] || 7;
     const freqDiff = Math.abs(s.frequency - s.targetFrequency);
-    const freqLocked = s.radarSolved && freqDiff < 0.06;
+    const freqLocked = freqDiff < 0.06;
     const contactIds = ["TGT-01", "TGT-02", "UNK-A"];
     const decoyFrequencies = [Math.max(140, s.targetFrequency - 4.7), Math.min(170, s.targetFrequency + 5.3)];
     let decoyIndex = 0;
@@ -1203,26 +1316,54 @@ class Component extends DCLogic {
     const targetWireCount = Math.max(targetWireIds.length, 1);
     const safeWiresCutCount = targetWireIds.filter((id) => s.cutOrder.includes(id)).length;
     const allWiresCut = targetWireIds.length > 0 && safeWiresCutCount === targetWireIds.length;
-    const relayRequired = DIFFICULTY_RELAY_REQUIRED[s.difficulty];
+    const [boardProfile = "ALPHA", boardLocation = s.missionVariant] = String(s.missionVariant).split("|");
+    const boardProfileLabels = { ALPHA: "TRIDENT ARRAY", BRAVO: "MANIFOLD BREACH", CHARLIE: "LOGIC LOCK", DELTA: "BLACKOUT CASCADE" };
+    const boardProfileLabel = boardProfileLabels[boardProfile] || boardProfile;
+    const relayRequired = false;
+    const profileModules = {
+      ALPHA: ["SIGNAL", "MATRIX", "WIRES"],
+      BRAVO: ["SIGNAL", "CALIBRATION", "WIRES"],
+      CHARLIE: ["MATRIX", "CALIBRATION", "WIRES"],
+      DELTA: ["SIGNAL", "MATRIX", "CALIBRATION"],
+    };
+    const activeModules = profileModules[boardProfile] || profileModules.ALPHA;
+    const hasSignalModule = activeModules.includes("SIGNAL");
+    const hasMatrixModule = activeModules.includes("MATRIX");
+    const hasCalibrationModule = activeModules.includes("CALIBRATION");
+    const hasWireModule = activeModules.includes("WIRES");
+    const matrixParts = String(s.patternTarget).split("|");
+    const calibrationParts = String(s.calibrationClue).split("|");
     const boardSolved = s.radarSolved && freqLocked && s.patternSolved && s.authSolved && s.orderSolved && (!relayRequired || s.relaySolved) && allWiresCut;
     const radarOrder = s.radarRule === "NEAREST"
       ? "TRACKING ORDER: MARK THE NEAREST CONTACT."
       : s.radarRule === "FARTHEST"
         ? "TRACKING ORDER: MARK THE FARTHEST CONTACT."
+        : s.radarRule === "ODD_RANGE"
+          ? "TRACKING ORDER: MARK THE ONLY CONTACT WITH AN ODD-NUMBERED RANGE."
+          : s.radarRule === "NORTHMOST"
+            ? "TRACKING ORDER: MARK THE CONTACT CLOSEST TO NORTH (000°)."
         : `TRACKING ORDER: MARK THE CONTACT WITH BEARING ${String(s.radarTargetBearing).padStart(3, "0")} deg +/- ${s.radarTolerance} deg.`;
+    const [protocolTarget, protocolRule = "SUM"] = String(s.orderTarget).split("|");
+    const protocolRuleText = protocolRule === "SERIAL"
+      ? "FINAL BOMB-ID LETTER: A=0 THROUGH Z=25. DIVIDE BY 3. REMAINDER 0=A, 1=B, 2=C."
+      : protocolRule === "FREQUENCY"
+        ? "REMOVE THE DECIMAL FROM THE LOCKED FREQUENCY. DIVIDE BY 3. REMAINDER 0=A, 1=B, 2=C."
+        : "ADD THE DECODED BURST DIGITS. DIVIDE BY 3. REMAINDER 0=A, 1=B, 2=C.";
     const relay1Rules = {
       HIGH_BAND: "SET ON IF TARGET FREQUENCY IS 155.0 MHZ OR HIGHER",
       MID_BAND: "SET ON IF TARGET FREQUENCY IS BETWEEN 148.0 AND 162.0 MHZ",
       TENTHS_ODD: "SET ON IF THE TENTHS DIGIT OF THE TARGET FREQUENCY IS ODD",
     };
     const relay2Rules = {
-      SUM_EVEN: "SET ON IF THE FOUR CIPHER DIGITS ADD TO AN EVEN NUMBER",
+      SUM_EVEN: "SET ON IF ALL CIPHER DIGITS ADD TO AN EVEN NUMBER",
       ENDS_MATCH: "SET ON IF THE FIRST AND LAST CIPHER DIGITS MATCH",
       RISING_EDGE: "SET ON IF THE LAST CIPHER DIGIT IS GREATER THAN THE FIRST",
     };
-    const targetWireLabel = targetWireIds.join(", ") || "?";
+    const wireRuleLabel = s.wireRule === "EVEN" ? "CUT WIRES WITH EVEN IMPEDANCE MARKS" : s.wireRule === "HIGH" ? "CUT WIRES MARKED 6 OR HIGHER" : "CUT WIRES WITH PRIME MARKS (2, 3, 5, 7)";
     const targetWireNoun = targetWireCount === 1 ? "target wire" : "target wires";
-    const targetWireInstruction = targetWireCount === 1 ? "THE RELAYED TARGET WIRE" : `ALL ${targetWireCount} RELAYED TARGET WIRES`;
+    const targetWireInstruction = s.difficulty === "EXTREME"
+      ? `ALL ${targetWireCount} MATCHING WIRES FROM LOWEST MARK TO HIGHEST`
+      : `ALL ${targetWireCount} WIRES MATCHING THE RULE`;
     const objectiveIds = DIFFICULTY_OBJECTIVE_IDS[s.difficulty] || DIFFICULTY_OBJECTIVE_IDS.STANDARD;
     const solvedMap = {
       contact: s.radarSolved,
@@ -1290,34 +1431,38 @@ class Component extends DCLogic {
     const flowPanelBorder = allWiresCut ? "rgba(77,219,122,0.7)" : s.relayWindowActive ? "#E05A3E" : relayRequired && s.relaySolved ? "#7EC8E3" : s.orderSolved ? "#D8A34A" : "rgba(232,220,196,0.15)";
     const flowPanelBg = allWiresCut ? "rgba(77,219,122,0.08)" : s.relayWindowActive ? "rgba(224,90,62,0.08)" : "rgba(0,0,0,0.12)";
     const analystTaskText = !s.radarSolved
-      ? "Mark the contact that matches the Operator's tracking order."
+      ? "Use Operator's tracking order. Select the contact."
       : !freqLocked
-        ? "Tune to the target frequency."
+      ? "Tune to the selected contact's frequency."
+      : !s.radarSolved
+        ? "Signal locked. Await Operator's target."
         : !s.patternSolved
-          ? "Decode the intel burst with the cipher."
-          : `Relay the auth code, protocol letter, and ${targetWireNoun} to Operator.`;
+          ? "Relay the captured symbols to Operator."
+          : "Tell Operator the auth code. Tell Technician the wire rule.";
     const technicianTaskText = !s.orderSolved
-      ? "Stand by for Operator protocol confirmation."
+      ? (relayRequired ? "Preset both relays. Commit after protocol." : "Inspect the wire board while protocol clears.")
       : relayRequired && !s.relaySolved
-        ? "Match both stabilizer rules, then commit the stabilizer."
+        ? "Set both relays. Commit."
         : s.relayWindowActive
           ? `Cut ${targetWireInstruction.toLowerCase()} within ${s.relayWindow}s (${safeWiresCutCount}/${targetWireCount} complete).`
           : allWiresCut
             ? `${targetWireCount === 1 ? "Target wire" : "All target wires"} secured.`
-            : "Hold for the live cut window.";
+            : "Wait for cut window.";
     const operatorTaskText = !s.radarSolved
-      ? "Relay the tracking order so Analyst can mark the correct contact."
+      ? "Relay the tracking order to Analyst."
+      : !freqLocked
+        ? "Review the cipher while Analyst tunes."
       : !s.patternSolved
-        ? "Hold for Analyst intel."
+        ? "Translate Analyst's symbols. Enter the digits."
         : !s.authSolved
           ? "Enter the relayed auth code."
           : !s.orderSolved
-            ? "Match the protocol letter the Analyst relayed."
+            ? "Solve the protocol rule and select A, B, or C."
             : allWiresCut
               ? "Board secure."
               : relayRequired && !s.relaySolved
-                ? "Protocol confirmed. Wait while Technician aligns the stabilizer."
-                : `Keep Technician focused on the relayed ${targetWireNoun}.`;
+                ? "Wait for Technician relays."
+                : "Wait for Technician cut.";
     const currentTaskText = s.role === "analyst"
       ? analystTaskText
       : s.role === "technician"
@@ -1328,6 +1473,7 @@ class Component extends DCLogic {
     const currentTaskBg = allWiresCut ? "rgba(77,219,122,0.06)" : "rgba(0,0,0,0.14)";
     return {
       isMenu: s.screen === "menu",
+      isFileLaunch: window.location.protocol === "file:",
       isRoster: s.screen === "roster",
       isArchive: s.screen === "archive",
       isLobby: s.screen === "lobby",
@@ -1337,12 +1483,52 @@ class Component extends DCLogic {
       isLose: s.screen === "lose",
       isSoloDemo: s.soloDemo,
       canViewStations: s.soloDemo || (s.players.length === 2 && s.screen === "mission"),
-      stationSwitchLabel: s.soloDemo ? "SOLO DEMO - PLAY ALL THREE STATIONS LOCALLY" : "TWO-OPERATIVE FALLBACK - SHARE STATION",
-      showSoloSwapHint: s.soloDemo,
-      soloSwapHint: "Suggested swap order: OPERATOR -> ANALYST -> TECHNICIAN",
+      stationSwitchLabel: "SWITCH STATION",
+      showSoloSwapHint: false,
+      soloSwapHint: "",
       isAnalyst: s.role === "analyst",
       isTechnician: s.role === "technician",
       isOperator: s.role === "operator",
+      showSignalAnalyst: s.role === "analyst",
+      showSignalTechnician: s.role === "technician",
+      showSignalOperator: s.role === "operator",
+      isCompositeBoard: false,
+      isMatrixBoard: false,
+      isCalibrationBoard: false,
+      isWireBoard: false,
+      hasSignalModule,
+      hasMatrixModule,
+      hasCalibrationModule,
+      hasWireModule,
+      matrixIsAnalyst: s.role === "analyst",
+      matrixIsOperator: s.role === "operator",
+      matrixIsObserver: s.role === "technician",
+      matrixSequence: (matrixParts[0] || "").split(",").filter(Boolean).map((value, id) => ({ id, value })),
+      matrixOptions: (matrixParts[1] || "").split(",").filter(Boolean).map((value, id) => ({ id, value, choose: () => this.solveMatrix(value) })),
+      matrixRule: matrixParts[2] || "RULE UNAVAILABLE",
+      calibrationIsAnalyst: s.role === "analyst",
+      calibrationIsOperator: s.role === "operator",
+      calibrationIsTechnician: s.role === "technician",
+      gaugeA: calibrationParts[0] || "?",
+      gaugeB: calibrationParts[1] || "?",
+      calibrationFormula: calibrationParts[2] || "FORMULA UNAVAILABLE",
+      calibrationValue: Math.round(s.calibrationValue),
+      setCalibration: (event) => this.setState({ calibrationValue: Number(event.target.value) }),
+      submitCalibration: () => this.submitCalibration(),
+      wireIsAnalyst: s.role === "analyst",
+      wireIsTechnician: s.role === "technician",
+      wireIsOperator: s.role === "operator",
+      wireRuleLabel,
+      compositeModules: activeModules.map((module) => ({
+        label: module === "SIGNAL" ? "SIGNAL HUNT" : module === "MATRIX" ? "SEQUENCE MATRIX" : module === "CALIBRATION" ? "PRESSURE" : "WIRE LOGIC",
+        status: module === "SIGNAL" ? (s.radarSolved && freqLocked ? "CLEAR" : "ACTIVE") : module === "MATRIX" ? (s.patternSolved ? "CLEAR" : "ACTIVE") : module === "CALIBRATION" ? (s.calibrationSolved ? "CLEAR" : "ACTIVE") : (allWiresCut ? "CLEAR" : "ACTIVE"),
+        color: module === "SIGNAL" ? (s.radarSolved && freqLocked ? "#4DDB7A" : "rgba(77,219,122,.65)") : module === "MATRIX" ? (s.patternSolved ? "#4DDB7A" : "#D8A34A") : module === "CALIBRATION" ? (s.calibrationSolved ? "#4DDB7A" : "#7EC8E3") : (allWiresCut ? "#4DDB7A" : "#E05A3E"),
+      })),
+      compositeTask: s.role === "analyst"
+        ? [hasSignalModule ? "solve the contact scan" : "", hasMatrixModule ? "relay the matrix rule" : "", hasCalibrationModule ? "report both gauges" : ""].filter(Boolean).join("; ") + "."
+        : s.role === "operator"
+          ? [hasSignalModule ? "relay the tracking constraint" : "", hasMatrixModule ? "complete the number matrix" : "", hasCalibrationModule ? "relay the manifold formula" : "", hasWireModule ? "relay the wire rule" : ""].filter(Boolean).join("; ") + "."
+          : [hasCalibrationModule ? "set and commit manifold pressure" : "", hasWireModule ? "cut the matching marked wires" : ""].filter(Boolean).join("; ") + ".",
       roleAccent: this.roleTheme(s.role).accent,
       roleAccentDim: this.roleTheme(s.role).dim,
       roleLabel: this.roleTheme(s.role).label,
@@ -1380,8 +1566,12 @@ class Component extends DCLogic {
       moduleCount,
       boardNumber: s.boardNumber,
       boardCount: s.boardCount,
-      boardProgressLabel: `BOARD ${s.boardNumber} / ${s.boardCount}`,
+      boardProgressLabel: `BOARD ${s.boardNumber} / ${s.boardCount} — ${boardProfileLabel}`,
       scoreDisplay: Number(s.score || 0).toLocaleString(),
+      missionSeed: s.missionSeed || "UNAVAILABLE",
+      debriefLine: s.penaltyLog.length === 0
+        ? "CLEAN RUN — NO PROTOCOL ERRORS."
+        : `${s.penaltyLog.length} PROTOCOL ERROR${s.penaltyLog.length === 1 ? "" : "S"}; LAST: ${s.penaltyLog[s.penaltyLog.length - 1].reason}.`,
       completedModules: completedObjectiveCount,
       modulePct: `${Math.round((completedObjectiveCount / Math.max(moduleCount, 1)) * 100)}%`,
       activeModuleLabel: (objectives.find((objective) => !objective.done) || {}).label || "ALL OBJECTIVES CHECKED",
@@ -1395,7 +1585,8 @@ class Component extends DCLogic {
       lastColNarrowOverride: isNarrow ? "width:100%;flex:none;" : "",
       frequencyStr: s.frequency.toFixed(1),
       targetFrequencyLabel: s.targetFrequency.toFixed(1),
-      missionVariant: s.missionVariant,
+      missionVariant: boardLocation,
+      boardProfileLabel,
       radarContact: s.radarContact,
       radarLat: s.radarLat,
       radarLon: s.radarLon,
@@ -1403,7 +1594,7 @@ class Component extends DCLogic {
       radar1Color: s.radarSelection === "TGT-01" ? (s.radarSolved ? "#4DDB7A" : "#C04040") : "#2E7A40",
       radar2Color: s.radarSelection === "TGT-02" ? (s.radarSolved ? "#4DDB7A" : "#C04040") : "#2E7A40",
       radar3Color: s.radarSelection === "UNK-A" ? (s.radarSolved ? "#4DDB7A" : "#C04040") : "#8A9430",
-      radarInstruction: s.radarSolved ? `TRACKING ORDER CONFIRMED - ${s.radarContact} IS THE TARGET CONTACT` : "WAIT FOR THE OPERATOR'S TRACKING ORDER, THEN MARK THE CORRECT CONTACT.",
+      radarInstruction: s.radarSolved ? `${s.radarContact} CONFIRMED` : "GET TRACKING ORDER FROM OPERATOR.",
       radarStatusText: s.radarSolved ? `${s.radarContact} CONFIRMED` : s.radarSelection ? `${s.radarSelection} REJECTED` : "NO CONTACT DESIGNATED",
       radarStatusColor: s.radarSolved ? "#4DDB7A" : s.radarSelection ? "#C04040" : "#C4A84F",
       radarContacts: contactIds.map((contact, index) => ({
@@ -1427,40 +1618,44 @@ class Component extends DCLogic {
       contact3Range: s.radarRanges[2],
       operatorRadarOrder: radarOrder,
       operatorCipherEntries: s.cipherMap.split("").map((symbol, index) => ({ digit: index + 1, symbol })),
-      operatorCipherDirection: s.cipherDirection === "RTL" ? "BURST READ ORDER: RIGHT TO LEFT ←" : "BURST READ ORDER: LEFT TO RIGHT →",
+      operatorCipherDirection: s.cipherDirection === "RTL" ? "READ RIGHT TO LEFT ←" : s.cipherDirection === "PAIRS" ? "SWAP EACH ADJACENT PAIR: 2-1, 4-3, 6-5" : s.cipherDirection === "OUTSIDE" ? "READ OUTSIDE-IN: FIRST, LAST, SECOND, SECOND-LAST..." : "READ LEFT TO RIGHT →",
       operatorWireDirective: !s.patternSolved
-        ? "CUT DIRECTIVE SEALED - WAIT FOR THE ANALYST TO DECRYPT THE INTEL BURST."
+        ? "CUT DIRECTIVE SEALED - DECODE THE ANALYST'S CAPTURED SYMBOL BURST."
         : !s.authSolved
-          ? `AWAIT ANALYST RELAY: AUTH CODE, PROTOCOL LETTER, AND ${targetWireNoun.toUpperCase()}. ENTER THE RELAYED AUTH CODE FIRST.`
+          ? "AWAIT ANALYST RELAY: ENTER THE AUTH CODE."
           : !s.orderSolved
-            ? "AUTH VERIFIED. NOW MATCH THE SAME PROTOCOL LETTER THE ANALYST RELAYED TO CLEAR THE CUT."
+            ? "AUTH VERIFIED. APPLY THE PROTOCOL RULE TO CLEAR THE CUT."
           : relayRequired
             ? `PROTOCOL VERIFIED. TECHNICIAN MUST ALIGN THE STABILIZER, THEN CUT ${targetWireInstruction} INSIDE THE LIVE WINDOW.`
             : `PROTOCOL VERIFIED. ${targetWireCount === 1 ? "TARGET WIRE IS" : "TARGET WIRES ARE"} LIVE - CUT WITHIN ${s.relayWindow || 0}s.`,
       setFrequency: (e) => {
-        if (!this.state.radarSolved) {
-          this.notifyLocked("TUNER LOCKED - REQUEST TRACKING ORDER FROM OPERATOR");
-          return;
-        }
         const frequency = parseFloat(e.target.value);
         this.setState({ frequency });
         this.sendPuzzle("frequency", frequency);
       },
+      frequencyDown: () => this.adjustFrequency(-0.1),
+      frequencyUp: () => this.adjustFrequency(0.1),
+      frequencyKeyDown: (e) => {
+        if (e.key === "ArrowLeft" || e.key === "ArrowDown") { e.preventDefault(); this.adjustFrequency(-0.1); }
+        if (e.key === "ArrowRight" || e.key === "ArrowUp") { e.preventDefault(); this.adjustFrequency(0.1); }
+      },
       freqLocked,
-      freqStatusText: !s.radarSolved ? "TUNER SEALED" : freqLocked ? "SIGNAL LOCKED" : "SEARCHING...",
-      freqStatusColor: freqLocked ? "#4DDB7A" : !s.radarSolved ? "#C4A84F" : "rgba(77,219,122,0.4)",
-      freqShortStatus: !s.radarSolved ? "SEALED" : freqLocked ? "CONFIRMED" : "SEARCHING",
-      tunerOpacity: s.radarSolved ? 1 : 0.28,
-      patternShortStatus: s.patternSolved ? "INTEL READY" : "NO SIGNAL",
-      analystDecryptText: !s.radarSolved
+      freqStatusText: freqLocked ? "SIGNAL LOCKED" : freqDiff < 0.3 ? "PEAK" : freqDiff < 1.5 ? "STRONG" : freqDiff < 5 ? "WEAK" : "SCANNING",
+      freqStatusColor: freqLocked ? "#4DDB7A" : freqDiff < 1.5 ? "#E4C55C" : "rgba(77,219,122,0.5)",
+      freqShortStatus: freqLocked ? "CONFIRMED" : freqDiff < 1.5 ? "STRONG" : "SEARCHING",
+      tunerOpacity: 1,
+      patternShortStatus: s.patternSolved ? "DECODED" : freqLocked ? "CAPTURED" : "NO SIGNAL",
+      analystDecryptText: hasMatrixModule
+        ? `SEQUENCE ${matrixParts[0]} - RELAY THE RULE CARD TO OPERATOR`
+        : !s.radarSolved
         ? "TRACKING ORDER REQUIRED - WAIT FOR THE OPERATOR"
         : !freqLocked
           ? "LOCK THE TARGET CONTACT TO DECRYPT THE BURST"
           : !s.patternSolved
-            ? `CHANNEL-B BURST ${s.patternCode} - TRANSLATE THE DIGITS WITH THE CIPHER KEY`
-            : `AUTH: ${s.authCode} // PROTOCOL ${s.orderTarget} // TARGET${targetWireCount === 1 ? "" : "S"} ${targetWireLabel} - RELAY ALL THREE TO OPERATOR`,
+            ? `CHANNEL-B SYMBOLS ${s.patternTarget} - RELAY THEM TO OPERATOR`
+            : `AUTH: ${s.authCode} // WIRE RULE: ${wireRuleLabel} - SPLIT THE INTEL BETWEEN OPERATOR AND TECHNICIAN`,
       patternCode: s.patternCode,
-      analystCipherInstruction: `Decode the four-symbol burst, then relay the displayed code value, protocol letter, and ${targetWireNoun}.`,
+      analystCipherInstruction: `RELAY AUTH CODE + ${targetWireNoun.toUpperCase()} RULE.`,
       wiresCutCount,
       wireTotalCount: s.wires.length,
       lastCutWireId: s.cutOrder.length ? s.cutOrder[s.cutOrder.length - 1] : "-",
@@ -1478,7 +1673,7 @@ class Component extends DCLogic {
       relayTargetHintText: !relayRequired
         ? (s.orderSolved ? (s.relayWindowActive ? `STANDARD MODE - CUT THE RELAYED TARGET NOW (${s.relayWindow}s LEFT).` : "STANDARD MODE - THE STABILIZER IS BYPASSED.") : "STANDARD MODE - WAIT FOR THE OPERATOR TO CLEAR THE CUT.")
         : !s.orderSolved
-          ? "LOCKED - THE OPERATOR MUST CONFIRM THE PROTOCOL LETTER FIRST."
+          ? "PRESET BOTH RELAYS NOW. COMMIT AFTER OPERATOR CLEARS THE PROTOCOL."
           : s.relayWindowActive
             ? `LIVE CUT WINDOW OPEN - CUT ${targetWireInstruction} WITHIN ${s.relayWindow}s.`
             : "Set Relay A from the frequency rule and Relay B from the cipher rule, then commit the stabilizer.",
@@ -1490,19 +1685,20 @@ class Component extends DCLogic {
       hasAuthStatus: s.authStatus !== "idle",
       authStatusText: s.authStatus === "ok" ? "> AUTHORIZATION ACCEPTED -- PROTOCOL CHANNEL OPEN" : "> INVALID CODE -- RECHECK ANALYST RELAY",
       authStatusColor: s.authStatus === "ok" ? "#4DDB7A" : "#E05A3E",
-      patternTarget: s.patternTarget.split(""),
       patternInput: s.patternInput,
-      patternSlots: s.patternTarget.split("").map((sym, i) => ({ id: i, filled: s.patternInput[i] || "", })),
-      pressTriangle: () => this.pressSymbol("△"),
-      pressCircle: () => this.pressSymbol("○"),
-      pressSquare: () => this.pressSymbol("□"),
-      pressDiamond: () => this.pressSymbol("◇"),
+      capturedSymbolSlots: (hasMatrixModule ? (matrixParts[0] || "").split(",") : s.patternTarget.split("")).map((symbol, id) => ({ id, symbol: freqLocked ? symbol : "·" })),
+      analystBurstStatus: hasMatrixModule ? "RELAY THE SEQUENCE AND RULE TO OPERATOR" : !freqLocked ? "LOCK SIGNAL TO CAPTURE BURST" : s.patternSolved ? "OPERATOR DECODE CONFIRMED" : "READ THESE SYMBOLS TO OPERATOR",
+      operatorDigitSlots: s.patternCode.split("-").map((_, id) => ({ id, filled: s.patternInput[id] || "" })),
+      pressDigit1: () => this.pressSymbol("1"),
+      pressDigit2: () => this.pressSymbol("2"),
+      pressDigit3: () => this.pressSymbol("3"),
+      pressDigit4: () => this.pressSymbol("4"),
       patternStatusText: !freqLocked ? "LOCKED - ACQUIRE TARGET FREQUENCY" : s.patternStatus === "ok" ? "INTEL BURST MATCHED" : s.patternStatus === "fail" ? "MISMATCH - RESET" : "AWAITING INPUT",
       patternStatusColor: !freqLocked ? "#C4A84F" : s.patternStatus === "ok" ? "#4DDB7A" : s.patternStatus === "fail" ? "#C04040" : "rgba(77,219,122,0.4)",
       patternControlOpacity: freqLocked ? 1 : 0.3,
       authControlOpacity: s.patternSolved ? 1 : 0.3,
       orderControlOpacity: s.authSolved ? 1 : 0.3,
-      orderIntelText: !s.patternSolved ? "WAIT FOR ANALYST: AUTH CODE + PROTOCOL LETTER + TARGET WIRE" : !s.authSolved ? "ENTER THE RELAYED AUTH CODE FIRST. THEN MATCH THE PROTOCOL LETTER." : "Select the same protocol letter the Analyst relayed.",
+      orderIntelText: !s.patternSolved ? "DECODE THE BURST FIRST" : !s.authSolved ? "ENTER THE RELAYED AUTH CODE" : protocolRuleText,
       relay1: s.relay1,
       relay2: s.relay2,
       relay1Bg: s.relay1 ? "#7EC8E3" : "rgba(126,200,227,0.15)",
@@ -1526,10 +1722,6 @@ class Component extends DCLogic {
           this.notifyLocked("STANDARD LOADOUT - STABILIZER BYPASS ACTIVE");
           return;
         }
-        if (!this.state.orderSolved) {
-          this.notifyLocked("STABILIZER SEALED - AWAIT OPERATOR CUT PROTOCOL");
-          return;
-        }
         const relay1 = !this.state.relay1;
         this.setState({ relay1, relayStatus: "idle" });
         this.sendPuzzle("relaySet", { relay1, relay2: this.state.relay2 });
@@ -1537,10 +1729,6 @@ class Component extends DCLogic {
       toggleRelay2: () => {
         if (!relayRequired) {
           this.notifyLocked("STANDARD LOADOUT - STABILIZER BYPASS ACTIVE");
-          return;
-        }
-        if (!this.state.orderSolved) {
-          this.notifyLocked("STABILIZER SEALED - AWAIT OPERATOR CUT PROTOCOL");
           return;
         }
         const relay2 = !this.state.relay2;
@@ -1562,7 +1750,7 @@ class Component extends DCLogic {
       chooseOrderA: () => this.chooseOrder("A"),
       chooseOrderB: () => this.chooseOrder("B"),
       chooseOrderC: () => this.chooseOrder("C"),
-      orderStatusText: s.orderStatus === "ok" ? (relayRequired ? "> PROTOCOL CONFIRMED -- STABILIZER NEXT" : "> PROTOCOL CONFIRMED -- CUT WINDOW OPEN") : s.orderStatus === "fail" ? "> WRONG PROTOCOL -- REVERIFY ANALYST RELAY" : "",
+      orderStatusText: s.orderStatus === "ok" ? (relayRequired ? "> PROTOCOL CONFIRMED -- STABILIZER NEXT" : "> PROTOCOL CONFIRMED -- CUT WINDOW OPEN") : s.orderStatus === "fail" ? "> WRONG PROTOCOL -- RECHECK THE RULE" : "",
       orderStatusColor: s.orderStatus === "ok" ? "#4DDB7A" : "#E05A3E",
       hasOrderStatus: s.orderStatus !== "idle",
       flowPanelBorder,
@@ -1641,17 +1829,17 @@ class Component extends DCLogic {
       analystRoleSummary: ROLE_BRIEFS.analyst,
       technicianRoleSummary: ROLE_BRIEFS.technician,
       operatorRoleSummary: ROLE_BRIEFS.operator,
-      lobbyModeTitle: s.soloDemo ? "SOLO DEMO // LOCAL STATION SWAP" : "TEAM DEPLOYMENT // ROLE LOCK",
+      lobbyModeTitle: s.soloDemo ? "SOLO MODE" : "TEAM MODE",
       lobbyModeBrief: s.soloDemo
-        ? "Solo demo keeps the full puzzle flow but lets you swap between Analyst, Technician, and Operator from the mission header while testing locally. Suggested test order: Operator -> Analyst -> Technician."
-        : "Claim one role and keep it into deployment. The flow is always Operator order -> Analyst intel -> Operator confirmation -> Technician cut.",
+        ? "All three stations are available from the mission header."
+        : "Claim one station. Communicate what you see.",
       deployLabel: s.lobbyClaimed ? (s.soloDemo ? "START SOLO DEMO" : "DEPLOY TEAM") : "CLAIM A ROLE TO DEPLOY",
       deployBorder: s.lobbyClaimed ? "#C4A84F" : "rgba(232,220,196,0.2)",
       deployColor: s.lobbyClaimed ? "#C4A84F" : "rgba(232,220,196,0.3)",
       operatorCallsign: s.lobbyClaimed === "operator" ? (s.playerName || "SABLE") : "SABLE",
-      blueprintRevision: `${s.missionVariant} // ${s.bombId || "PENDING"}`,
-      blueprintInstruction: `Wait for the Operator-cleared ${targetWireNoun}. Cut every relayed target during the same live window; Hard and Extreme require stabilizer alignment first.`,
-      relayCalibrationText: !relayRequired ? "STANDARD MODE - STABILIZER BYPASSED." : "Relay A uses the target frequency rule. Relay B uses the cipher-digit rule. Both must match before the cut window opens.",
+      blueprintRevision: `${boardProfileLabel} // ${boardLocation} // ${s.bombId || "PENDING"}`,
+      blueprintInstruction: `${wireRuleLabel}.${s.difficulty === "EXTREME" ? " CUT LOWEST MARK TO HIGHEST." : ""}`,
+      relayCalibrationText: !relayRequired ? "STABILIZER NOT USED ON THIS BOARD." : "SET RELAY A + B FROM THE TWO RULES.",
       blueprintPorts: s.wires.map((wire, index) => ({
         id: wire.id,
         color: "rgba(126,200,227,0.72)",
@@ -1661,6 +1849,10 @@ class Component extends DCLogic {
       })),
       wires: s.wires.map((w, index) => ({
         id: w.id, label: w.label, sublabel: `${w.sublabel} // IMPEDANCE MARK ${s.wireCodes[index] || "?"}`, color: w.color, cut: w.cut, intact: !w.cut,
+        code: s.wireCodes[index] || "?",
+        border: w.cut ? "rgba(126,200,227,0.1)" : "rgba(126,200,227,0.45)",
+        bg: w.cut ? "rgba(0,0,0,.2)" : "rgba(126,200,227,.05)",
+        status: w.cut ? "CUT" : "INTACT",
         rowOpacity: w.cut ? 0.42 : 1,
         rowBorder: w.cut ? "rgba(126,200,227,0.1)" : "rgba(126,200,227,0.24)",
         rowBg: w.cut ? "rgba(0,0,0,0.16)" : "rgba(126,200,227,0.025)",
@@ -1708,7 +1900,7 @@ class Component extends DCLogic {
       },
       goSoloDemo: () => this.startSoloDemo(),
       lobbyStatusText: s.connectionError || (s.soloDemo
-        ? "SOLO DEMO READY - SWAP BETWEEN ANALYST, TECHNICIAN, AND OPERATOR AS NEEDED"
+        ? "SOLO DEMO READY"
         : (s.players.length === 3
           ? "3/3 OPERATIVES ON SECURE CHANNEL"
           : s.players.length === 2
@@ -1742,6 +1934,10 @@ class Component extends DCLogic {
       swapTechnicianColor: s.role === "technician" ? "#7EC8E3" : "rgba(232,220,196,0.4)",
       swapOperatorBorder: s.role === "operator" ? "#D8A34A" : "rgba(232,220,196,0.25)",
       swapOperatorColor: s.role === "operator" ? "#D8A34A" : "rgba(232,220,196,0.4)",
+      toggleAutoSolve: () => this.toggleAutoSolve(),
+      autoSolveLabel: s.autoSolving ? "STOP AUTO SOLVE" : "AUTO SOLVE",
+      autoSolveColor: s.autoSolving ? "#E05A3E" : "#4DDB7A",
+      autoSolveBg: s.autoSolving ? "rgba(224,90,62,0.1)" : "rgba(77,219,122,0.08)",
       triggerWin: () => this.simulateOutcome("defused"),
       triggerLose: () => this.simulateOutcome("detonated"),
       roomName: s.roomName,
@@ -1804,6 +2000,108 @@ class Component extends DCLogic {
       this.logOutcome("FAILED");
     } else {
       this.beginFinalSequence();
+    }
+  }
+
+  autoDelay(milliseconds, token) {
+    return new Promise((resolve) => {
+      const finish = () => {
+        if (this.state.crisisActive && this._autoSolveToken === token) {
+          this.sendPuzzle("crisis", this.state.crisisRole);
+        }
+        resolve(this._autoSolveToken === token && this.state.autoSolving && !this._finished);
+      };
+      setTimeout(finish, milliseconds);
+    });
+  }
+
+  async autoWaitFor(predicate, token, timeout = 5000) {
+    const started = Date.now();
+    while (!predicate()) {
+      if (!(await this.autoDelay(100, token))) return false;
+      if (Date.now() - started > timeout) throw new Error("AUTO SOLVE TIMED OUT");
+    }
+    return true;
+  }
+
+  autoNarrate(role, text) {
+    this.setState({ role });
+    this.receiveComms({ from: "SYSTEM", text: `AUTO // ${text}`, timestamp: Date.now() });
+  }
+
+  toggleAutoSolve() {
+    if (!this.state.soloDemo || this.state.screen !== "mission") return;
+    if (this.state.autoSolving) {
+      this._autoSolveToken = null;
+      this.setState({ autoSolving: false });
+      this.receiveComms({ from: "SYSTEM", text: "AUTO SOLVE PAUSED", timestamp: Date.now() });
+      return;
+    }
+    const token = Symbol("auto-solve");
+    this._autoSolveToken = token;
+    this.setState({ autoSolving: true }, () => this.runAutoSolve(token));
+  }
+
+  async runAutoSolve(token) {
+    try {
+      while (this._autoSolveToken === token && !this._finished && this.state.screen === "mission") {
+        const board = this.state.boardNumber;
+        const profile = String(this.state.missionVariant).split("|")[0] || "ALPHA";
+        const modules = { ALPHA: ["SIGNAL", "MATRIX", "WIRES"], BRAVO: ["SIGNAL", "CALIBRATION", "WIRES"], CHARLIE: ["MATRIX", "CALIBRATION", "WIRES"], DELTA: ["SIGNAL", "MATRIX", "CALIBRATION"] }[profile] || ["SIGNAL", "MATRIX", "WIRES"];
+        this.receiveComms({ from: "SYSTEM", text: `AUTO // BOARD ${board}: PARALLEL MODULES ${modules.join(" + ")}`, timestamp: Date.now() });
+
+        if (modules.includes("SIGNAL")) {
+          this.autoNarrate("operator", "READING THE TRACKING CONSTRAINT");
+          if (!(await this.autoDelay(1100, token))) return;
+          this.autoNarrate("analyst", `DESIGNATING ${this.state.radarContact}`);
+          this.selectRadarContact(this.state.radarContact);
+          if (!(await this.autoWaitFor(() => this.state.radarSolved, token))) return;
+          if (!(await this.autoDelay(900, token))) return;
+          this.autoNarrate("analyst", "SWEEPING AND LOCKING THE CARRIER");
+          this.setState({ frequency: this.state.targetFrequency });
+          this.sendPuzzle("frequency", this.state.targetFrequency);
+          if (!(await this.autoWaitFor(() => Math.abs(this.state.frequency - this.state.targetFrequency) < 0.06, token))) return;
+          if (!(await this.autoDelay(1100, token))) return;
+        }
+        if (modules.includes("MATRIX")) {
+          const [, , rule] = String(this.state.patternTarget).split("|");
+          this.autoNarrate("analyst", `READING RULE CARD: ${rule}`);
+          if (!(await this.autoDelay(1200, token))) return;
+          this.autoNarrate("operator", `COMPLETING MATRIX WITH ${this.state.patternCode}`);
+          this.solveMatrix(this.state.patternCode);
+          if (!(await this.autoDelay(700, token))) return;
+        }
+        if (modules.includes("CALIBRATION")) {
+          const [gaugeA, gaugeB, formula] = String(this.state.calibrationClue).split("|");
+          this.autoNarrate("analyst", `REPORTING GAUGES A=${gaugeA}, B=${gaugeB}`);
+          if (!(await this.autoDelay(1100, token))) return;
+          this.autoNarrate("operator", `APPLYING FORMULA ${formula}`);
+          if (!(await this.autoDelay(1100, token))) return;
+          this.autoNarrate("technician", `SETTING MANIFOLD TO ${Math.round(this.state.calibrationTarget)}`);
+          this.setState({ calibrationValue: this.state.calibrationTarget });
+          this.sendPuzzle("calibration", this.state.calibrationTarget);
+          if (!(await this.autoDelay(700, token))) return;
+        }
+        if (modules.includes("WIRES")) {
+          this.autoNarrate("operator", `RELAYING WIRE RULE: ${this.state.wireRule}`);
+          if (!(await this.autoDelay(1100, token))) return;
+          for (const wireId of this.state.safeWireIds.split("")) {
+            this.autoNarrate("technician", `CUTTING WIRE ${wireId}`);
+            this.cutWire(wireId);
+            if (!(await this.autoDelay(700, token))) return;
+          }
+        }
+
+        if (!(await this.autoWaitFor(() => this._finished || this.state.boardNumber > board, token, 7000))) return;
+        if (!this._finished && this.state.boardNumber > board && !(await this.autoDelay(1200, token))) return;
+      }
+    } catch (error) {
+      this.receiveComms({ from: "SYSTEM", text: `AUTO SOLVE HALTED: ${String(error.message || error)}`, timestamp: Date.now() });
+    } finally {
+      if (this._autoSolveToken === token) {
+        this._autoSolveToken = null;
+        this.setState({ autoSolving: false });
+      }
     }
   }
 
@@ -1902,7 +2200,6 @@ class Component extends DCLogic {
       room.onMessage("penalty", (message) => {
         this.receiveComms({ from: "SYSTEM", text: `⚠ STRIKE ${message.strikes}/${message.maxStrikes}: ${message.reason} — ${message.seconds}s PENALTY`, timestamp: message.timestamp });
         this.playSfx("deactivate", 0.48);
-        this.showEventBanner(`PROTOCOL STRIKE ${message.strikes}/${message.maxStrikes}`, "danger");
         this.setState({ flashActive: true });
         setTimeout(() => this.setState({ flashActive: false }), 350);
       });
@@ -1936,6 +2233,8 @@ class Component extends DCLogic {
           relayStatus: "idle", orderStatus: "idle", cutResult: null, checkedObjectives: [],
           boardNumber: nextBoard, boardCount,
         });
+        this._patternBuffer = [];
+        this._patternPending = false;
         this.playSfx("gold", 0.48);
         this.showEventBanner(`BOARD ${nextBoard} / ${boardCount} — NEW PROFILE`, "good");
       });
@@ -1996,8 +2295,12 @@ class Component extends DCLogic {
       boardCount: Number(roomState.boardCount || 1),
       score: Number(roomState.score || 0),
       bombId: roomState.bombId || this.state.bombId,
+      missionSeed: String(roomState.missionSeed || this.state.missionSeed),
       frequency: Number(roomState.frequency),
       targetFrequency: Number(roomState.targetFrequency),
+      calibrationTarget: Number(String(roomState.authCode || "").split("|")[3] || 0),
+      calibrationClue: String(roomState.authCode || "").split("|").slice(0, 3).join("|"),
+      calibrationSolved: Boolean(roomState.authSolved),
       missionVariant: String(roomState.missionVariant || this.state.missionVariant),
       radarContact: String(roomState.radarContact || this.state.radarContact),
       radarLat: String(roomState.radarLat || this.state.radarLat),
@@ -2032,11 +2335,8 @@ class Component extends DCLogic {
       relay2: Boolean(roomState.relay2),
       relaySolved: Boolean(roomState.relaySolved),
       orderSolved: Boolean(roomState.orderSolved),
-      analystAck: Boolean(roomState.analystAck),
-      technicianAck: Boolean(roomState.technicianAck),
-      operatorAck: Boolean(roomState.operatorAck),
-      interlockSolved: Boolean(roomState.interlockSolved),
       strikes: Number(roomState.strikes || 0),
+      penaltyLog: (() => { try { const value = JSON.parse(String(roomState.penaltyLog || "[]")); return Array.isArray(value) ? value : []; } catch (e) { return []; } })(),
       maxStrikes: Number(roomState.maxStrikes || 3),
       crisisActive: Boolean(roomState.crisisActive),
       crisisRole: String(roomState.crisisRole || "analyst"),
@@ -2389,6 +2689,13 @@ class Component extends DCLogic {
     setTimeout(() => this.setState({ authStatus: "idle" }), 3000);
   }
 
+  adjustFrequency(delta) {
+    const frequency = Math.max(140, Math.min(170, Math.round((this.state.frequency + delta) * 10) / 10));
+    this.setState({ frequency });
+    this.sendPuzzle("frequency", frequency);
+    this.beep(420 + Math.round((frequency - 140) * 8), 0.025, "sine");
+  }
+
   selectRadarContact(contact) {
     if (this.state.radarSolved) return;
     this.setState({ radarSelection: contact });
@@ -2402,17 +2709,36 @@ class Component extends DCLogic {
       this.notifyLocked("ANALYST DECODER LOCKED — ACQUIRE TARGET FREQUENCY FIRST");
       return;
     }
-    const next = [...this.state.patternInput, sym];
-    const target = this.state.patternTarget.split("");
+    if (this._patternPending) return;
+    const next = [...this._patternBuffer, sym];
+    this._patternBuffer = next;
+    const burstDigits = this.state.patternCode.split("-");
+    const target = applyCipherReadOrder(burstDigits, this.state.cipherDirection);
     if (next.length < target.length) {
       this.setState({ patternInput: next, patternStatus: "idle" });
       return;
     }
+    this._patternPending = true;
     const ok = next.every((v, i) => v === target[i]);
     this.setState({ patternInput: next, patternStatus: ok ? "ok" : "fail" });
     this.sendPuzzle("pattern", next);
     if (ok) { this.beep(880, 0.15); this.playSfx("clear", 0.38); }
-    setTimeout(() => this.setState({ patternInput: [], patternStatus: "idle" }), 1800);
+    setTimeout(() => {
+      this._patternBuffer = [];
+      this._patternPending = false;
+      this.setState({ patternInput: [], patternStatus: "idle" });
+    }, 1800);
+  }
+
+  solveMatrix(value) {
+    if (this.state.role !== "operator" && !this.state.soloDemo) return;
+    this.sendPuzzle("pattern", String(value));
+    this.setState({ patternStatus: String(value) === this.state.patternCode ? "ok" : "fail" });
+  }
+
+  submitCalibration() {
+    if (this.state.role !== "technician" && !this.state.soloDemo) return;
+    this.sendPuzzle("calibration", Math.round(this.state.calibrationValue));
   }
 
   checkRelays() {
@@ -2434,7 +2760,7 @@ class Component extends DCLogic {
       this.notifyLocked("CUT PROTOCOL SEALED - COMPLETE AUTHORIZATION FIRST");
       return;
     }
-    const ok = choice === this.state.orderTarget;
+    const ok = choice === String(this.state.orderTarget).split("|")[0];
     this.setState({ orderStatus: ok ? "ok" : "fail" });
     this.sendPuzzle("order", choice);
     if (ok) { this.beep(880, 0.15); this.playSfx("activate", 0.34); }
@@ -2443,7 +2769,8 @@ class Component extends DCLogic {
   cutWire(id) {
     const wire = this.state.wires.find((w) => w.id === id);
     if (!wire || wire.cut) return;
-    const relayRequired = DIFFICULTY_RELAY_REQUIRED[this.state.difficulty];
+    const profile = String(this.state.missionVariant).split("|")[0] || "ALPHA";
+    const relayRequired = false;
     if (!this.state.orderSolved) {
       this.notifyLocked("CUT PROTOCOL LOCKED - AWAIT OPERATOR AUTHORIZATION");
       return;
@@ -2452,7 +2779,8 @@ class Component extends DCLogic {
       this.notifyLocked("STABILIZER REQUIRED - ALIGN BOTH BANKS FIRST");
       return;
     }
-    if (!this.state.relayWindowActive) {
+    const wireProfiles = ["ALPHA", "BRAVO", "CHARLIE"];
+    if (!this.state.relayWindowActive && !wireProfiles.includes(profile)) {
       this.notifyLocked(relayRequired ? "CUT WINDOW CLOSED - RESTABILIZE THE DEVICE" : "CUT WINDOW CLOSED - WAIT FOR OPERATOR REAUTHORIZATION");
       return;
     }

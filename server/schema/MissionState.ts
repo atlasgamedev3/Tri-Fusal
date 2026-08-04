@@ -15,6 +15,7 @@ export class MissionState extends Schema {
   @type("string") hostUserId = "";
   @type("string") difficulty = "STANDARD";
   @type("string") bombId = "";
+  @type("string") missionSeed = "";
   @type("boolean") gameStarted = false;
   @type("boolean") isGameOver = false;
   @type("string") bombStatus = "ready";
@@ -60,15 +61,13 @@ export class MissionState extends Schema {
   @type("boolean") relay2 = true;
   @type("boolean") relaySolved = false;
   @type("boolean") orderSolved = false;
-  @type("boolean") analystAck = false;
-  @type("boolean") technicianAck = false;
-  @type("boolean") operatorAck = false;
-  @type("boolean") interlockSolved = false;
   @type(["string"]) cutWireIds = new ArraySchema<string>();
   @type("number") strikes = 0;
   @type("number") boardNumber = 1;
   @type("number") boardCount = 1;
   @type("number") score = 0;
+  @type("number") runStartedAt = 0;
+  @type("string") penaltyLog = "[]";
   @type("boolean") crisisActive = false;
   @type("string") crisisRole: MissionRole = "analyst";
   @type("string") crisisLabel = "SIGNAL PHASE COLLAPSE";

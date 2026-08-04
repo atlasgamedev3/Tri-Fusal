@@ -1,19 +1,21 @@
 import { Client, Room } from "colyseus";
 import { MissionPlayer, MissionRole, MissionState } from "../schema/MissionState";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
 
 const ROLE_SET = new Set<MissionRole>(["analyst", "technician", "operator"]);
-const DIFFICULTY_SECONDS: Record<string, number> = { STANDARD: 540, HARD: 450, EXTREME: 360 };
+const DIFFICULTY_SECONDS: Record<string, number> = { STANDARD: 480, HARD: 390, EXTREME: 240 };
 const WIRES_PER_DIFFICULTY: Record<string, number> = { STANDARD: 3, HARD: 5, EXTREME: 7 };
 const SAFE_WIRE_COUNT: Record<string, number> = { STANDARD: 1, HARD: 2, EXTREME: 3 };
 const RADAR_TOLERANCE: Record<string, number> = { STANDARD: 10, HARD: 6, EXTREME: 3 };
 const CUT_WINDOW_SECONDS: Record<string, number> = { STANDARD: 18, HARD: 12, EXTREME: 8 };
 const MINOR_PENALTY_SECONDS = 30;
-const BOARDS_PER_DIFFICULTY: Record<string, number> = { STANDARD: 1, HARD: 2, EXTREME: 3 };
+const BOARDS_PER_DIFFICULTY: Record<string, number> = { STANDARD: 2, HARD: 3, EXTREME: 4 };
 const RELAY_REQUIRED: Record<string, boolean> = { STANDARD: false, HARD: true, EXTREME: true };
 const ROLE_ACTIONS: Record<MissionRole, Set<string>> = {
-  analyst: new Set(["radar", "frequency", "pattern"]),
-  technician: new Set(["relay", "relaySet", "wire"]),
-  operator: new Set(["auth", "order"]),
+  analyst: new Set(["radar", "frequency"]),
+  technician: new Set(["relay", "relaySet", "wire", "calibration"]),
+  operator: new Set(["pattern", "auth", "order"]),
 };
 
 const MISSION_LOCATIONS = [
@@ -26,6 +28,7 @@ const MISSION_LOCATIONS = [
 ] as const;
 const AUTH_PREFIXES = ["ORBIT", "EMBER", "VIOLET", "DELTA", "FROST", "CINDER", "NIGHT", "SABLE", "IRON", "PALE"] as const;
 const AUTH_SUFFIXES = ["ALPHA", "ECHO", "KILO", "LIMA", "NOVEMBER", "ROMEO", "SIERRA", "TANGO", "VICTOR", "ZULU"] as const;
+const LEADERBOARD_PATH = process.env.TRI_FUSAL_LEADERBOARD_PATH || join(process.cwd(), "data", "tri-fusal-leaderboard.json");
 
 export interface TriFusalLeaderboardEntry {
   operation: string;
@@ -35,38 +38,107 @@ export interface TriFusalLeaderboardEntry {
   score: number;
   strikes: number;
   completedAt: string;
+  missionSeed: string;
+  boards: number;
 }
 
-const TRI_FUSAL_LEADERBOARD: TriFusalLeaderboardEntry[] = [];
+function loadLeaderboard(): TriFusalLeaderboardEntry[] {
+  try {
+    if (!existsSync(LEADERBOARD_PATH)) return [];
+    const value = JSON.parse(readFileSync(LEADERBOARD_PATH, "utf8"));
+    return Array.isArray(value) ? value.filter((entry) => entry && typeof entry.operation === "string") : [];
+  } catch (error) {
+    console.warn("Unable to read Tri-Fusal leaderboard:", error);
+    return [];
+  }
+}
+
+function persistLeaderboard(entries: TriFusalLeaderboardEntry[]) {
+  try {
+    mkdirSync(dirname(LEADERBOARD_PATH), { recursive: true });
+    writeFileSync(LEADERBOARD_PATH, JSON.stringify(entries, null, 2), "utf8");
+  } catch (error) {
+    console.error("Unable to persist Tri-Fusal leaderboard:", error);
+  }
+}
+
+const TRI_FUSAL_LEADERBOARD: TriFusalLeaderboardEntry[] = loadLeaderboard();
 
 export function getTriFusalLeaderboard() {
   return [...TRI_FUSAL_LEADERBOARD];
 }
 
-function makeBombId() {
+type RandomSource = () => number;
+
+function hashSeed(value: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function seededRandom(seed: number): RandomSource {
+  return () => {
+    seed |= 0;
+    seed = seed + 0x6D2B79F5 | 0;
+    let value = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    value = value + Math.imul(value ^ value >>> 7, 61 | value) ^ value;
+    return ((value ^ value >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function makeBombId(random: RandomSource = Math.random) {
   const words = ["ALPHA", "ECHO", "KILO", "OSCAR", "TANGO", "ZULU"];
-  const word = words[Math.floor(Math.random() * words.length)];
-  return `${word}-${Math.floor(1000 + Math.random() * 9000)}-${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`;
+  const word = words[Math.floor(random() * words.length)];
+  return `${word}-${Math.floor(1000 + random() * 9000)}-${String.fromCharCode(65 + Math.floor(random() * 26))}`;
 }
 
-function shuffled<T>(values: readonly T[]) {
-  return [...values].sort(() => Math.random() - 0.5);
+function shuffled<T>(values: readonly T[], random: RandomSource = Math.random) {
+  const result = [...values];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+  }
+  return result;
 }
 
-function randomItem<T>(values: readonly T[]) {
-  return values[Math.floor(Math.random() * values.length)];
+function randomItem<T>(values: readonly T[], random: RandomSource = Math.random) {
+  return values[Math.floor(random() * values.length)];
 }
 
-function generateFrequency() {
-  return (1420 + Math.floor(Math.random() * 261)) / 10;
+function generateFrequency(random: RandomSource) {
+  return (1420 + Math.floor(random() * 261)) / 10;
 }
 
-function generateCipherCode() {
-  return Array.from({ length: 4 }, () => String(1 + Math.floor(Math.random() * 4))).join("-");
+function generateCipherCode(random: RandomSource, length = 4) {
+  let digits: string[] = [];
+  do digits = Array.from({ length }, () => String(1 + Math.floor(random() * 4)));
+  while (new Set(digits).size < 2 || digits.every((digit) => digit === digits[0]));
+  return digits.join("-");
 }
 
-function generateAuthCode() {
-  return `${randomItem(AUTH_PREFIXES)}-${1 + Math.floor(Math.random() * 9)}-${randomItem(AUTH_SUFFIXES)}`;
+function applyReadOrder<T>(values: T[], mode: string) {
+  if (mode === "RTL") return [...values].reverse();
+  if (mode === "PAIRS") {
+    const result = [...values];
+    for (let i = 0; i + 1 < result.length; i += 2) [result[i], result[i + 1]] = [result[i + 1], result[i]];
+    return result;
+  }
+  if (mode === "OUTSIDE") {
+    const result: T[] = [];
+    for (let left = 0, right = values.length - 1; left <= right; left += 1, right -= 1) {
+      result.push(values[left]);
+      if (right !== left) result.push(values[right]);
+    }
+    return result;
+  }
+  return [...values];
+}
+
+function generateAuthCode(random: RandomSource) {
+  return `${randomItem(AUTH_PREFIXES, random)}-${1 + Math.floor(random() * 9)}-${randomItem(AUTH_SUFFIXES, random)}`;
 }
 
 export class TriFusalRoom extends Room<MissionState> {
@@ -75,6 +147,8 @@ export class TriFusalRoom extends Room<MissionState> {
   private userRoles = new Map<string, MissionRole>();
   private isSoloDemo = false;
   private operation = "BLACKTHORN";
+  private runSeed = "";
+  private generation = 0;
 
   onCreate(options: Record<string, unknown>) {
     this.autoDispose = false;
@@ -82,6 +156,7 @@ export class TriFusalRoom extends Room<MissionState> {
     const requestedDifficulty = String(options.difficulty || "STANDARD").toUpperCase();
     this.state.difficulty = DIFFICULTY_SECONDS[requestedDifficulty] ? requestedDifficulty : "STANDARD";
     this.operation = String(options.operation || "BLACKTHORN").trim().toUpperCase().slice(0, 32) || "BLACKTHORN";
+    this.runSeed = String(options.seed || `${Date.now().toString(36)}-${Math.floor(Math.random() * 0xFFFFFF).toString(36)}`).toUpperCase().slice(0, 32);
     this.resetMission();
 
     this.onMessage("setDifficulty", (client, message: { difficulty?: string }) => {
@@ -99,6 +174,7 @@ export class TriFusalRoom extends Room<MissionState> {
       }
       this.state.gameStarted = true;
       this.state.bombStatus = "running";
+      this.state.runStartedAt = Date.now();
       void this.setPrivate(true);
       this.startTimer();
     });
@@ -129,24 +205,40 @@ export class TriFusalRoom extends Room<MissionState> {
           failedSeverity = "minor";
         }
       } else if (action === "frequency") {
-        if (!this.state.radarSolved) {
-          lockedReason = "TUNER LOCKED — CONFIRM THE TARGET CONTACT FIRST";
+        const value = Math.max(140, Math.min(170, Number(message.value)));
+        if (!Number.isFinite(value)) return;
+        const wasSolved = this.state.frequencySolved;
+        this.state.frequency = Math.round(value * 10) / 10;
+        this.state.frequencySolved = Math.abs(this.state.frequency - this.state.targetFrequency) < 0.06;
+        if (!wasSolved && this.state.frequencySolved) {
+          this.announceModule("TARGET CARRIER LOCKED", player.role);
+          if (this.boardProfile() === "SIGNAL") this.openCutWindow();
+        }
+      } else if (action === "calibration") {
+        if (!this.hasModule("CALIBRATION")) return;
+        const value = Math.round(Number(message.value));
+        if (!Number.isFinite(value)) return;
+        const calibrationTarget = Number(this.state.authCode.split("|")[3]);
+        if (value === calibrationTarget) {
+          this.state.authSolved = true;
+          this.announceModule("PRESSURE MANIFOLD BALANCED", player.role);
         } else {
-          const value = Math.max(140, Math.min(170, Number(message.value)));
-          if (!Number.isFinite(value)) return;
-          const wasSolved = this.state.frequencySolved;
-          this.state.frequency = Math.round(value * 10) / 10;
-          this.state.frequencySolved = Math.abs(this.state.frequency - this.state.targetFrequency) < 0.06;
-          if (!wasSolved && this.state.frequencySolved) this.announceModule("TARGET CARRIER LOCKED", player.role);
+          failedReason = "INCORRECT PRESSURE CALIBRATION";
+          failedSeverity = "minor";
         }
       } else if (action === "pattern") {
-        if (!this.state.frequencySolved) {
+        if (!this.state.frequencySolved && !this.hasModule("MATRIX")) {
           lockedReason = "DECODER LOCKED — ACQUIRE THE TARGET FREQUENCY FIRST";
         } else if (!this.state.patternSolved) {
           const value = Array.isArray(message.value) ? message.value.join("") : String(message.value || "");
-          if (value === this.state.patternTarget) {
+          const digits = this.state.patternCode.split("-");
+          const expected = this.hasModule("MATRIX") ? this.state.patternCode : applyReadOrder(digits, this.state.cipherDirection).join("");
+          if (value === expected) {
             this.state.patternSolved = true;
             this.announceModule("INTEL PACKET DECODED", player.role);
+          } else {
+            failedReason = "INCORRECT INTEL BURST";
+            failedSeverity = "minor";
           }
         }
       } else if (action === "auth") {
@@ -167,12 +259,13 @@ export class TriFusalRoom extends Room<MissionState> {
           lockedReason = "CUT PROTOCOL SEALED — COMPLETE AUTHORIZATION FIRST";
         } else if (!this.state.orderSolved) {
           const choice = String(message.value || "").toUpperCase();
-          if (choice === this.state.orderTarget) {
+          const protocolTarget = this.state.orderTarget.split("|")[0];
+          if (choice === protocolTarget) {
             this.state.orderSolved = true;
             this.announceModule("CUT PROTOCOL VALIDATED", player.role);
             if (this.isRelayRequired()) {
               this.broadcast("missionComplication", {
-                text: `CUT PROTOCOL ${this.state.orderTarget} CLEARED — STABILIZER ALIGNMENT REQUIRED`,
+                text: `CUT PROTOCOL ${protocolTarget} CLEARED — STABILIZER ALIGNMENT REQUIRED`,
                 timestamp: Date.now(),
               });
             } else {
@@ -186,8 +279,6 @@ export class TriFusalRoom extends Room<MissionState> {
       } else if (action === "relaySet") {
         if (!this.isRelayRequired()) {
           lockedReason = "STANDARD LOADOUT — STABILIZER BYPASS ACTIVE";
-        } else if (!this.state.orderSolved) {
-          lockedReason = "STABILIZER SEALED — AWAIT OPERATOR CUT PROTOCOL";
         } else {
           const value = message.value as { relay1?: boolean; relay2?: boolean };
           this.state.relay1 = Boolean(value?.relay1);
@@ -222,17 +313,23 @@ export class TriFusalRoom extends Room<MissionState> {
           lockedReason = "CUT PROTOCOL LOCKED — AWAIT OPERATOR AUTHORIZATION";
         } else if (this.isRelayRequired() && !this.state.relaySolved) {
           lockedReason = "STABILIZER REQUIRED — ALIGN BOTH BANKS FIRST";
-        } else if (!this.state.relayWindowActive) {
+        } else if (!this.state.relayWindowActive && !this.hasModule("WIRES")) {
           lockedReason = this.isRelayRequired()
             ? "CUT WINDOW CLOSED — RESTABILIZE THE DEVICE"
             : "CUT WINDOW CLOSED — OPERATOR MUST REAUTHORIZE";
         } else {
-          this.state.cutWireIds.push(id);
+          const expectedWire = this.state.safeWireIds[this.state.cutWireIds.length];
           if (!this.state.safeWireIds.includes(id)) {
             this.resetCutStage();
             failedReason = `WIRE ${id} WAS NOT THE DESIGNATED TARGET`;
             failedSeverity = "major";
+          } else if (this.state.difficulty === "EXTREME" && id !== expectedWire) {
+            this.state.cutWireIds.splice(0, this.state.cutWireIds.length);
+            this.resetCutStage();
+            failedReason = `WIRE SEQUENCE VIOLATION — EXPECTED ${expectedWire} NEXT`;
+            failedSeverity = "major";
           } else {
+            this.state.cutWireIds.push(id);
             if (this.isWireSolved()) {
               this.state.relayWindowActive = false;
               this.state.relayWindow = 0;
@@ -336,7 +433,7 @@ export class TriFusalRoom extends Room<MissionState> {
     const player = this.state.players.get(client.sessionId);
     if (!player || !this.state.gameStarted || this.state.isGameOver || this.state.bombStatus !== "running") return false;
     if (this.isSoloDemo || this.state.players.size === 2) {
-      return ["radar", "frequency", "pattern", "relaySet", "relay", "wire", "auth", "order"].includes(String(action));
+      return ["radar", "frequency", "pattern", "calibration", "relaySet", "relay", "wire", "auth", "order"].includes(String(action));
     }
     return ROLE_ACTIONS[player.role].has(String(action));
   }
@@ -355,43 +452,58 @@ export class TriFusalRoom extends Room<MissionState> {
     const preservedSeconds = this.state.seconds;
     const preservedStrikes = this.state.strikes;
     const preservedBoardNumber = this.state.boardNumber;
-    const location = randomItem(MISSION_LOCATIONS);
-    const radarContact = randomItem(["TGT-01", "TGT-02", "UNK-A"] as const);
-    const targetFrequency = generateFrequency();
-    const patternCode = generateCipherCode();
-    const authCode = generateAuthCode();
-    const orderTarget = randomItem(["A", "B", "C"] as const);
+    this.generation += 1;
+    const boardSeed = `${this.runSeed}:${preservedBoardNumber || 1}:${this.generation}:${this.state.difficulty}`;
+    const random = seededRandom(hashSeed(boardSeed));
+    const location = randomItem(MISSION_LOCATIONS, random);
+    const availableProfiles = this.state.difficulty === "STANDARD"
+      ? ["ALPHA", "BRAVO"]
+      : this.state.difficulty === "HARD"
+        ? ["ALPHA", "BRAVO", "CHARLIE"]
+        : ["ALPHA", "BRAVO", "CHARLIE", "DELTA"];
+    const profileDeck = shuffled(availableProfiles, seededRandom(hashSeed(`${this.runSeed}:${this.state.difficulty}:PROFILE-DECK`)));
+    const boardProfile = profileDeck[Math.max(0, (preservedBoardNumber || 1) - 1) % profileDeck.length];
+    const radarContact = randomItem(["TGT-01", "TGT-02", "UNK-A"] as const, random);
+    let targetFrequency = generateFrequency(random);
+    const cipherLength = this.state.difficulty === "EXTREME" ? 6 : this.state.difficulty === "HARD" ? 5 : 4;
+    let patternCode = generateCipherCode(random, cipherLength);
+    let authCode = generateAuthCode(random);
     const wireCount = WIRES_PER_DIFFICULTY[this.state.difficulty];
     const safeCount = SAFE_WIRE_COUNT[this.state.difficulty];
     const availableWireIds = ["A", "B", "C", "D", "E", "F", "G"].slice(0, wireCount);
-    const safeWireIds = [...availableWireIds]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, safeCount)
-      .sort()
-      .join("");
-    const radarRules = this.state.difficulty === "STANDARD" ? ["WINDOW", "NEAREST"] : ["WINDOW", "NEAREST", "FARTHEST"];
-    const radarRule = shuffled(radarRules)[0];
+    const selectedSafeIds = shuffled(availableWireIds, random).slice(0, safeCount);
+    const radarRules = this.state.difficulty === "STANDARD"
+      ? ["WINDOW", "NEAREST"]
+      : this.state.difficulty === "HARD"
+        ? ["WINDOW", "NEAREST", "FARTHEST", "ODD_RANGE"]
+        : ["WINDOW", "NEAREST", "FARTHEST", "ODD_RANGE", "NORTHMOST"];
+    const radarRule = shuffled(radarRules, random)[0];
     const radarTolerance = RADAR_TOLERANCE[this.state.difficulty];
-    const targetBearing = 20 + Math.floor(Math.random() * 321);
+    const targetBearing = 20 + Math.floor(random() * 321);
     const decoyBearings = shuffled([
-      (targetBearing + 70 + Math.floor(Math.random() * 50)) % 360,
-      (targetBearing + 190 + Math.floor(Math.random() * 50)) % 360,
-    ]);
+      (targetBearing + 70 + Math.floor(random() * 50)) % 360,
+      (targetBearing + 190 + Math.floor(random() * 50)) % 360,
+    ], random);
     const contactIds = ["TGT-01", "TGT-02", "UNK-A"];
     const targetIndex = contactIds.indexOf(radarContact);
     const bearings = contactIds.map((_, index) => (index === targetIndex ? targetBearing : decoyBearings.shift()!));
+    if (radarRule === "NORTHMOST") {
+      bearings[targetIndex] = 8 + Math.floor(random() * 43);
+      contactIds.forEach((_, index) => { if (index !== targetIndex) bearings[index] = 105 + Math.floor(random() * 225); });
+    }
     const ranges = contactIds.map((_, index) => {
-      if (radarRule === "NEAREST") return index === targetIndex ? 24 + Math.floor(Math.random() * 15) : 52 + Math.floor(Math.random() * 34);
-      if (radarRule === "FARTHEST") return index === targetIndex ? 72 + Math.floor(Math.random() * 16) : 24 + Math.floor(Math.random() * 34);
-      return 28 + Math.floor(Math.random() * 58);
+      if (radarRule === "NEAREST") return index === targetIndex ? 24 + Math.floor(random() * 15) : 52 + Math.floor(random() * 34);
+      if (radarRule === "FARTHEST") return index === targetIndex ? 72 + Math.floor(random() * 16) : 24 + Math.floor(random() * 34);
+      if (radarRule === "ODD_RANGE") return index === targetIndex ? 31 + Math.floor(random() * 25) * 2 : 28 + Math.floor(random() * 28) * 2;
+      return 28 + Math.floor(random() * 58);
     });
-    const cipherMap = shuffled(["△", "○", "□", "◇"]);
-    const cipherDirection = Math.random() >= 0.5 ? "LTR" : "RTL";
+    const cipherMap = shuffled(["△", "○", "□", "◇"], random);
+    const cipherModes = this.state.difficulty === "STANDARD" ? ["LTR", "RTL"] : this.state.difficulty === "HARD" ? ["LTR", "RTL", "PAIRS"] : ["LTR", "RTL", "PAIRS", "OUTSIDE"];
+    const cipherDirection = randomItem(cipherModes, random);
     const digits = patternCode.split("-");
-    const decodedDigits = cipherDirection === "RTL" ? [...digits].reverse() : digits;
-    const patternTarget = decodedDigits.map((digit) => cipherMap[Number(digit) - 1]).join("");
-    const relay1Rule = shuffled(["HIGH_BAND", "MID_BAND", "TENTHS_ODD"])[0];
-    const relay2Rule = shuffled(["SUM_EVEN", "ENDS_MATCH", "RISING_EDGE"])[0];
+    let patternTarget = digits.map((digit) => cipherMap[Number(digit) - 1]).join("");
+    const relay1Rule = shuffled(["HIGH_BAND", "MID_BAND", "TENTHS_ODD"], random)[0];
+    const relay2Rule = shuffled(["SUM_EVEN", "ENDS_MATCH", "RISING_EDGE"], random)[0];
     const digitValues = digits.map(Number);
     const relay1Target = relay1Rule === "HIGH_BAND"
       ? targetFrequency >= 155
@@ -403,17 +515,55 @@ export class TriFusalRoom extends Room<MissionState> {
       : relay2Rule === "ENDS_MATCH"
         ? digitValues[0] === digitValues[digitValues.length - 1]
         : digitValues[digitValues.length - 1] > digitValues[0];
-    const wireCodes = availableWireIds.map(() => String(1 + Math.floor(Math.random() * 9))).join("");
+    const wireRule = randomItem(["EVEN", "HIGH", "PRIME"] as const, random);
+    const passingCodes = wireRule === "EVEN" ? [2, 4, 6, 8] : wireRule === "HIGH" ? [6, 7, 8, 9] : [2, 3, 5, 7];
+    const failingCodes = wireRule === "EVEN" ? [1, 3, 5, 7, 9] : wireRule === "HIGH" ? [1, 2, 3, 4, 5] : [1, 4, 6, 8, 9];
+    const safeCodePool = shuffled(passingCodes, random).slice(0, safeCount);
+    const codeByWire = Object.fromEntries(availableWireIds.map((id) => [
+      id,
+      selectedSafeIds.includes(id) ? safeCodePool[selectedSafeIds.indexOf(id)] : randomItem(failingCodes, random),
+    ]));
+    const orderedSafeIds = this.state.difficulty === "EXTREME"
+      ? [...selectedSafeIds].sort((a, b) => codeByWire[a] - codeByWire[b])
+      : selectedSafeIds;
+    const safeWireIds = orderedSafeIds.join("");
+    const wireCodes = availableWireIds.map((id) => String(codeByWire[id])).join("");
 
-    this.state.bombId = makeBombId();
+    const bombId = makeBombId(random);
+    const protocolRules = this.state.difficulty === "STANDARD" ? ["SUM"] : this.state.difficulty === "HARD" ? ["SUM", "SERIAL"] : ["SUM", "SERIAL", "FREQUENCY"];
+    const protocolRule = randomItem(protocolRules, random);
+    const protocolIndex = protocolRule === "SUM"
+      ? digitValues.reduce((sum, digit) => sum + digit, 0) % 3
+      : protocolRule === "SERIAL"
+        ? (bombId.charCodeAt(bombId.length - 1) - 65) % 3
+        : Math.round(targetFrequency * 10) % 3;
+    const orderTarget = `${["A", "B", "C"][protocolIndex]}|${protocolRule}`;
+    const start = 1 + Math.floor(random() * 7);
+    const step = 2 + Math.floor(random() * 6);
+    const sequence = Array.from({ length: 5 }, (_, index) => start + step * index);
+    const matrixAnswer = sequence[sequence.length - 1] + step;
+    const matrixOptions = shuffled([matrixAnswer, matrixAnswer + step, Math.max(0, matrixAnswer - 1), matrixAnswer + 1], random);
+    patternCode = String(matrixAnswer);
+    patternTarget = `${sequence.join(",")}|${matrixOptions.join(",")}|ADD ${step} EACH STEP`;
+    const gaugeA = 12 + Math.floor(random() * 18);
+    const gaugeB = 3 + Math.floor(random() * 8);
+    const useDifference = random() > 0.5;
+    const calibrationTarget = useDifference ? gaugeA * 2 - gaugeB : gaugeA + gaugeB * 2;
+    const calibrationClue = `${gaugeA}|${gaugeB}|${useDifference ? "A × 2 − B" : "A + B × 2"}`;
+    authCode = `${calibrationClue}|${calibrationTarget}`;
+    this.state.bombId = bombId;
+    this.state.missionSeed = this.runSeed;
     this.state.seconds = DIFFICULTY_SECONDS[this.state.difficulty];
-    this.state.missionVariant = location.name;
+    this.state.missionVariant = `${boardProfile}|${location.name}`;
     this.state.radarContact = radarContact;
     this.state.radarLat = location.lat;
     this.state.radarLon = location.lon;
     this.state.radarGrid = location.grid;
     this.state.radarSelection = "";
-    this.state.radarSolved = false;
+    const signalActive = ["ALPHA", "BRAVO", "DELTA"].includes(boardProfile);
+    const matrixActive = ["ALPHA", "CHARLIE", "DELTA"].includes(boardProfile);
+    const calibrationActive = ["BRAVO", "CHARLIE", "DELTA"].includes(boardProfile);
+    this.state.radarSolved = !signalActive;
     this.state.radarTargetBearing = targetBearing;
     this.state.radarBearing1 = bearings[0];
     this.state.radarBearing2 = bearings[1];
@@ -424,7 +574,7 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.radarRule = radarRule;
     this.state.radarTolerance = radarTolerance;
     this.state.targetFrequency = targetFrequency;
-    this.state.frequency = 144.5;
+    this.state.frequency = signalActive ? 144.5 : targetFrequency;
     this.state.patternCode = patternCode;
     this.state.patternTarget = patternTarget;
     this.state.cipherMap = cipherMap.join("");
@@ -433,7 +583,7 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.orderTarget = orderTarget;
     this.state.safeWireIds = safeWireIds;
     this.state.wireCodes = wireCodes;
-    this.state.wireRule = "TARGET";
+    this.state.wireRule = wireRule;
     this.state.relay1Target = relay1Target;
     this.state.relay2Target = relay2Target;
     this.state.relay1Rule = relay1Rule;
@@ -441,17 +591,13 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.relayWindowMax = CUT_WINDOW_SECONDS[this.state.difficulty];
     this.state.relayWindow = 0;
     this.state.relayWindowActive = false;
-    this.state.frequencySolved = false;
-    this.state.patternSolved = false;
-    this.state.authSolved = false;
+    this.state.frequencySolved = !signalActive;
+    this.state.patternSolved = !matrixActive;
+    this.state.authSolved = !calibrationActive;
     this.state.relay1 = false;
     this.state.relay2 = true;
-    this.state.relaySolved = false;
-    this.state.orderSolved = false;
-    this.state.analystAck = false;
-    this.state.technicianAck = false;
-    this.state.operatorAck = false;
-    this.state.interlockSolved = false;
+    this.state.relaySolved = true;
+    this.state.orderSolved = true;
     this.state.cutWireIds.splice(0, this.state.cutWireIds.length);
     this.state.isGameOver = false;
     this.state.gameStarted = false;
@@ -470,6 +616,8 @@ export class TriFusalRoom extends Room<MissionState> {
       this.state.boardNumber = 1;
       this.state.boardCount = BOARDS_PER_DIFFICULTY[this.state.difficulty];
       this.state.score = 0;
+      this.state.runStartedAt = 0;
+      this.state.penaltyLog = "[]";
     }
   }
 
@@ -501,7 +649,21 @@ export class TriFusalRoom extends Room<MissionState> {
   }
 
   private isRelayRequired() {
-    return RELAY_REQUIRED[this.state.difficulty];
+    return false;
+  }
+
+  private boardProfile() {
+    return this.state.missionVariant.split("|")[0] || "ALPHA";
+  }
+
+  private hasModule(module: "SIGNAL" | "MATRIX" | "CALIBRATION" | "WIRES") {
+    const modules: Record<string, string[]> = {
+      ALPHA: ["SIGNAL", "MATRIX", "WIRES"],
+      BRAVO: ["SIGNAL", "CALIBRATION", "WIRES"],
+      CHARLIE: ["MATRIX", "CALIBRATION", "WIRES"],
+      DELTA: ["SIGNAL", "MATRIX", "CALIBRATION"],
+    };
+    return (modules[this.boardProfile()] || modules.ALPHA).includes(module);
   }
 
   private openCutWindow() {
@@ -516,6 +678,10 @@ export class TriFusalRoom extends Room<MissionState> {
   private resetCutStage() {
     this.state.relayWindowActive = false;
     this.state.relayWindow = 0;
+    if (this.hasModule("WIRES")) {
+      this.state.orderSolved = true;
+      return;
+    }
     if (this.isRelayRequired()) {
       this.state.relaySolved = false;
       this.state.relay1 = false;
@@ -531,6 +697,10 @@ export class TriFusalRoom extends Room<MissionState> {
       ? Math.max(1, Math.floor(DIFFICULTY_SECONDS[this.state.difficulty] / 3))
       : MINOR_PENALTY_SECONDS;
     this.state.seconds = Math.max(0, this.state.seconds - seconds);
+    let penalties: Array<Record<string, unknown>> = [];
+    try { penalties = JSON.parse(this.state.penaltyLog || "[]"); } catch { penalties = []; }
+    penalties.push({ role, reason, severity, seconds, strike: this.state.strikes, board: this.state.boardNumber, remainingSeconds: this.state.seconds });
+    this.state.penaltyLog = JSON.stringify(penalties.slice(-20));
     this.broadcast("penalty", { from: role, reason, seconds, strikes: this.state.strikes, maxStrikes: 3, timestamp: Date.now() });
     if (this.state.seconds === 0 || this.state.strikes >= 3) this.finish("detonated");
   }
@@ -553,6 +723,7 @@ export class TriFusalRoom extends Room<MissionState> {
   }
 
   private isWireSolved() {
+    if (!this.hasModule("WIRES")) return true;
     const safeWireIds = this.state.safeWireIds.split("").filter(Boolean);
     return safeWireIds.every((id) => this.state.cutWireIds.includes(id));
   }
@@ -583,6 +754,8 @@ export class TriFusalRoom extends Room<MissionState> {
         score: this.state.score,
         strikes: this.state.strikes,
         completedAt: new Date().toISOString(),
+        missionSeed: this.runSeed,
+        boards: this.state.boardCount,
       });
       const topByDifficulty = new Map<string, TriFusalLeaderboardEntry[]>();
       for (const entry of TRI_FUSAL_LEADERBOARD) {
@@ -592,12 +765,22 @@ export class TriFusalRoom extends Room<MissionState> {
         topByDifficulty.set(entry.difficulty, entries.slice(0, 10));
       }
       TRI_FUSAL_LEADERBOARD.splice(0, TRI_FUSAL_LEADERBOARD.length, ...[...topByDifficulty.values()].flat());
+      persistLeaderboard(TRI_FUSAL_LEADERBOARD);
     }
     if (this.timer) {
       clearInterval(this.timer);
       this.timer = null;
     }
-    this.broadcast(status === "defused" ? "bombDefused" : "bombDetonated", { seconds: this.state.seconds, score: this.state.score });
+    this.broadcast(status === "defused" ? "bombDefused" : "bombDetonated", {
+      seconds: this.state.seconds,
+      score: this.state.score,
+      strikes: this.state.strikes,
+      difficulty: this.state.difficulty,
+      boards: this.state.boardCount,
+      missionSeed: this.runSeed,
+      elapsedSeconds: Math.max(0, DIFFICULTY_SECONDS[this.state.difficulty] - this.state.seconds),
+      penalties: JSON.parse(this.state.penaltyLog || "[]"),
+    });
     this.clock.setTimeout(() => void this.disconnect(), 30_000);
   }
 }
