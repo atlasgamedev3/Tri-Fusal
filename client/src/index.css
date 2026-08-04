@@ -365,9 +365,7 @@ All colors MUST be HSL.
   pointer-events: none;
   content: "";
   opacity: 0.3;
-  background:
-    repeating-linear-gradient(0deg, transparent 0 3px, rgba(0, 0, 0, 0.1) 3px 4px),
-    repeating-linear-gradient(90deg, transparent 0 67px, rgba(232, 223, 196, 0.012) 67px 68px);
+  background: repeating-linear-gradient(90deg, transparent 0 67px, rgba(232, 223, 196, 0.012) 67px 68px);
   mix-blend-mode: multiply;
 }
 

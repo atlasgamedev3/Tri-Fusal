@@ -45,7 +45,7 @@ const MODULES: { id: string; label: string; status: ModuleStatus; owner: Role }[
   { id: "M-03", label: "AUTH CODE", status: "pending", owner: "operator" },
   { id: "M-04", label: "WIRE ARRAY", status: "pending", owner: "technician" },
   { id: "M-05", label: "FREQ LOCK", status: "pending", owner: "analyst" },
-  { id: "M-06", label: "CLEARANCE", status: "pending", owner: "operator" },
+  { id: "M-06", label: "PROTOCOL", status: "pending", owner: "operator" },
 ];
 
 const TRANSMISSIONS = [
@@ -132,10 +132,10 @@ const TERMINAL_THEMES = {
     fg: "#4DB86A",
     dim: "rgba(77,184,106,0.38)",
     border: "rgba(77,184,106,0.18)",
-    linebg: "repeating-linear-gradient(0deg, transparent, transparent 17px, rgba(77,184,106,0.03) 17px, rgba(77,184,106,0.03) 18px)",
+    linebg: "none",
     headerBg: "transparent",
     optionBg: "#030804",
-    scanline: true,
+    scanline: false,
     font: "'DM Mono', monospace",
     label: "░░ SIGNAL INTERCEPT // CHANNEL-BRAVO // ENCRYPTED // AES-128 ░░",
     sendLabel: "TRANSMIT",
@@ -147,7 +147,7 @@ const TERMINAL_THEMES = {
     fg: "#7EC8E3",
     dim: "rgba(126,200,227,0.38)",
     border: "rgba(126,200,227,0.18)",
-    linebg: "repeating-linear-gradient(0deg, transparent, transparent 17px, rgba(126,200,227,0.025) 17px, rgba(126,200,227,0.025) 18px)",
+    linebg: "none",
     headerBg: "transparent",
     optionBg: "#060C18",
     scanline: false,
@@ -162,7 +162,7 @@ const TERMINAL_THEMES = {
     fg: "#1E1A10",
     dim: "rgba(30,26,16,0.42)",
     border: "rgba(30,26,16,0.18)",
-    linebg: "repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(30,26,16,0.06) 20px, rgba(30,26,16,0.065) 21px)",
+    linebg: "none",
     headerBg: "#1B2A4A",
     optionBg: "#F0E8D0",
     scanline: false,
@@ -432,13 +432,6 @@ function AnalystInterface() {
       className="flex h-full overflow-hidden relative"
       style={{ background: ANALYST_BG, color: AMBER, fontFamily: "'DM Mono', monospace" }}
     >
-      {/* CRT scanline overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none z-10"
-        style={{
-          background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px)",
-        }}
-      />
       {/* Vignette */}
       <div
         className="absolute inset-0 pointer-events-none z-10"
@@ -797,6 +790,7 @@ function OperatorInterface({ onPuzzleComplete }: { onPuzzleComplete?: () => void
   const submitAuth = () => {
     const accepted = authInput.trim().toUpperCase() === "DELTA-7-ECHO";
     setAuthStatus(accepted ? "ok" : "fail");
+    if (accepted) setAuthInput("");
     if (accepted) onPuzzleComplete?.();
     setTimeout(() => setAuthStatus("idle"), 3000);
   };
@@ -834,10 +828,9 @@ function OperatorInterface({ onPuzzleComplete }: { onPuzzleComplete?: () => void
             <div style={{ fontSize: 24, fontFamily: "'Oswald', sans-serif", color: NAVY, fontWeight: 700, lineHeight: 1 }}>BLACKTHORN</div>
             <div style={{ fontSize: 9, color: FADE, marginTop: 4, letterSpacing: "0.08em" }}>INITIATED: 14:20:00 GMT -- 21 JULY 1963</div>
           </div>
-          {/* Operative */}
+          {/* Field identification */}
           <div>
-            <div style={{ fontSize: 9, color: FADE, letterSpacing: "0.2em", marginBottom: 6 }}>FIELD OPERATIVE</div>
-            {[["CODENAME", "SABLE"], ["FIELD ID", "7741-ECHO"], ["CLEARANCE", "DELTA"], ["CONTACT", "CIPHER OFC. MORSE"]].map(([k, v]) => (
+            {[["FIELD ID", "7741-ECHO"], ["CONTACT", "CIPHER OFC. MORSE"]].map(([k, v]) => (
               <div key={k} style={{ display: "flex", gap: 8, fontSize: 11, marginBottom: 4 }}>
                 <span style={{ color: FADE, minWidth: 72, flexShrink: 0 }}>{k}:</span>
                 <span style={{ fontWeight: 600 }}>{v}</span>
@@ -905,7 +898,7 @@ function OperatorInterface({ onPuzzleComplete }: { onPuzzleComplete?: () => void
           <div style={{ marginTop: 20, borderTop: `1px solid ${RULE}`, paddingTop: 16 }}>
             <div style={{ fontSize: 12, fontFamily: "'Oswald', sans-serif", color: NAVY, letterSpacing: "0.15em", marginBottom: 6 }}>AUTHORIZATION CODE ENTRY</div>
             <div style={{ fontSize: 10, color: FADE, lineHeight: 1.6, marginBottom: 10 }}>
-              ENTER SECONDARY AUTHORIZATION CODE PROVIDED BY CIPHER OFFICER MORSE VIA SECURE CHANNEL. FORMAT: ALPHA-N-ALPHA.
+              ENTER THE SECONDARY CODE VALUE PROVIDED BY CIPHER OFFICER MORSE. FORMAT: ALPHA-N-ALPHA.
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <div style={{ flex: 1, position: "relative" }}>
@@ -941,7 +934,7 @@ function OperatorInterface({ onPuzzleComplete }: { onPuzzleComplete?: () => void
             </div>
             {authStatus !== "idle" && (
               <div style={{ marginTop: 6, fontSize: 10, color: authStatus === "ok" ? "#3D4A28" : RED, letterSpacing: "0.05em" }}>
-                {authStatus === "ok" ? "> AUTHORIZATION CONFIRMED -- CLEARANCE GRANTED" : "> INVALID CODE -- CONTACT CIPHER OFFICER"}
+                {authStatus === "ok" ? "> AUTHORIZATION CONFIRMED -- PROTOCOL CHANNEL OPEN" : "> INVALID CODE -- CONTACT CIPHER OFFICER"}
               </div>
             )}
           </div>
@@ -1030,7 +1023,7 @@ function SharedHUD({ seconds, activeRole, setActiveRole, modules = MODULES, team
     <div style={{ background: "#0A0A08", fontFamily: "'Oswald', sans-serif", borderBottom: "1px solid rgba(200,134,26,0.15)", flexShrink: 0 }}>
       {/* Classification banner */}
       <div style={{ background: "#8B1E1E", color: "#F0E8D0", textAlign: "center", padding: "3px 0", fontSize: 9, letterSpacing: "0.35em", fontFamily: "'DM Mono', monospace" }}>
-        ▓ TOP SECRET // OPERATION BLACKTHORN // CLEARANCE LEVEL: DELTA // AUTHORIZED PERSONNEL ONLY ▓
+        ▓ TOP SECRET // OPERATION BLACKTHORN // AUTHORIZED PERSONNEL ONLY ▓
       </div>
 
       {/* Main HUD row */}

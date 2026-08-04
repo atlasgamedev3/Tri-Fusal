@@ -1,6 +1,8 @@
 import { Client } from "../client/node_modules/colyseus.js/build/esm/index.mjs";
 
-const client = new Client("ws://127.0.0.1:2567");
+const wsEndpoint = process.env.TRI_FUSAL_WS_URL || "ws://127.0.0.1:2567";
+const httpEndpoint = process.env.TRI_FUSAL_HTTP_URL || wsEndpoint.replace(/^ws/, "http");
+const client = new Client(wsEndpoint);
 const roles = ["analyst", "technician", "operator"];
 
 const waitFor = async (predicate, label, timeout = 8000) => {
@@ -12,7 +14,7 @@ const waitFor = async (predicate, label, timeout = 8000) => {
 };
 
 const ignoreMissionBroadcasts = (room) => {
-  for (const type of ["interlockAck", "bombDefused", "bombDetonated", "missionComplication", "moduleSolved", "crisisResolved", "rolesAssigned", "boardAdvanced"]) {
+  for (const type of ["interlockAck", "bombDefused", "bombDetonated", "missionComplication", "moduleSolved", "crisisResolved", "rolesAssigned", "boardAdvanced", "puzzleLocked"]) {
     room.onMessage(type, () => {});
   }
 };
@@ -34,17 +36,25 @@ const solveBoard = async (rooms, solo = false) => {
   analyst.send("puzzleAction", { action: "pattern", value: mission.patternTarget.split("") });
   await waitFor(() => rooms.every((room) => room.state.patternSolved), `board ${boardNumber} pattern`);
 
-  const relays = { relay1: mission.relay1Target, relay2: mission.relay2Target };
-  technician.send("puzzleAction", { action: "relaySet", value: relays });
-  technician.send("puzzleAction", { action: "relay", value: relays });
-  await waitFor(() => rooms.every((room) => room.state.relaySolved), `board ${boardNumber} relay`);
-
   operator.send("puzzleAction", { action: "auth", value: mission.authCode });
   await waitFor(() => rooms.every((room) => room.state.authSolved), `board ${boardNumber} authorization`);
   operator.send("puzzleAction", { action: "order", value: mission.orderTarget });
   await waitFor(() => rooms.every((room) => room.state.orderSolved), `board ${boardNumber} standing order`);
-  for (const id of mission.safeWireIds.split("")) technician.send("puzzleAction", { action: "wire", value: id });
-  await waitFor(() => rooms.every((room) => mission.safeWireIds.split("").every((id) => room.state.cutWireIds.includes(id))), `board ${boardNumber} wires`);
+  if (mission.difficulty !== "STANDARD") {
+    const relays = { relay1: mission.relay1Target, relay2: mission.relay2Target };
+    technician.send("puzzleAction", { action: "relaySet", value: relays });
+    technician.send("puzzleAction", { action: "relay", value: relays });
+    await waitFor(() => rooms.every((room) => room.state.relaySolved), `board ${boardNumber} relay`);
+  }
+  const targetIds = mission.safeWireIds.split("");
+  const expectedTargetCount = { STANDARD: 1, HARD: 2, EXTREME: 3 }[mission.difficulty];
+  if (targetIds.length !== expectedTargetCount) throw new Error(`Expected ${expectedTargetCount} ${mission.difficulty} targets, received ${targetIds.length}`);
+  for (const id of targetIds) technician.send("puzzleAction", { action: "wire", value: id });
+  await waitFor(() => rooms.every((room) => (
+    room.state.isGameOver
+    || room.state.boardNumber > boardNumber
+    || targetIds.every((id) => room.state.cutWireIds.includes(id))
+  )), `board ${boardNumber} wires`);
 
   analyst.send("puzzleAction", { action: "ack", value: "analyst" });
   technician.send("puzzleAction", { action: "ack", value: "technician" });
@@ -68,7 +78,7 @@ try {
   const boardCount = rooms[0].state.boardCount;
   for (let board = 1; board <= boardCount; board += 1) await solveBoard(rooms);
   await waitFor(() => rooms.every((room) => room.state.bombStatus === "defused"), "shared defusal");
-  const leaderboard = await fetch("http://127.0.0.1:2567/api/tri-fusal/leaderboard?difficulty=HARD").then((response) => response.json());
+  const leaderboard = await fetch(`${httpEndpoint}/api/tri-fusal/leaderboard?difficulty=HARD`).then((response) => response.json());
   if (!leaderboard.entries?.some((entry) => entry.operation === operation)) throw new Error("Completed mission missing from leaderboard");
   console.log(JSON.stringify({ mode: "host-and-join", operation, players: rooms[0].state.players.size, boards: boardCount, status: rooms[0].state.bombStatus, score: rooms[0].state.score }));
 } finally {

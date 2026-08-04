@@ -4,7 +4,7 @@ import { MissionPlayer, MissionRole, MissionState } from "../schema/MissionState
 const ROLE_SET = new Set<MissionRole>(["analyst", "technician", "operator"]);
 const DIFFICULTY_SECONDS: Record<string, number> = { STANDARD: 540, HARD: 450, EXTREME: 360 };
 const WIRES_PER_DIFFICULTY: Record<string, number> = { STANDARD: 3, HARD: 5, EXTREME: 7 };
-const SAFE_WIRE_COUNT: Record<string, number> = { STANDARD: 1, HARD: 1, EXTREME: 1 };
+const SAFE_WIRE_COUNT: Record<string, number> = { STANDARD: 1, HARD: 2, EXTREME: 3 };
 const RADAR_TOLERANCE: Record<string, number> = { STANDARD: 10, HARD: 6, EXTREME: 3 };
 const CUT_WINDOW_SECONDS: Record<string, number> = { STANDARD: 18, HARD: 12, EXTREME: 8 };
 const MINOR_PENALTY_SECONDS = 30;
@@ -16,14 +16,16 @@ const ROLE_ACTIONS: Record<MissionRole, Set<string>> = {
   operator: new Set(["auth", "order"]),
 };
 
-const MISSION_PROFILES = [
-  { name: "NIGHT GLASS", contact: "TGT-01", frequency: 143.2, lat: "51°30.7'N", lon: "000°07.4'W", grid: "LD-3184", code: "1-4-2-3", auth: "ORBIT-4-LIMA", order: "A" },
-  { name: "IRON ECHO", contact: "TGT-02", frequency: 147.6, lat: "52°31.1'N", lon: "013°24.3'E", grid: "BR-6209", code: "3-1-4-2", auth: "EMBER-9-KILO", order: "C" },
-  { name: "PALE COMET", contact: "UNK-A", frequency: 151.4, lat: "48°51.4'N", lon: "002°21.1'E", grid: "PS-4517", code: "2-3-2-1", auth: "VIOLET-2-ROMEO", order: "B" },
-  { name: "RED MERIDIAN", contact: "TGT-01", frequency: 156.8, lat: "47°22.4'N", lon: "015°07.2'E", grid: "BN-7742", code: "1-2-3-2", auth: "DELTA-7-ECHO", order: "B" },
-  { name: "SABLE STAR", contact: "TGT-02", frequency: 162.3, lat: "59°19.8'N", lon: "018°04.1'E", grid: "SK-9086", code: "4-3-1-4", auth: "FROST-6-NOVEMBER", order: "A" },
-  { name: "COLD LANTERN", contact: "UNK-A", frequency: 167.1, lat: "41°54.0'N", lon: "012°29.0'E", grid: "RM-2651", code: "2-4-1-3", auth: "CINDER-8-SIERRA", order: "C" },
+const MISSION_LOCATIONS = [
+  { name: "NIGHT GLASS", lat: "51°30.7'N", lon: "000°07.4'W", grid: "LD-3184" },
+  { name: "IRON ECHO", lat: "52°31.1'N", lon: "013°24.3'E", grid: "BR-6209" },
+  { name: "PALE COMET", lat: "48°51.4'N", lon: "002°21.1'E", grid: "PS-4517" },
+  { name: "RED MERIDIAN", lat: "47°22.4'N", lon: "015°07.2'E", grid: "BN-7742" },
+  { name: "SABLE STAR", lat: "59°19.8'N", lon: "018°04.1'E", grid: "SK-9086" },
+  { name: "COLD LANTERN", lat: "41°54.0'N", lon: "012°29.0'E", grid: "RM-2651" },
 ] as const;
+const AUTH_PREFIXES = ["ORBIT", "EMBER", "VIOLET", "DELTA", "FROST", "CINDER", "NIGHT", "SABLE", "IRON", "PALE"] as const;
+const AUTH_SUFFIXES = ["ALPHA", "ECHO", "KILO", "LIMA", "NOVEMBER", "ROMEO", "SIERRA", "TANGO", "VICTOR", "ZULU"] as const;
 
 export interface TriFusalLeaderboardEntry {
   operation: string;
@@ -49,6 +51,22 @@ function makeBombId() {
 
 function shuffled<T>(values: readonly T[]) {
   return [...values].sort(() => Math.random() - 0.5);
+}
+
+function randomItem<T>(values: readonly T[]) {
+  return values[Math.floor(Math.random() * values.length)];
+}
+
+function generateFrequency() {
+  return (1420 + Math.floor(Math.random() * 261)) / 10;
+}
+
+function generateCipherCode() {
+  return Array.from({ length: 4 }, () => String(1 + Math.floor(Math.random() * 4))).join("-");
+}
+
+function generateAuthCode() {
+  return `${randomItem(AUTH_PREFIXES)}-${1 + Math.floor(Math.random() * 9)}-${randomItem(AUTH_SUFFIXES)}`;
 }
 
 export class TriFusalRoom extends Room<MissionState> {
@@ -104,7 +122,12 @@ export class TriFusalRoom extends Room<MissionState> {
         if (!["TGT-01", "TGT-02", "UNK-A"].includes(contact)) return;
         this.state.radarSelection = contact;
         this.state.radarSolved = contact === this.state.radarContact;
-        if (this.state.radarSolved) this.announceModule("TARGET CONTACT IDENTIFIED", player.role);
+        if (this.state.radarSolved) {
+          this.announceModule("TARGET CONTACT IDENTIFIED", player.role);
+        } else {
+          failedReason = "INCORRECT TARGET CONTACT";
+          failedSeverity = "minor";
+        }
       } else if (action === "frequency") {
         if (!this.state.radarSolved) {
           lockedReason = "TUNER LOCKED — CONFIRM THE TARGET CONTACT FIRST";
@@ -210,9 +233,11 @@ export class TriFusalRoom extends Room<MissionState> {
             failedReason = `WIRE ${id} WAS NOT THE DESIGNATED TARGET`;
             failedSeverity = "major";
           } else {
-            this.state.relayWindowActive = false;
-            this.state.relayWindow = 0;
-            this.announceModule("TARGET WIRE SEVERED", player.role);
+            if (this.isWireSolved()) {
+              this.state.relayWindowActive = false;
+              this.state.relayWindow = 0;
+              this.announceModule(this.state.safeWireIds.length === 1 ? "TARGET WIRE SEVERED" : "TARGET WIRES SEVERED", player.role);
+            }
           }
         }
       }
@@ -330,7 +355,12 @@ export class TriFusalRoom extends Room<MissionState> {
     const preservedSeconds = this.state.seconds;
     const preservedStrikes = this.state.strikes;
     const preservedBoardNumber = this.state.boardNumber;
-    const profile = MISSION_PROFILES[Math.floor(Math.random() * MISSION_PROFILES.length)];
+    const location = randomItem(MISSION_LOCATIONS);
+    const radarContact = randomItem(["TGT-01", "TGT-02", "UNK-A"] as const);
+    const targetFrequency = generateFrequency();
+    const patternCode = generateCipherCode();
+    const authCode = generateAuthCode();
+    const orderTarget = randomItem(["A", "B", "C"] as const);
     const wireCount = WIRES_PER_DIFFICULTY[this.state.difficulty];
     const safeCount = SAFE_WIRE_COUNT[this.state.difficulty];
     const availableWireIds = ["A", "B", "C", "D", "E", "F", "G"].slice(0, wireCount);
@@ -348,7 +378,7 @@ export class TriFusalRoom extends Room<MissionState> {
       (targetBearing + 190 + Math.floor(Math.random() * 50)) % 360,
     ]);
     const contactIds = ["TGT-01", "TGT-02", "UNK-A"];
-    const targetIndex = contactIds.indexOf(profile.contact);
+    const targetIndex = contactIds.indexOf(radarContact);
     const bearings = contactIds.map((_, index) => (index === targetIndex ? targetBearing : decoyBearings.shift()!));
     const ranges = contactIds.map((_, index) => {
       if (radarRule === "NEAREST") return index === targetIndex ? 24 + Math.floor(Math.random() * 15) : 52 + Math.floor(Math.random() * 34);
@@ -357,17 +387,17 @@ export class TriFusalRoom extends Room<MissionState> {
     });
     const cipherMap = shuffled(["△", "○", "□", "◇"]);
     const cipherDirection = Math.random() >= 0.5 ? "LTR" : "RTL";
-    const digits = profile.code.split("-");
+    const digits = patternCode.split("-");
     const decodedDigits = cipherDirection === "RTL" ? [...digits].reverse() : digits;
     const patternTarget = decodedDigits.map((digit) => cipherMap[Number(digit) - 1]).join("");
     const relay1Rule = shuffled(["HIGH_BAND", "MID_BAND", "TENTHS_ODD"])[0];
     const relay2Rule = shuffled(["SUM_EVEN", "ENDS_MATCH", "RISING_EDGE"])[0];
     const digitValues = digits.map(Number);
     const relay1Target = relay1Rule === "HIGH_BAND"
-      ? profile.frequency >= 155
+      ? targetFrequency >= 155
       : relay1Rule === "MID_BAND"
-        ? profile.frequency >= 148 && profile.frequency <= 162
-        : Math.round(profile.frequency * 10) % 2 === 1;
+        ? targetFrequency >= 148 && targetFrequency <= 162
+        : Math.round(targetFrequency * 10) % 2 === 1;
     const relay2Target = relay2Rule === "SUM_EVEN"
       ? digitValues.reduce((sum, digit) => sum + digit, 0) % 2 === 0
       : relay2Rule === "ENDS_MATCH"
@@ -377,11 +407,11 @@ export class TriFusalRoom extends Room<MissionState> {
 
     this.state.bombId = makeBombId();
     this.state.seconds = DIFFICULTY_SECONDS[this.state.difficulty];
-    this.state.missionVariant = profile.name;
-    this.state.radarContact = profile.contact;
-    this.state.radarLat = profile.lat;
-    this.state.radarLon = profile.lon;
-    this.state.radarGrid = profile.grid;
+    this.state.missionVariant = location.name;
+    this.state.radarContact = radarContact;
+    this.state.radarLat = location.lat;
+    this.state.radarLon = location.lon;
+    this.state.radarGrid = location.grid;
     this.state.radarSelection = "";
     this.state.radarSolved = false;
     this.state.radarTargetBearing = targetBearing;
@@ -393,14 +423,14 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.radarRange3 = ranges[2];
     this.state.radarRule = radarRule;
     this.state.radarTolerance = radarTolerance;
-    this.state.targetFrequency = profile.frequency;
+    this.state.targetFrequency = targetFrequency;
     this.state.frequency = 144.5;
-    this.state.patternCode = profile.code;
+    this.state.patternCode = patternCode;
     this.state.patternTarget = patternTarget;
     this.state.cipherMap = cipherMap.join("");
     this.state.cipherDirection = cipherDirection;
-    this.state.authCode = profile.auth;
-    this.state.orderTarget = profile.order;
+    this.state.authCode = authCode;
+    this.state.orderTarget = orderTarget;
     this.state.safeWireIds = safeWireIds;
     this.state.wireCodes = wireCodes;
     this.state.wireRule = "TARGET";
@@ -478,7 +508,7 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.relayWindow = this.state.relayWindowMax;
     this.state.relayWindowActive = true;
     this.broadcast("missionComplication", {
-      text: `CUT WINDOW OPEN — SEVER TARGET ${this.state.safeWireIds} WITHIN ${this.state.relayWindow}s`,
+      text: `CUT WINDOW OPEN — ACT WITHIN ${this.state.relayWindow}s`,
       timestamp: Date.now(),
     });
   }
