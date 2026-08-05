@@ -13,9 +13,9 @@ const MINOR_PENALTY_SECONDS = 30;
 const BOARDS_PER_DIFFICULTY: Record<string, number> = { STANDARD: 2, HARD: 3, EXTREME: 4 };
 const RELAY_REQUIRED: Record<string, boolean> = { STANDARD: false, HARD: true, EXTREME: true };
 const ROLE_ACTIONS: Record<MissionRole, Set<string>> = {
-  analyst: new Set(["radar", "frequency"]),
-  technician: new Set(["relay", "relaySet", "wire", "calibration"]),
-  operator: new Set(["pattern", "auth", "order"]),
+  analyst: new Set(["radar", "frequency", "analystCheck", "analystCheck2", "analystCheck3"]),
+  technician: new Set(["relay", "relaySet", "wire", "calibration", "technicianCheck", "technicianCheck2"]),
+  operator: new Set(["pattern", "auth", "verification", "operatorCheck2", "operatorCheck3", "order"]),
 };
 
 const MISSION_LOCATIONS = [
@@ -214,6 +214,45 @@ export class TriFusalRoom extends Room<MissionState> {
           this.announceModule("TARGET CARRIER LOCKED", player.role);
           if (this.boardProfile() === "SIGNAL") this.openCutWindow();
         }
+      } else if (action === "analystCheck") {
+        if (!this.state.radarSolved) {
+          lockedReason = "ANALYSIS AUXILIARY LOCKED — IDENTIFY TARGET CONTACT FIRST";
+        } else if ((this.state.crisisSeconds & 1) === 0) {
+          const target = this.state.cipherMap.split("~")[2] || "";
+          if (String(message.value || "").toUpperCase() === target) {
+            this.state.crisisSeconds |= 1;
+            this.announceModule("ANALYST AUXILIARY CLEARED", player.role);
+          } else {
+            failedReason = "ANALYST AUXILIARY CHECK FAILED";
+            failedSeverity = "minor";
+          }
+        }
+      } else if (action === "analystCheck2") {
+        if (!this.state.frequencySolved) {
+          lockedReason = "SIGNATURE BAY LOCKED — ACQUIRE TARGET CARRIER FIRST";
+        } else if ((this.state.crisisSeconds & 4) === 0) {
+          const target = this.state.cipherMap.split("~")[4] || "";
+          if (String(message.value || "").toUpperCase() === target) {
+            this.state.crisisSeconds |= 4;
+            this.announceModule("SIGNAL SIGNATURE CLASSIFIED", player.role);
+          } else {
+            failedReason = "SIGNAL SIGNATURE MISCLASSIFIED";
+            failedSeverity = "minor";
+          }
+        }
+      } else if (action === "analystCheck3") {
+        if (!this.state.frequencySolved) {
+          lockedReason = "ANOMALY VIEWER LOCKED — ACQUIRE TARGET CARRIER FIRST";
+        } else if ((this.state.crisisSeconds & 16) === 0) {
+          const target = this.state.cipherMap.split("~")[8] || "";
+          if (String(message.value || "").toUpperCase() === target) {
+            this.state.crisisSeconds |= 16;
+            this.announceModule("TRANSMISSION ANOMALY MARKED", player.role);
+          } else {
+            failedReason = "FALSE ANOMALY MARK";
+            failedSeverity = "minor";
+          }
+        }
       } else if (action === "calibration") {
         if (!this.hasModule("CALIBRATION")) return;
         const value = Math.round(Number(message.value));
@@ -225,6 +264,34 @@ export class TriFusalRoom extends Room<MissionState> {
         } else {
           failedReason = "INCORRECT PRESSURE CALIBRATION";
           failedSeverity = "minor";
+        }
+      } else if (action === "technicianCheck") {
+        if (!this.state.authSolved) {
+          lockedReason = "DEVICE AUXILIARY LOCKED — BALANCE MANIFOLD FIRST";
+        } else if ((this.state.crisisSeconds & 2) === 0) {
+          const target = this.state.wireCodes.split("~")[2] || "";
+          if (String(message.value || "").toUpperCase() === target) {
+            this.state.crisisSeconds |= 2;
+            this.announceModule("TECHNICIAN AUXILIARY CLEARED", player.role);
+          } else {
+            failedReason = "TECHNICIAN AUXILIARY CHECK FAILED";
+            failedSeverity = "minor";
+          }
+        }
+      } else if (action === "technicianCheck2") {
+        if (!this.state.authSolved) {
+          lockedReason = "PATCH PANEL LOCKED — BALANCE MANIFOLD FIRST";
+        } else if ((this.state.crisisSeconds & 64) === 0) {
+          lockedReason = "PATCH PANEL LOCKED — AWAIT OPERATOR FIELD DISPATCH";
+        } else if ((this.state.crisisSeconds & 32) === 0) {
+          const target = this.state.wireCodes.split("~")[4] || "";
+          if (String(message.value || "").toUpperCase() === target) {
+            this.state.crisisSeconds |= 32;
+            this.announceModule("PATCH ROUTE SEATED", player.role);
+          } else {
+            failedReason = "PATCH ROUTED TO WRONG JACK";
+            failedSeverity = "minor";
+          }
         }
       } else if (action === "pattern") {
         if (!this.state.frequencySolved && !this.hasModule("MATRIX")) {
@@ -255,7 +322,9 @@ export class TriFusalRoom extends Room<MissionState> {
           }
         }
       } else if (action === "order") {
-        if (!this.state.orderSolved) {
+        if (!this.state.relaySolved || (this.state.crisisSeconds & 8) === 0 || (this.state.crisisSeconds & 64) === 0 || (this.state.crisisSeconds & 32) === 0) {
+          lockedReason = "CUT PROTOCOL LOCKED — COMPLETE THE ANALYST TO OPERATOR TO TECHNICIAN CHAIN";
+        } else if (!this.state.orderSolved) {
           const choice = String(message.value || "").toUpperCase();
           const protocolTarget = this.state.orderTarget.split("|")[0];
           if (choice === protocolTarget) {
@@ -271,6 +340,47 @@ export class TriFusalRoom extends Room<MissionState> {
             }
           } else {
             failedReason = "INCORRECT CUT PROTOCOL";
+            failedSeverity = "minor";
+          }
+        }
+      } else if (action === "verification") {
+        if (!this.state.patternSolved) {
+          lockedReason = "VERIFICATION DESK LOCKED — COMPLETE PRIMARY LOGIC FIRST";
+        } else if (!this.state.relaySolved) {
+          const attempt = String(message.value || "").trim().toUpperCase();
+          if (attempt === this.state.relay2Rule) {
+            this.state.relaySolved = true;
+            this.announceModule("BOARD VERIFICATION PASSED", player.role);
+          } else {
+            failedReason = "BOARD VERIFICATION FAILED";
+            failedSeverity = "minor";
+          }
+        }
+      } else if (action === "operatorCheck2") {
+        if (!this.state.patternSolved) {
+          lockedReason = "ROUTING DESK LOCKED — COMPLETE PRIMARY LOGIC FIRST";
+        } else if ((this.state.crisisSeconds & 8) === 0) {
+          const target = this.state.cipherMap.split("~")[6] || "";
+          if (String(message.value || "").toUpperCase() === target) {
+            this.state.crisisSeconds |= 8;
+            this.announceModule("DOCUMENT ROUTING CONFIRMED", player.role);
+          } else {
+            failedReason = "CLASSIFIED FILE MISROUTED";
+            failedSeverity = "minor";
+          }
+        }
+      } else if (action === "operatorCheck3") {
+        if (!this.state.patternSolved) {
+          lockedReason = "DISPATCH BOARD LOCKED — COMPLETE PRIMARY LOGIC FIRST";
+        } else if ((this.state.crisisSeconds & 16) === 0) {
+          lockedReason = "DISPATCH BOARD LOCKED — AWAIT ANALYST ANOMALY REPORT";
+        } else if ((this.state.crisisSeconds & 64) === 0) {
+          const target = this.state.cipherMap.split("~")[10] || "";
+          if (String(message.value || "").toUpperCase() === target) {
+            this.state.crisisSeconds |= 64;
+            this.announceModule("FIELD DISPATCH ASSIGNED", player.role);
+          } else {
+            failedReason = "FIELD DISPATCH MISASSIGNED";
             failedSeverity = "minor";
           }
         }
@@ -445,7 +555,7 @@ export class TriFusalRoom extends Room<MissionState> {
     const player = this.state.players.get(client.sessionId);
     if (!player || !this.state.gameStarted || this.state.isGameOver || this.state.bombStatus !== "running") return false;
     if (this.isSoloDemo || this.state.players.size === 2) {
-      return ["radar", "frequency", "pattern", "calibration", "relaySet", "relay", "wire", "auth", "order"].includes(String(action));
+      return ["radar", "frequency", "analystCheck", "analystCheck2", "analystCheck3", "pattern", "calibration", "technicianCheck", "technicianCheck2", "verification", "operatorCheck2", "operatorCheck3", "relaySet", "relay", "wire", "auth", "order"].includes(String(action));
     }
     return ROLE_ACTIONS[player.role].has(String(action));
   }
@@ -599,6 +709,96 @@ export class TriFusalRoom extends Room<MissionState> {
     const calibrationTarget = calibrationSpec.target;
     const calibrationClue = `${gaugeA}|${gaugeB}|${calibrationSpec.formula}`;
     authCode = `${calibrationClue}|${calibrationTarget}`;
+    let verificationSpec = "";
+    let verificationTarget = "";
+    if (boardProfile === "BRAVO") {
+      const inlet = 20 + Math.floor(random() * 30);
+      const outlet = 20 + Math.floor(random() * 30);
+      verificationTarget = inlet === outlet ? "HOLD" : inlet > outlet ? "VENT" : "FEED";
+      verificationSpec = `PRESSURE ROUTING|INLET ${inlet} / OUTLET ${outlet}|IF INLET IS HIGHER: VENT. LOWER: FEED. EQUAL: HOLD.|VENT,FEED,HOLD`;
+    } else if (boardProfile === "CHARLIE") {
+      const bits = Array.from({ length: 3 }, () => Math.floor(random() * 2));
+      verificationTarget = String((bits[0] & bits[1]) | (bits[2] ^ bits[0]));
+      verificationSpec = `RELAY LOGIC TEST|A=${bits[0]}  B=${bits[1]}  C=${bits[2]}|(A AND B) OR (C XOR A)|0,1`;
+    } else if (boardProfile === "DELTA") {
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      const sourceIndex = Math.floor(random() * alphabet.length);
+      const shift = 2 + Math.floor(random() * 7);
+      verificationTarget = alphabet[(sourceIndex + shift) % alphabet.length];
+      const options = shuffled([verificationTarget, alphabet[(sourceIndex + shift + 3) % 26], alphabet[(sourceIndex + shift + 7) % 26], alphabet[(sourceIndex + shift + 11) % 26]], random);
+      verificationSpec = `CODEWHEEL OFFSET|SET ${alphabet[sourceIndex]} / ADVANCE ${shift}|MOVE FORWARD THROUGH THE ALPHABET; WRAP AFTER Z.|${options.join(",")}`;
+    } else {
+      const checks = Array.from({ length: 4 }, () => 10 + Math.floor(random() * 80));
+      verificationTarget = String(checks.reduce((sum, value) => sum + value, 0) % 10);
+      const options = shuffled([verificationTarget, String((Number(verificationTarget) + 2) % 10), String((Number(verificationTarget) + 5) % 10), String((Number(verificationTarget) + 7) % 10)], random);
+      verificationSpec = `TELETYPE CHECKSUM|${checks.join(" + ")}|ADD ALL GROUPS; TRANSMIT ONLY THE FINAL DIGIT.|${options.join(",")}`;
+    }
+    let analystSpec = "";
+    let analystTarget = "";
+    let technicianSpec = "";
+    let technicianTarget = "";
+    if (boardProfile === "BRAVO") {
+      const leftFlow = 10 + Math.floor(random() * 30);
+      const rightFlow = 10 + Math.floor(random() * 30);
+      analystTarget = leftFlow === rightFlow ? "BALANCED" : leftFlow > rightFlow ? "LEFT" : "RIGHT";
+      analystSpec = `FLOW TRACE|L=${leftFlow}  R=${rightFlow}|REPORT THE STRONGER RETURN.|LEFT,RIGHT,BALANCED`;
+      technicianTarget = gaugeA > gaugeB ? "BYPASS A" : "BYPASS B";
+      technicianSpec = `COOLANT BYPASS|LOOP A=${gaugeA}  LOOP B=${gaugeB}|BYPASS THE HIGHER-PRESSURE LOOP.|BYPASS A,BYPASS B`;
+    } else if (boardProfile === "CHARLIE") {
+      const parityBits = Array.from({ length: 6 }, () => Math.floor(random() * 2));
+      analystTarget = parityBits.reduce((sum, bit) => sum + bit, 0) % 2 ? "ODD" : "EVEN";
+      analystSpec = `PARITY REGISTER|${parityBits.join(" ")}|COUNT LIVE BITS; REPORT ODD OR EVEN.|ODD,EVEN`;
+      technicianTarget = safeCount % 2 ? "SERIES" : "PARALLEL";
+      technicianSpec = `INTERLOCK BUS|${safeCount} ACTIVE BRANCH${safeCount === 1 ? "" : "ES"}|ODD BRANCH COUNT = SERIES; EVEN = PARALLEL.|SERIES,PARALLEL`;
+    } else if (boardProfile === "DELTA") {
+      const row = 1 + Math.floor(random() * 4);
+      const column = 1 + Math.floor(random() * 4);
+      analystTarget = String((row - 1) * 4 + column);
+      analystSpec = `GRID REFERENCE|ROW ${row} / COLUMN ${column}|NUMBER A 4×4 GRID LEFT-TO-RIGHT, TOP-TO-BOTTOM.|${shuffled([analystTarget,String(((Number(analystTarget)+3)%16)+1),String(((Number(analystTarget)+7)%16)+1),String(((Number(analystTarget)+11)%16)+1)],random).join(",")}`;
+      technicianTarget = ["0°", "90°", "180°", "270°"][Math.round(targetFrequency * 10) % 4];
+      technicianSpec = `PHASE COUPLER|CARRIER ${targetFrequency.toFixed(1)}|REMOVE DECIMAL; DIVIDE BY 4. REMAINDER 0/1/2/3 = 0°/90°/180°/270°.|0°,90°,180°,270°`;
+    } else {
+      const pulseGroups = Array.from({ length: 4 }, () => 1 + Math.floor(random() * 5));
+      analystTarget = String(pulseGroups.reduce((sum, value) => sum + value, 0) % 4);
+      analystSpec = `PULSE GROUP CHECK|${pulseGroups.join(" · ")}|ADD GROUPS; DIVIDE BY 4; REPORT THE REMAINDER.|0,1,2,3`;
+      technicianTarget = wireCodes.split("").reduce((sum, value) => sum + Number(value), 0) % 2 ? "REVERSE" : "NORMAL";
+      technicianSpec = `CONTINUITY POLARITY|MARKS ${wireCodes.split("").join("-")}|ADD ALL MARKS. ODD = REVERSE; EVEN = NORMAL.|NORMAL,REVERSE`;
+    }
+    const signatureDeck = [
+      { readout: "SHORT · SHORT · LONG", target: "COURIER", rule: "TWO SHORT PULSES FOLLOWED BY ONE LONG PULSE" },
+      { readout: "LONG · SHORT · LONG", target: "MILITARY", rule: "A SHORT PULSE BETWEEN TWO LONG PULSES" },
+      { readout: "LONG · LONG · SHORT", target: "DIPLOMATIC", rule: "TWO LONG PULSES FOLLOWED BY ONE SHORT PULSE" },
+      { readout: "SHORT · LONG · SHORT", target: "CIVILIAN", rule: "A LONG PULSE BETWEEN TWO SHORT PULSES" },
+    ];
+    const signature = randomItem(signatureDeck, random);
+    const analystSpec2 = `SIGNATURE LIBRARY|${signature.readout}|${signature.rule}|COURIER,MILITARY,DIPLOMATIC,CIVILIAN`;
+    const routingDeck = [
+      { seal: "RED SEAL / EYES ONLY", target: "DIRECTOR" },
+      { seal: "BLUE SEAL / TECHNICAL", target: "ENGINEERING" },
+      { seal: "GREEN SEAL / INTERCEPT", target: "SIGNALS" },
+      { seal: "AMBER SEAL / FIELD", target: "OPERATIONS" },
+    ];
+    const routing = randomItem(routingDeck, random);
+    const operatorSpec2 = `CLASSIFIED ROUTING|${routing.seal}|ROUTE BY SEAL COLOR AND FILE MARKING.|DIRECTOR,ENGINEERING,SIGNALS,OPERATIONS`;
+    const anomalyPosition = randomItem(["A", "B", "C", "D"] as const, random);
+    const anomalyGlyphs = { A: "◆ ◇ ◇ ◇", B: "◇ ◆ ◇ ◇", C: "◇ ◇ ◆ ◇", D: "◇ ◇ ◇ ◆" };
+    const anomalyNames = { ALPHA: "TAPE DEFECT", BRAVO: "SPECTRUM NOTCH", CHARLIE: "FAULTY LAMP", DELTA: "FORGED GLYPH" } as Record<string, string>;
+    const anomalyAction = ({ ALPHA: "REWIND", BRAVO: "FILTER", CHARLIE: "RESET", DELTA: "REJECT" } as Record<string, string>)[boardProfile] || "RESET";
+    const analystSpec3 = `${anomalyNames[boardProfile] || "SIGNAL ANOMALY"}|${anomalyGlyphs[anomalyPosition]}|1: MARK THE DIFFERENT POSITION. 2: REQUEST THIS PROFILE'S CORRECTIVE ACTION FROM OPERATOR.|A,B,C,D/REWIND,FILTER,RESET,REJECT`;
+    const dispatchDeck = [
+      { clue: "NIGHT / AIR", target: "FALCON" }, { clue: "DAY / GROUND", target: "BADGER" },
+      { clue: "NIGHT / GROUND", target: "WOLF" }, { clue: "DAY / AIR", target: "LARK" },
+    ];
+    const dispatch = randomItem(dispatchDeck, random);
+    const dispatchChannel = dispatch.clue.startsWith("NIGHT") ? "BLACK" : "WHITE";
+    const operatorSpec3 = `FIELD DISPATCH|${dispatch.clue}|1: ASSIGN CALLSIGN FROM THIS TABLE: NIGHT AIR=FALCON; DAY GROUND=BADGER; NIGHT GROUND=WOLF; DAY AIR=LARK. 2: REQUEST CHANNEL COLOR FROM ANALYST.|FALCON,BADGER,WOLF,LARK/BLACK,WHITE`;
+    const jackDeck = [
+      { clue: "ROUND / RED", target: "JACK A" }, { clue: "SQUARE / BLUE", target: "JACK B" },
+      { clue: "ROUND / BLUE", target: "JACK C" }, { clue: "SQUARE / RED", target: "JACK D" },
+    ];
+    const jack = randomItem(jackDeck, random);
+    const patchTwist = jack.clue.startsWith("ROUND") ? "CW" : "CCW";
+    const technicianSpec2 = `PATCH JACK ROUTING|${jack.clue}|1: MATCH SHAPE AND COLLAR. 2: REQUEST CONNECTOR LOCK DIRECTION FROM OPERATOR.|JACK A,JACK B,JACK C,JACK D/CW,CCW`;
     this.state.bombId = bombId;
     this.state.missionSeed = this.runSeed;
     this.state.seconds = DIFFICULTY_SECONDS[this.state.difficulty];
@@ -625,17 +825,17 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.frequency = signalActive ? 144.5 : targetFrequency;
     this.state.patternCode = patternCode;
     this.state.patternTarget = patternTarget;
-    this.state.cipherMap = cipherMap.join("");
+    this.state.cipherMap = `${cipherMap.join("")}~${analystSpec}~${analystTarget}~${analystSpec2}~${signature.target}~${operatorSpec2}~${routing.target}~${analystSpec3}~${anomalyPosition}:${anomalyAction}~${operatorSpec3}~${dispatch.target}:${dispatchChannel}`;
     this.state.cipherDirection = cipherDirection;
     this.state.authCode = authCode;
     this.state.orderTarget = orderTarget;
+    this.state.relay1Rule = verificationSpec;
+    this.state.relay2Rule = verificationTarget;
     this.state.safeWireIds = safeWireIds;
-    this.state.wireCodes = wireCodes;
+    this.state.wireCodes = `${wireCodes}~${technicianSpec}~${technicianTarget}~${technicianSpec2}~${jack.target}:${patchTwist}`;
     this.state.wireRule = wireRule;
     this.state.relay1Target = relay1Target;
     this.state.relay2Target = relay2Target;
-    this.state.relay1Rule = relay1Rule;
-    this.state.relay2Rule = relay2Rule;
     this.state.relayWindowMax = CUT_WINDOW_SECONDS[this.state.difficulty];
     this.state.relayWindow = 0;
     this.state.relayWindowActive = false;
@@ -644,7 +844,7 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.authSolved = !calibrationActive;
     this.state.relay1 = false;
     this.state.relay2 = true;
-    this.state.relaySolved = true;
+    this.state.relaySolved = false;
     this.state.orderSolved = false;
     this.state.cutWireIds.splice(0, this.state.cutWireIds.length);
     this.state.isGameOver = false;
@@ -779,8 +979,16 @@ export class TriFusalRoom extends Room<MissionState> {
   private isBoardSolved() {
     return this.state.radarSolved
       && this.state.frequencySolved
+      && (this.state.crisisSeconds & 1) !== 0
+      && (this.state.crisisSeconds & 4) !== 0
+      && (this.state.crisisSeconds & 16) !== 0
       && this.state.patternSolved
       && this.state.authSolved
+      && (this.state.crisisSeconds & 2) !== 0
+      && (this.state.crisisSeconds & 32) !== 0
+      && (this.state.crisisSeconds & 8) !== 0
+      && (this.state.crisisSeconds & 64) !== 0
+      && this.state.relaySolved
       && this.state.orderSolved
       && (!this.isRelayRequired() || this.state.relaySolved)
       && this.isWireSolved();

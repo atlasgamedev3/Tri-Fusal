@@ -42,7 +42,7 @@ const applyReadOrder = (digits, mode) => {
 const solveBoard = async (rooms, solo = false) => {
   const mission = rooms[0].state;
   const boardNumber = mission.boardNumber;
-  const profile = mission.missionVariant.split("|")[0] || "ALPHA";
+  const profile = String(mission.missionVariant || "ALPHA").split("|")[0] || "ALPHA";
   const modules = ["SIGNAL", "MATRIX", "CALIBRATION", "WIRES"];
   const analyst = solo ? rooms[0] : roomForRole(rooms, "analyst");
   const technician = solo ? rooms[0] : roomForRole(rooms, "technician");
@@ -53,13 +53,24 @@ const solveBoard = async (rooms, solo = false) => {
     analyst.send("puzzleAction", { action: "radar", value: mission.radarContact });
     await waitFor(() => rooms.every((room) => room.state.radarSolved), `board ${boardNumber} radar`);
     analyst.send("puzzleAction", { action: "frequency", value: mission.targetFrequency });
+    analyst.send("puzzleAction", { action: "analystCheck", value: mission.cipherMap.split("~")[2] });
+    analyst.send("puzzleAction", { action: "analystCheck2", value: mission.cipherMap.split("~")[4] });
+    analyst.send("puzzleAction", { action: "analystCheck3", value: mission.cipherMap.split("~")[8] });
   }
   if (modules.includes("MATRIX")) {
     operator.send("puzzleAction", { action: "pattern", value: mission.patternCode });
   }
   if (modules.includes("CALIBRATION")) {
     technician.send("puzzleAction", { action: "calibration", value: Number(mission.authCode.split("|")[3]) });
+    technician.send("puzzleAction", { action: "technicianCheck", value: mission.wireCodes.split("~")[2] });
   }
+  operator.send("puzzleAction", { action: "verification", value: mission.relay2Rule });
+  operator.send("puzzleAction", { action: "operatorCheck2", value: mission.cipherMap.split("~")[6] });
+  await waitFor(() => rooms.every((room) => Boolean(room.state.crisisSeconds & 16)), `board ${boardNumber} anomaly chain`);
+  operator.send("puzzleAction", { action: "operatorCheck3", value: mission.cipherMap.split("~")[10] });
+  await waitFor(() => rooms.every((room) => Boolean(room.state.crisisSeconds & 64)), `board ${boardNumber} dispatch chain`);
+  technician.send("puzzleAction", { action: "technicianCheck2", value: mission.wireCodes.split("~")[4] });
+  await waitFor(() => rooms.every((room) => Boolean(room.state.crisisSeconds & 32)), `board ${boardNumber} patch chain`);
   operator.send("puzzleAction", { action: "order", value: mission.orderTarget.split("|")[0] });
   if (modules.includes("WIRES")) {
     const targetIds = mission.safeWireIds.split("");
@@ -71,7 +82,7 @@ const solveBoard = async (rooms, solo = false) => {
     await waitFor(() => rooms.every((room) => room.state.isGameOver || room.state.boardNumber > boardNumber), `board ${boardNumber} ${profile} completion`);
   } catch (error) {
     const state = rooms[0].state;
-    throw new Error(`${error.message}; state=${JSON.stringify({ radar: state.radarSolved, frequency: state.frequencySolved, pattern: state.patternSolved, calibration: state.authSolved, order: state.orderSolved, safeWireIds: state.safeWireIds, cutWireIds: [...state.cutWireIds], strikes: state.strikes })}`);
+    throw new Error(`${error.message}; state=${JSON.stringify({ radar: state.radarSolved, frequency: state.frequencySolved, analystAux: Boolean(state.crisisSeconds & 1), signature: Boolean(state.crisisSeconds & 4), pattern: state.patternSolved, calibration: state.authSolved, technicianAux: Boolean(state.crisisSeconds & 2), verification: state.relaySolved, routing: Boolean(state.crisisSeconds & 8), order: state.orderSolved, safeWireIds: state.safeWireIds, cutWireIds: [...state.cutWireIds], strikes: state.strikes })}`);
   }
 };
 
@@ -140,7 +151,7 @@ ignoreMissionBroadcasts(deterministicA);
 ignoreMissionBroadcasts(deterministicB);
 try {
   await waitFor(() => deterministicA.state.missionSeed === deterministicSeed && deterministicB.state.missionSeed === deterministicSeed, "seeded board hydration");
-  const fingerprint = (state) => [state.missionSeed, state.bombId, state.radarContact, state.targetFrequency, state.patternCode, state.cipherMap, state.cipherDirection, state.authCode, state.orderTarget, state.safeWireIds].join("|");
+  const fingerprint = (state) => [state.missionSeed, state.bombId, state.radarContact, state.targetFrequency, state.patternCode, state.cipherMap, state.cipherDirection, state.authCode, state.relay1Rule, state.relay2Rule, state.orderTarget, state.safeWireIds].join("|");
   if (fingerprint(deterministicA.state) !== fingerprint(deterministicB.state)) throw new Error("Identical mission seeds generated different boards");
   deterministicA.send("startMission");
   await waitFor(() => deterministicA.state.gameStarted, "seeded validation mission start");
