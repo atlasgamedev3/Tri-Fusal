@@ -653,11 +653,13 @@ export class TriFusalRoom extends Room<MissionState> {
 
     const bombId = makeBombId(random);
     const protocolRule = boardProfile === "ALPHA" || boardProfile === "CHARLIE" ? "FREQUENCY" : "SERIAL";
+    const finalSerialIndex = bombId.charCodeAt(bombId.length - 1) - 65;
+    const frequencyTenths = Math.round(targetFrequency * 10) % 10;
     const protocolIndex = protocolRule === "SUM"
-      ? digitValues.reduce((sum, digit) => sum + digit, 0) % 3
+      ? digitValues.reduce((sum, digit) => sum + digit, 0) <= 8 ? 0 : digitValues.reduce((sum, digit) => sum + digit, 0) <= 12 ? 1 : 2
       : protocolRule === "SERIAL"
-        ? (bombId.charCodeAt(bombId.length - 1) - 65) % 3
-        : Math.round(targetFrequency * 10) % 3;
+        ? finalSerialIndex <= 8 ? 0 : finalSerialIndex <= 17 ? 1 : 2
+        : [0, 3, 6, 9].includes(frequencyTenths) ? 0 : [1, 4, 7].includes(frequencyTenths) ? 1 : 2;
     const orderTarget = `${["A", "B", "C"][protocolIndex]}|${protocolRule}`;
     let visibleSequence: Array<number | string> = [];
     let matrixAnswers: Array<number | string> = [];
@@ -704,7 +706,7 @@ export class TriFusalRoom extends Room<MissionState> {
       : boardProfile === "CHARLIE"
         ? { target: gaugeA + gaugeB, formula: "A + B" }
         : boardProfile === "DELTA"
-          ? { target: Math.abs(gaugeA - gaugeB) * 2, formula: "ABS(A − B) × 2" }
+          ? { target: (gaugeA - gaugeB) * 2, formula: "(A − B) × 2" }
           : { target: gaugeA + gaugeB * 2, formula: "A + B × 2" };
     const calibrationTarget = calibrationSpec.target;
     const calibrationClue = `${gaugeA}|${gaugeB}|${calibrationSpec.formula}`;
@@ -755,12 +757,14 @@ export class TriFusalRoom extends Room<MissionState> {
       const column = 1 + Math.floor(random() * 4);
       analystTarget = String((row - 1) * 4 + column);
       analystSpec = `GRID REFERENCE|ROW ${row} / COLUMN ${column}|NUMBER A 4×4 GRID LEFT-TO-RIGHT, TOP-TO-BOTTOM.|${shuffled([analystTarget,String(((Number(analystTarget)+3)%16)+1),String(((Number(analystTarget)+7)%16)+1),String(((Number(analystTarget)+11)%16)+1)],random).join(",")}`;
-      technicianTarget = ["0°", "90°", "180°", "270°"][Math.round(targetFrequency * 10) % 4];
-      technicianSpec = `PHASE COUPLER|CARRIER ${targetFrequency.toFixed(1)}|REMOVE DECIMAL; DIVIDE BY 4. REMAINDER 0/1/2/3 = 0°/90°/180°/270°.|0°,90°,180°,270°`;
+      const phaseDigit = Math.round(targetFrequency * 10) % 10;
+      technicianTarget = phaseDigit <= 2 ? "0°" : phaseDigit <= 5 ? "90°" : phaseDigit <= 7 ? "180°" : "270°";
+      technicianSpec = `PHASE COUPLER|CARRIER ${targetFrequency.toFixed(1)}|USE THE TENTHS DIGIT: 0-2 = 0°; 3-5 = 90°; 6-7 = 180°; 8-9 = 270°.|0°,90°,180°,270°`;
     } else {
       const pulseGroups = Array.from({ length: 4 }, () => 1 + Math.floor(random() * 5));
-      analystTarget = String(pulseGroups.reduce((sum, value) => sum + value, 0) % 4);
-      analystSpec = `PULSE GROUP CHECK|${pulseGroups.join(" · ")}|ADD GROUPS; DIVIDE BY 4; REPORT THE REMAINDER.|0,1,2,3`;
+      const pulseTotal = pulseGroups.reduce((sum, value) => sum + value, 0);
+      analystTarget = pulseTotal <= 9 ? "LOW" : pulseTotal <= 15 ? "MID" : "HIGH";
+      analystSpec = `PULSE GROUP CHECK|${pulseGroups.join(" · ")}|ADD GROUPS: 4-9 = LOW; 10-15 = MID; 16-20 = HIGH.|LOW,MID,HIGH`;
       technicianTarget = wireCodes.split("").reduce((sum, value) => sum + Number(value), 0) % 2 ? "REVERSE" : "NORMAL";
       technicianSpec = `CONTINUITY POLARITY|MARKS ${wireCodes.split("").join("-")}|ADD ALL MARKS. ODD = REVERSE; EVEN = NORMAL.|NORMAL,REVERSE`;
     }

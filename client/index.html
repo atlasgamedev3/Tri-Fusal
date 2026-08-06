@@ -1479,10 +1479,10 @@ class Component extends DCLogic {
         : `TRACKING ORDER: MARK THE CONTACT WITH BEARING ${String(s.radarTargetBearing).padStart(3, "0")} deg +/- ${s.radarTolerance} deg.`;
     const [protocolTarget, protocolRule = "SUM"] = String(s.orderTarget).split("|");
     const protocolRuleText = protocolRule === "SERIAL"
-      ? "FINAL BOMB-ID LETTER: A=0 THROUGH Z=25. DIVIDE BY 3. REMAINDER 0=A, 1=B, 2=C."
+      ? "FINAL BOMB-ID LETTER: A-I = A; J-R = B; S-Z = C."
       : protocolRule === "FREQUENCY"
-        ? "REMOVE THE DECIMAL FROM THE LOCKED FREQUENCY. DIVIDE BY 3. REMAINDER 0=A, 1=B, 2=C."
-        : "ADD THE DECODED BURST DIGITS. DIVIDE BY 3. REMAINDER 0=A, 1=B, 2=C.";
+        ? "LOCKED FREQUENCY TENTHS DIGIT: 0/3/6/9 = A; 1/4/7 = B; 2/5/8 = C."
+        : "ADD THE DECODED BURST DIGITS: 4-8 = A; 9-12 = B; 13-16 = C.";
     const relay1Rules = {
       HIGH_BAND: "SET ON IF TARGET FREQUENCY IS 155.0 MHZ OR HIGHER",
       MID_BAND: "SET ON IF TARGET FREQUENCY IS BETWEEN 148.0 AND 162.0 MHZ",
