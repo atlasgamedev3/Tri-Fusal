@@ -10,7 +10,7 @@ const SAFE_WIRE_COUNT: Record<string, number> = { STANDARD: 1, HARD: 2, EXTREME:
 const RADAR_TOLERANCE: Record<string, number> = { STANDARD: 10, HARD: 6, EXTREME: 3 };
 const CUT_WINDOW_SECONDS: Record<string, number> = { STANDARD: 18, HARD: 12, EXTREME: 8 };
 const MINOR_PENALTY_SECONDS = 30;
-const BOARDS_PER_DIFFICULTY: Record<string, number> = { STANDARD: 2, HARD: 3, EXTREME: 4 };
+const BOARDS_PER_DIFFICULTY: Record<string, number> = { STANDARD: 1, HARD: 3, EXTREME: 4 };
 const RELAY_REQUIRED: Record<string, boolean> = { STANDARD: false, HARD: true, EXTREME: true };
 const ROLE_ACTIONS: Record<MissionRole, Set<string>> = {
   analyst: new Set(["radar", "frequency", "analystCheck", "analystCheck2", "analystCheck3"]),
@@ -583,7 +583,7 @@ export class TriFusalRoom extends Room<MissionState> {
     const random = seededRandom(hashSeed(boardSeed));
     const location = randomItem(MISSION_LOCATIONS, random);
     const availableProfiles = this.state.difficulty === "STANDARD"
-      ? ["ALPHA", "BRAVO"]
+      ? ["ALPHA"]
       : this.state.difficulty === "HARD"
         ? ["ALPHA", "BRAVO", "CHARLIE"]
         : ["ALPHA", "BRAVO", "CHARLIE", "DELTA"];
@@ -695,10 +695,12 @@ export class TriFusalRoom extends Room<MissionState> {
       const fullSequence = [start];
       for (let index = 1; index < 7; index += 1) fullSequence.push(index % 2 === 1 ? fullSequence[index - 1] + addStep : fullSequence[index - 1] * multiplier);
       visibleSequence = fullSequence.slice(0, 5);
-      matrixAnswers = fullSequence.slice(5, 7);
+      matrixAnswers = fullSequence.slice(5, this.state.difficulty === "STANDARD" ? 6 : 7);
       matrixRule = `ALTERNATING SERIES: +${addStep}, THEN ×${multiplier}`;
       const numericAnswers = matrixAnswers.map(Number);
-      const distractors = [numericAnswers[0] + 1, Math.max(0, numericAnswers[0] - 1), numericAnswers[1] + 2, Math.max(0, numericAnswers[1] - 2)];
+      const firstAnswer = numericAnswers[0] ?? 0;
+      const secondAnswer = numericAnswers[1] ?? firstAnswer;
+      const distractors = [firstAnswer + 1, Math.max(0, firstAnswer - 1), secondAnswer + 2, Math.max(0, secondAnswer - 2)];
       matrixOptions = shuffled([...new Set([...matrixAnswers, ...distractors])], random);
     }
     patternCode = matrixAnswers.join("-");
@@ -860,7 +862,9 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.bombStatus = "ready";
     this.state.strikes = 0;
     this.state.crisisActive = false;
-    this.state.crisisSeconds = 0;
+    // Standard is the onboarding path: keep the core cross-role chain, but
+    // pre-clear the seven advanced auxiliary checks used by Hard and Extreme.
+    this.state.crisisSeconds = this.state.difficulty === "STANDARD" ? 127 : 0;
     this.state.crisisCooldown = 0;
     if (preserveRun) {
       this.state.seconds = preservedSeconds;
