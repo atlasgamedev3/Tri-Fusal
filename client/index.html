@@ -1158,6 +1158,17 @@ const ARCHIVE = [
   { codename: "NIGHTINGALE", bombId: "OSCAR-1056-D", date: "30 SEP 1963", outcome: "SUCCESS", color: "#4DDB7A", time: "00:38 REMAINING" },
   { codename: "GREY FALCON", bombId: "ZULU-7734-P", date: "19 AUG 1962", outcome: "FAILED", color: "#E05A3E", time: "00:00 — DETONATED" },
 ];
+const INITIAL_COMMS = [
+  { time: "14:25:02", from: "CTRL", text: "FIELD TEAM -- CONFIRM POSITIONS OVER" },
+  { time: "14:30:11", from: "CTRL", text: "ZETA PROTOCOL INITIATED -- COUNTDOWN RUNNING" },
+];
+function freshInitialComms() {
+  return INITIAL_COMMS.map((message) => ({ ...message }));
+}
+function commsTimestamp(timestamp = Date.now()) {
+  const d = new Date(timestamp);
+  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+}
 
 class Component extends DCLogic {
   state = {
@@ -1174,10 +1185,7 @@ class Component extends DCLogic {
     score: 0,
     leaderboardDifficulty: "STANDARD",
     leaderboardEntries: [],
-    comms: [
-      { time: "14:25:02", from: "CTRL", text: "FIELD TEAM -- CONFIRM POSITIONS OVER" },
-      { time: "14:30:11", from: "CTRL", text: "ZETA PROTOCOL INITIATED -- COUNTDOWN RUNNING" },
-    ],
+    comms: freshInitialComms(),
     commsInput: "",
     wires: [
       { id: "A", label: "CIRCUIT A", sublabel: "PRIMARY POWER BUS", color: "#C4A84F", safe: false, cut: false },
@@ -2186,7 +2194,7 @@ class Component extends DCLogic {
         this.stopMusic();
         if (this._room) { this._room.leave(); this._room = null; }
         this.disconnectVoiceSession();
-        this.setState({ screen: "menu", role: "analyst", lobbyClaimed: null, players: [], roomName: "", connectionStatus: "OFFLINE", soloDemo: false, connectionError: "", checkedObjectives: [], authInput: "", authStatus: "idle", crisisActive: false, crisisSeconds: 0, flashActive: false, eventBanner: "" });
+        this.setState({ screen: "menu", role: "analyst", lobbyClaimed: null, players: [], roomName: "", connectionStatus: "OFFLINE", soloDemo: false, connectionError: "", checkedObjectives: [], authInput: "", authStatus: "idle", crisisActive: false, crisisSeconds: 0, flashActive: false, eventBanner: "", comms: freshInitialComms(), commsInput: "" });
       },
       goRoster: () => { this.beep(500, 0.08, "square"); this.setState({ screen: "roster" }); },
       goArchive: () => { this.beep(500, 0.08, "square"); this.setState({ screen: "archive" }, () => this.loadLeaderboard(this.state.leaderboardDifficulty)); },
@@ -2205,6 +2213,8 @@ class Component extends DCLogic {
           crisisSeconds: 0,
           flashActive: false,
           eventBanner: "",
+          comms: freshInitialComms(),
+          commsInput: "",
           connectionStatus: enteredCode ? "SELECT A ROLE TO JOIN" : "HOST LOBBY READY — SELECT A ROLE",
           connectionError: "",
           roomCodeCopied: false,
@@ -2469,6 +2479,8 @@ class Component extends DCLogic {
       connectionStatus: "PREPARING SOLO DEMO - ENABLING ALL THREE STATIONS...",
       connectionError: "",
       roomCodeCopied: false,
+      comms: freshInitialComms(),
+      commsInput: "",
     }, () => this.connectRole("analyst"));
   }
 
@@ -2572,11 +2584,16 @@ class Component extends DCLogic {
       room.onMessage("boardAdvanced", (message) => {
         const nextBoard = Number(message.nextBoard || 1);
         const boardCount = Number(message.boardCount || nextBoard);
-        this.receiveComms({ from: "SYSTEM", text: `BOARD ${Number(message.completedBoard || nextBoard - 1)} SECURED — NEW DEVICE PROFILE LOADED`, timestamp: message.timestamp });
+        const roundStartMessage = {
+          time: commsTimestamp(message.timestamp),
+          from: "SYSTEM",
+          role: "SYSTEM",
+          text: `BOARD ${Number(message.completedBoard || nextBoard - 1)} SECURED — NEW DEVICE PROFILE LOADED`,
+        };
         this.setState({
           patternInput: [], matrixInput: [], patternStatus: "idle", authInput: "", authStatus: "idle",
           relayStatus: "idle", orderStatus: "idle", cutResult: null, checkedObjectives: [],
-          boardNumber: nextBoard, boardCount,
+          boardNumber: nextBoard, boardCount, comms: [roundStartMessage], commsInput: "",
         });
         this._patternBuffer = [];
         this._patternPending = false;
@@ -2901,8 +2918,7 @@ class Component extends DCLogic {
   }
 
   receiveComms(message) {
-    const d = new Date(message.timestamp || Date.now());
-    const time = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+    const time = commsTimestamp(message.timestamp || Date.now());
     const role = String(message.from || "");
     const networkPlayer = this.state.players.find((player) => player.role === role);
     const from = role === "SYSTEM" ? "SYSTEM" : (networkPlayer?.name || CALLSIGNS[role] || role.toUpperCase() || "CTRL");
