@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body { margin: 0; background: #0A0A08; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0A0A08; }
     @keyframes radarSweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     @keyframes blipPulse { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.3; } }
     @keyframes speakPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.6; } }
@@ -35,12 +35,15 @@
     .wire-row:hover { background: rgba(126,200,227,0.09) !important; border-color: rgba(126,200,227,0.62) !important; }
     .scanlines-off [style*="repeating-linear-gradient(0deg"] { background: none !important; }
     @media (min-width: 721px) {
-      .mission-shell { zoom: .84; width: 100%; height: 119.05%; }
+      .mission-shell { zoom: .84; width: 119.05%; height: 119.05%; }
       .role-column { overflow: hidden !important; }
       .role-column-left svg[viewBox="0 0 240 160"] { max-height: 140px; }
     }
     @media (min-width: 721px) and (min-height: 900px) {
-      .mission-shell { zoom: .9; width: 100%; height: 111.12%; }
+      .mission-shell { zoom: .9; width: 111.12%; height: 111.12%; }
+    }
+    @media (min-width: 721px) and (min-height: 1200px) {
+      .mission-shell { zoom: 1; width: 100%; height: 100%; }
     }
     .motion-off * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition: none !important; }
     .frequency-range { min-height: 30px; cursor: ew-resize; }
@@ -61,7 +64,7 @@
   </style>
 </helmet>
 
-<div class="terminal-root {{ terminalClass }}" style="font-family: 'DM Mono', monospace; background: #0A0A08; color: #E8DFC4; max-width: 1480px; margin: 0 auto; height: 100vh; position: relative; display: flex; flex-direction: column; overflow: hidden;">
+<div class="terminal-root {{ terminalClass }}" style="font-family: 'DM Mono', monospace; background: #0A0A08; color: #E8DFC4; width: 100vw; max-width: none; margin: 0; height: 100dvh; position: relative; display: flex; flex-direction: column; overflow: hidden;">
 
 <sc-if value="{{ isMenu }}" hint-placeholder-val="{{ true }}">
   <!-- MAIN MENU — MILITARY MAINFRAME TERMINAL -->
@@ -322,6 +325,7 @@
             <button type="button" onclick="{{ toggleAutoSolve }}" style="border: 1px solid {{ autoSolveColor }}; background:{{ autoSolveBg }}; color: {{ autoSolveColor }}; font-family:'DM Mono',monospace; font-size: 9px; letter-spacing: 0.1em; padding: 4px 10px; cursor: pointer;">{{ autoSolveLabel }}</button>
           </sc-if>
         </sc-if>
+        <button type="button" onclick="{{ openMissionSettings }}" style="border:1px solid rgba(232,220,196,.35);background:rgba(232,220,196,.04);color:rgba(232,220,196,.75);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;padding:4px 9px;cursor:pointer;white-space:nowrap;">SETTINGS</button>
       </div>
     </div>
   </div>
@@ -1042,6 +1046,38 @@
 <div style="position: fixed; inset: 0; pointer-events: none; z-index: 61; mix-blend-mode: overlay; background: radial-gradient(ellipse at center, rgba(255,255,255,0.12) 0%, transparent 65%); animation: scanGlow 2.6s ease-in-out infinite reverse;"></div>
 <div style="position: fixed; inset: 0; pointer-events: none; z-index: 62; background: #fff; mix-blend-mode: overlay; animation: randomFlicker 26s linear infinite;"></div>
 <div style="position: fixed; inset: 0; pointer-events: none; z-index: 62; background: #000; opacity: 0; animation: randomFlicker 34s linear infinite 11s both;"></div>
+<sc-if value="{{ showPauseMenu }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:72;background:rgba(2,2,0,.86);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;">
+    <div role="dialog" aria-label="Pause menu" style="width:min(420px,100%);border:1px solid rgba(216,163,74,.7);background:#0A0804;box-shadow:0 0 46px rgba(216,163,74,.2);padding:28px;box-sizing:border-box;color:#D8A34A;">
+      <div style="font-family:'Oswald',sans-serif;font-size:25px;letter-spacing:.24em;text-align:center;">MISSION PAUSED</div>
+      <div style="font-size:9px;letter-spacing:.14em;text-align:center;opacity:.5;margin:6px 0 22px;">COUNTDOWN AND LIVE WINDOWS FROZEN</div>
+      <button type="button" onclick="{{ resumeMission }}" style="width:100%;border:1px solid #4DDB7A;background:rgba(77,219,122,.07);color:#4DDB7A;padding:11px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.16em;cursor:pointer;margin-bottom:8px;">RESUME MISSION</button>
+      <button type="button" onclick="{{ openMissionSettings }}" style="width:100%;border:1px solid #D8A34A;background:rgba(216,163,74,.07);color:#D8A34A;padding:11px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.16em;cursor:pointer;margin-bottom:8px;">SETTINGS</button>
+      <button type="button" onclick="{{ exitMission }}" style="width:100%;border:1px solid rgba(224,90,62,.65);background:rgba(224,90,62,.05);color:#E05A3E;padding:11px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.16em;cursor:pointer;">EXIT TO BRIEFING</button>
+      <div style="font-size:8px;letter-spacing:.12em;text-align:center;opacity:.4;margin-top:16px;">PRESS ESC TO RESUME</div>
+    </div>
+  </div>
+</sc-if>
+<sc-if value="{{ showPausedNotice }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;inset:0;z-index:72;background:rgba(2,2,0,.82);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;">
+    <div style="border:1px solid rgba(216,163,74,.65);background:#0A0804;padding:24px 34px;text-align:center;color:#D8A34A;"><div style="font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:.2em;">MISSION PAUSED</div><div style="font-size:9px;opacity:.5;margin-top:7px;letter-spacing:.12em;">AN OPERATIVE OPENED THE PAUSE MENU</div><button type="button" onclick="{{ resumeMission }}" style="margin-top:16px;border:1px solid #4DDB7A;background:transparent;color:#4DDB7A;padding:8px 18px;font-family:'DM Mono',monospace;cursor:pointer;">RESUME FOR TEAM</button></div>
+  </div>
+</sc-if>
+<sc-if value="{{ showMissionSettings }}" hint-placeholder-val="{{ false }}">
+  <div onclick="{{ closeMissionSettings }}" style="position:fixed;inset:0;z-index:74;background:rgba(2,2,0,.82);backdrop-filter:blur(3px);"></div>
+  <div role="dialog" aria-label="In-game settings" style="position:fixed;z-index:75;top:50%;left:50%;transform:translate(-50%,-50%);width:min(430px,calc(100vw - 36px));max-height:calc(100dvh - 36px);box-sizing:border-box;overflow-y:auto;background:#0A0804;border:1px solid rgba(216,163,74,.65);box-shadow:0 0 42px rgba(216,163,74,.2);padding:24px;color:#D8A34A;">
+    <div style="font-family:'Oswald',sans-serif;font-size:19px;letter-spacing:.2em;text-align:center;color:#D8A34A;">FIELD SETTINGS</div>
+    <div style="font-size:8px;letter-spacing:.16em;text-align:center;color:rgba(216,163,74,.45);margin:4px 0 18px;">CHANGES APPLY IMMEDIATELY // MISSION CONTINUES</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-top:1px dashed rgba(216,163,74,.22);"><span style="font-size:10px;letter-spacing:.1em;">TRANSMISSION SOUND</span><div onclick="{{ toggleSound }}" style="width:44px;height:22px;border:1px solid #D8A34A;position:relative;cursor:pointer;background:{{ soundOnBg }};"><div style="width:16px;height:16px;background:#D8A34A;position:absolute;top:2px;left:{{ soundOnPos }};"></div></div></div>
+    <div style="padding:9px 0 12px;opacity:{{ soundVolumeOpacity }};"><div style="display:flex;justify-content:space-between;margin-bottom:7px;font-size:10px;"><span>SOUND VOLUME</span><span>{{ soundVolume }}%</span></div><input aria-label="Sound volume" type="range" min="0" max="100" step="1" value="{{ soundVolume }}" oninput="{{ setSoundVolume }}" disabled="{{ soundVolumeDisabled }}" style="width:100%;accent-color:#D8A34A;"/></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-top:1px dashed rgba(216,163,74,.22);"><div><div style="font-size:10px;letter-spacing:.1em;">CRT SCANLINES</div><div style="font-size:8px;opacity:.45;margin-top:3px;">DISPLAY FILTER</div></div><div onclick="{{ toggleScanlines }}" style="width:44px;height:22px;border:1px solid #D8A34A;position:relative;cursor:pointer;background:{{ scanlinesOnBg }};"><div style="width:16px;height:16px;background:#D8A34A;position:absolute;top:2px;left:{{ scanlinesOnPos }};"></div></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-top:1px dashed rgba(216,163,74,.22);"><div><div style="font-size:10px;letter-spacing:.1em;">MOTION EFFECTS</div><div style="font-size:8px;opacity:.45;margin-top:3px;">SWEEPS, PULSES, AND FLICKER</div></div><div onclick="{{ toggleMotion }}" style="width:44px;height:22px;border:1px solid #D8A34A;position:relative;cursor:pointer;background:{{ motionOnBg }};"><div style="width:16px;height:16px;background:#D8A34A;position:absolute;top:2px;left:{{ motionOnPos }};"></div></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-top:1px dashed rgba(216,163,74,.22);"><div><div style="font-size:10px;letter-spacing:.1em;">VOICE CHAT</div><div style="font-size:8px;color:{{ voiceStatusColor }};margin-top:3px;">{{ voiceStatusText }}</div></div><div onclick="{{ toggleVoice }}" style="width:44px;height:22px;border:1px solid #D8A34A;position:relative;cursor:pointer;background:{{ voiceOnBg }};"><div style="width:16px;height:16px;background:#D8A34A;position:absolute;top:2px;left:{{ voiceOnPos }};"></div></div></div>
+    <div style="padding:9px 0 12px;opacity:{{ voiceControlOpacity }};"><div style="display:flex;justify-content:space-between;margin-bottom:7px;font-size:10px;"><span>VOICE OUTPUT</span><span>{{ voiceVolume }}%</span></div><input aria-label="Voice output volume" type="range" min="0" max="100" step="1" value="{{ voiceVolume }}" oninput="{{ setVoiceVolume }}" style="width:100%;accent-color:#D8A34A;"/><div style="display:flex;border:1px solid rgba(216,163,74,.4);margin-top:10px;"><div onclick="{{ setPttHold }}" style="flex:1;text-align:center;padding:6px;cursor:pointer;font-size:9px;{{ pttHoldStyle }}">PUSH TO TALK</div><div onclick="{{ setPttOpen }}" style="flex:1;text-align:center;padding:6px;cursor:pointer;font-size:9px;border-left:1px solid rgba(216,163,74,.4);{{ pttOpenStyle }}">OPEN MIC</div></div></div>
+    <div onclick="{{ resetSettings }}" style="margin-top:5px;text-align:center;border:1px dashed rgba(216,163,74,.4);padding:7px;font-size:9px;letter-spacing:.1em;cursor:pointer;">RESTORE DEFAULTS</div>
+    <button type="button" onclick="{{ closeMissionSettings }}" style="width:100%;margin-top:9px;border:1px solid #D8A34A;background:rgba(216,163,74,.08);color:#E8DFC4;padding:9px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.14em;cursor:pointer;">RETURN TO PAUSE MENU</button>
+  </div>
+</sc-if>
 <sc-if value="{{ crisisVisible }}" hint-placeholder-val="{{ false }}">
   <div style="position:fixed;top:78px;left:50%;transform:translateX(-50%);z-index:68;width:min(560px,86vw);border:2px solid {{ crisisColor }};background:rgba(7,3,2,.97);color:#E8DFC4;box-shadow:0 0 30px {{ crisisColor }};padding:12px 15px;animation:popIn .2s ease-out;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;"><span style="font-family:'Oswald',sans-serif;color:{{ crisisColor }};font-size:15px;letter-spacing:.14em;">⚠ {{ crisisLabel }}</span><span style="font-family:'DM Mono',monospace;color:#E05A3E;font-size:18px;">{{ crisisSeconds }}s</span></div>
@@ -1177,6 +1213,8 @@ class Component extends DCLogic {
     role: "analyst",
     lobbyClaimed: null,
     showSettings: false,
+    paused: false,
+    pauseMenuOpen: false,
     soundOn: true,
     scanlinesOn: true,
     difficulty: "STANDARD",
@@ -1337,11 +1375,22 @@ class Component extends DCLogic {
       this._pttPressed = false;
       this.syncVoiceTransmit();
     };
+    this._onEscape = (event) => {
+      if (event.key !== "Escape" || this.state.screen !== "mission") return;
+      event.preventDefault();
+      if (this.state.showSettings) {
+        this.setState({ showSettings: false, pauseMenuOpen: true });
+      } else {
+        this.setMissionPaused(!this.state.paused);
+      }
+    };
     window.addEventListener("keydown", this._onPttDown);
     window.addEventListener("keyup", this._onPttUp);
+    window.addEventListener("keydown", this._onEscape);
     this.commsListRef = React.createRef();
     this._previousScreen = this.state.screen;
     this._previousSeconds = this.state.seconds;
+    this._previousPaused = this.state.paused;
   }
 
   componentWillUnmount() {
@@ -1350,6 +1399,7 @@ class Component extends DCLogic {
     window.removeEventListener("resize", this._onResize);
     window.removeEventListener("keydown", this._onPttDown);
     window.removeEventListener("keyup", this._onPttUp);
+    window.removeEventListener("keydown", this._onEscape);
     if (this._bannerTimer) clearTimeout(this._bannerTimer);
     this.stopMusic();
   }
@@ -1363,8 +1413,16 @@ class Component extends DCLogic {
       const seconds = this.state.seconds;
       if (seconds <= 20 || (seconds <= 60 && seconds % 5 === 0)) this.playSfx("ping", seconds <= 10 ? 0.48 : 0.24);
     }
+    if (this._previousPaused !== this.state.paused) {
+      if (this.state.paused) {
+        if (this._music) this._music.pause();
+      } else if (this.state.screen === "mission" && this.state.soundOn && this._music) {
+        this._music.play().catch(() => {});
+      }
+    }
     this._previousScreen = this.state.screen;
     this._previousSeconds = this.state.seconds;
+    this._previousPaused = this.state.paused;
   }
 
   getTeamStatus() {
@@ -2077,7 +2135,15 @@ class Component extends DCLogic {
       playerName: s.playerName,
       setName: (e) => this.setState({ playerName: e.target.value.toUpperCase() }),
       showSettings: s.showSettings,
+      showMissionSettings: s.showSettings && s.screen === "mission",
       toggleSettings: () => this.setState({ showSettings: !this.state.showSettings }),
+      showPauseMenu: s.screen === "mission" && s.paused && s.pauseMenuOpen && !s.showSettings,
+      showPausedNotice: s.screen === "mission" && s.paused && !s.pauseMenuOpen && !s.showSettings,
+      pauseMission: () => this.setMissionPaused(true),
+      resumeMission: () => this.setMissionPaused(false),
+      openMissionSettings: () => this.openMissionSettings(),
+      closeMissionSettings: () => this.closeMissionSettings(),
+      exitMission: () => this.exitMission(),
       soundOnBg: s.soundOn ? "rgba(90,112,64,0.3)" : "transparent",
       soundOnPos: s.soundOn ? "22px" : "1px",
       toggleSound: () => this.updatePreferences({ soundOn: !this.state.soundOn }),
@@ -2194,7 +2260,7 @@ class Component extends DCLogic {
         this.stopMusic();
         if (this._room) { this._room.leave(); this._room = null; }
         this.disconnectVoiceSession();
-        this.setState({ screen: "menu", role: "analyst", lobbyClaimed: null, players: [], roomName: "", connectionStatus: "OFFLINE", soloDemo: false, connectionError: "", checkedObjectives: [], authInput: "", authStatus: "idle", crisisActive: false, crisisSeconds: 0, flashActive: false, eventBanner: "", comms: freshInitialComms(), commsInput: "" });
+        this.setState({ screen: "menu", role: "analyst", lobbyClaimed: null, players: [], roomName: "", connectionStatus: "OFFLINE", soloDemo: false, connectionError: "", checkedObjectives: [], authInput: "", authStatus: "idle", crisisActive: false, crisisSeconds: 0, flashActive: false, eventBanner: "", comms: freshInitialComms(), commsInput: "", paused: false, pauseMenuOpen: false, showSettings: false });
       },
       goRoster: () => { this.beep(500, 0.08, "square"); this.setState({ screen: "roster" }); },
       goArchive: () => { this.beep(500, 0.08, "square"); this.setState({ screen: "archive" }, () => this.loadLeaderboard(this.state.leaderboardDifficulty)); },
@@ -2215,6 +2281,9 @@ class Component extends DCLogic {
           eventBanner: "",
           comms: freshInitialComms(),
           commsInput: "",
+          paused: false,
+          pauseMenuOpen: false,
+          showSettings: false,
           connectionStatus: enteredCode ? "SELECT A ROLE TO JOIN" : "HOST LOBBY READY — SELECT A ROLE",
           connectionError: "",
           roomCodeCopied: false,
@@ -2292,6 +2361,53 @@ class Component extends DCLogic {
       pttKeySpaceStyle: s.pttKey === "SPACE" ? "background:#D8A34A;color:#0A0703;" : "color:#D8A34A;",
       pttHintText: s.voiceStatus === "active" ? (s.pttMode === "hold" ? `VOICE READY — HOLD ${s.pttKey}` : "VOICE OPEN MIC") : "TEXT CHANNEL — VOICE OFF",
     };
+  }
+
+  setMissionPaused(paused) {
+    if (this.state.screen !== "mission") return;
+    const nextPaused = Boolean(paused);
+    if (this._room) this._room.send("setPaused", { paused: nextPaused });
+    if (nextPaused && this.state.autoSolving) this._autoSolveToken = null;
+    this.setState({
+      paused: nextPaused,
+      pauseMenuOpen: nextPaused,
+      showSettings: false,
+      autoSolving: nextPaused ? false : this.state.autoSolving,
+    });
+  }
+
+  openMissionSettings() {
+    if (this.state.screen !== "mission") return;
+    if (this._room && !this.state.paused) this._room.send("setPaused", { paused: true });
+    this.setState({ paused: true, pauseMenuOpen: false, showSettings: true });
+  }
+
+  closeMissionSettings() {
+    this.setState({ showSettings: false, pauseMenuOpen: true });
+  }
+
+  exitMission() {
+    if (this._room) {
+      this._room.send("setPaused", { paused: false });
+      this._room.leave();
+      this._room = null;
+    }
+    this.disconnectVoiceSession();
+    this.stopMusic();
+    this.setState({
+      screen: "menu",
+      role: "analyst",
+      lobbyClaimed: null,
+      players: [],
+      roomName: "",
+      connectionStatus: "OFFLINE",
+      soloDemo: false,
+      connectionError: "",
+      paused: false,
+      pauseMenuOpen: false,
+      showSettings: false,
+      eventBanner: "",
+    });
   }
 
   updatePreferences(patch, callback) {
@@ -2481,6 +2597,9 @@ class Component extends DCLogic {
       roomCodeCopied: false,
       comms: freshInitialComms(),
       commsInput: "",
+      paused: false,
+      pauseMenuOpen: false,
+      showSettings: false,
     }, () => this.connectRole("analyst"));
   }
 
@@ -2652,6 +2771,7 @@ class Component extends DCLogic {
     const next = {
       players,
       difficulty: roomState.difficulty || this.state.difficulty,
+      paused: Boolean(roomState.paused),
       seconds: Number(roomState.seconds),
       boardNumber: Number(roomState.boardNumber || 1),
       boardCount: Number(roomState.boardCount || 1),
@@ -2712,6 +2832,10 @@ class Component extends DCLogic {
       wires: WIRES_POOL.slice(0, count).map((wire) => ({ ...wire, safe: String(roomState.safeWireIds || "").includes(wire.id), cut: cutIds.includes(wire.id) })),
       connectionError: "",
     };
+    if (!roomState.paused) {
+      next.pauseMenuOpen = false;
+      if (this.state.screen === "mission") next.showSettings = false;
+    }
     if (assignedPlayer && roomState.gameStarted && this.state.screen !== "mission") {
       next.role = assignedPlayer.role;
       next.lobbyClaimed = assignedPlayer.role;

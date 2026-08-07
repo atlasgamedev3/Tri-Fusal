@@ -149,6 +149,7 @@ export class TriFusalRoom extends Room<MissionState> {
   private operation = "BLACKTHORN";
   private runSeed = "";
   private generation = 0;
+  private pausedBySessionId = "";
 
   onCreate(options: Record<string, unknown>) {
     this.autoDispose = false;
@@ -177,6 +178,18 @@ export class TriFusalRoom extends Room<MissionState> {
       this.state.runStartedAt = Date.now();
       void this.setPrivate(true);
       this.startTimer();
+    });
+
+    this.onMessage("setPaused", (client, message: { paused?: boolean }) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player || !this.state.gameStarted || this.state.isGameOver || this.state.bombStatus !== "running") return;
+      this.state.paused = Boolean(message.paused);
+      this.pausedBySessionId = this.state.paused ? client.sessionId : "";
+      this.broadcast("pauseChanged", {
+        paused: this.state.paused,
+        by: player.name || player.role.toUpperCase(),
+        timestamp: Date.now(),
+      });
     });
 
     this.onMessage("simulateOutcome", (client, message: { outcome?: string }) => {
@@ -521,6 +534,10 @@ export class TriFusalRoom extends Room<MissionState> {
   async onLeave(client: Client, consented: boolean) {
     const player = this.state.players.get(client.sessionId);
     if (!player) return;
+    if (this.state.paused && this.pausedBySessionId === client.sessionId) {
+      this.state.paused = false;
+      this.pausedBySessionId = "";
+    }
     if (this.isSoloDemo) {
       void this.disconnect();
       return;
@@ -553,7 +570,7 @@ export class TriFusalRoom extends Room<MissionState> {
 
   private canAct(client: Client, action?: string) {
     const player = this.state.players.get(client.sessionId);
-    if (!player || !this.state.gameStarted || this.state.isGameOver || this.state.bombStatus !== "running") return false;
+    if (!player || !this.state.gameStarted || this.state.paused || this.state.isGameOver || this.state.bombStatus !== "running") return false;
     if (this.isSoloDemo || this.state.players.size === 2) {
       return ["radar", "frequency", "analystCheck", "analystCheck2", "analystCheck3", "pattern", "calibration", "technicianCheck", "technicianCheck2", "verification", "operatorCheck2", "operatorCheck3", "relaySet", "relay", "wire", "auth", "order"].includes(String(action));
     }
@@ -863,6 +880,8 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.cutWireIds.splice(0, this.state.cutWireIds.length);
     this.state.isGameOver = false;
     this.state.gameStarted = false;
+    this.state.paused = false;
+    this.pausedBySessionId = "";
     this.state.bombStatus = "ready";
     this.state.strikes = 0;
     this.state.crisisActive = false;
@@ -888,7 +907,7 @@ export class TriFusalRoom extends Room<MissionState> {
   private startTimer() {
     if (this.timer) clearInterval(this.timer);
     this.timer = setInterval(() => {
-      if (!this.state.gameStarted || this.state.isGameOver || this.state.bombStatus !== "running") return;
+      if (!this.state.gameStarted || this.state.paused || this.state.isGameOver || this.state.bombStatus !== "running") return;
       this.state.seconds = Math.max(0, this.state.seconds - 1);
       if (this.state.relayWindowActive) {
         this.state.relayWindow = Math.max(0, this.state.relayWindow - 1);

@@ -17,6 +17,7 @@ export class MissionState extends Schema {
   @type("string") bombId = "";
   @type("string") missionSeed = "";
   @type("boolean") gameStarted = false;
+  @type("boolean") paused = false;
   @type("boolean") isGameOver = false;
   @type("string") bombStatus = "ready";
   @type("number") seconds = 540;
