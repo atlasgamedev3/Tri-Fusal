@@ -4,14 +4,14 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
 const ROLE_SET = new Set<MissionRole>(["analyst", "technician", "operator"]);
-const DIFFICULTY_SECONDS: Record<string, number> = { STANDARD: 480, HARD: 390, EXTREME: 240 };
-const WIRES_PER_DIFFICULTY: Record<string, number> = { STANDARD: 3, HARD: 5, EXTREME: 7 };
-const SAFE_WIRE_COUNT: Record<string, number> = { STANDARD: 1, HARD: 2, EXTREME: 3 };
-const RADAR_TOLERANCE: Record<string, number> = { STANDARD: 10, HARD: 6, EXTREME: 3 };
-const CUT_WINDOW_SECONDS: Record<string, number> = { STANDARD: 18, HARD: 12, EXTREME: 8 };
+const DIFFICULTY_SECONDS: Record<string, number> = { TUTORIAL: 600, STANDARD: 900, HARD: 1080, EXTREME: 1200 };
+const WIRES_PER_DIFFICULTY: Record<string, number> = { TUTORIAL: 3, STANDARD: 3, HARD: 5, EXTREME: 7 };
+const SAFE_WIRE_COUNT: Record<string, number> = { TUTORIAL: 1, STANDARD: 1, HARD: 2, EXTREME: 3 };
+const RADAR_TOLERANCE: Record<string, number> = { TUTORIAL: 10, STANDARD: 10, HARD: 6, EXTREME: 3 };
+const CUT_WINDOW_SECONDS: Record<string, number> = { TUTORIAL: 30, STANDARD: 25, HARD: 18, EXTREME: 12 };
 const MINOR_PENALTY_SECONDS = 30;
-const BOARDS_PER_DIFFICULTY: Record<string, number> = { STANDARD: 1, HARD: 3, EXTREME: 4 };
-const RELAY_REQUIRED: Record<string, boolean> = { STANDARD: false, HARD: true, EXTREME: true };
+const BOARDS_PER_DIFFICULTY: Record<string, number> = { TUTORIAL: 1, STANDARD: 2, HARD: 3, EXTREME: 4 };
+const RELAY_REQUIRED: Record<string, boolean> = { TUTORIAL: false, STANDARD: false, HARD: true, EXTREME: true };
 const ROLE_ACTIONS: Record<MissionRole, Set<string>> = {
   analyst: new Set(["radar", "frequency", "analystCheck", "analystCheck2", "analystCheck3"]),
   technician: new Set(["relay", "relaySet", "wire", "calibration", "technicianCheck", "technicianCheck2"]),
@@ -582,8 +582,10 @@ export class TriFusalRoom extends Room<MissionState> {
     const boardSeed = `${this.runSeed}:${preservedBoardNumber || 1}:${this.generation}:${this.state.difficulty}`;
     const random = seededRandom(hashSeed(boardSeed));
     const location = randomItem(MISSION_LOCATIONS, random);
-    const availableProfiles = this.state.difficulty === "STANDARD"
+    const availableProfiles = this.state.difficulty === "TUTORIAL"
       ? ["ALPHA"]
+      : this.state.difficulty === "STANDARD"
+        ? ["ALPHA", "BRAVO"]
       : this.state.difficulty === "HARD"
         ? ["ALPHA", "BRAVO", "CHARLIE"]
         : ["ALPHA", "BRAVO", "CHARLIE", "DELTA"];
@@ -598,7 +600,9 @@ export class TriFusalRoom extends Room<MissionState> {
     const safeCount = SAFE_WIRE_COUNT[this.state.difficulty];
     const availableWireIds = ["A", "B", "C", "D", "E", "F", "G"].slice(0, wireCount);
     const selectedSafeIds = shuffled(availableWireIds, random).slice(0, safeCount);
-    const radarRules = this.state.difficulty === "STANDARD"
+    const radarRules = this.state.difficulty === "TUTORIAL"
+      ? ["WINDOW"]
+      : this.state.difficulty === "STANDARD"
       ? ["WINDOW", "NEAREST"]
       : this.state.difficulty === "HARD"
         ? ["WINDOW", "NEAREST", "FARTHEST", "ODD_RANGE"]
@@ -624,7 +628,7 @@ export class TriFusalRoom extends Room<MissionState> {
       return 28 + Math.floor(random() * 58);
     });
     const cipherMap = shuffled(["△", "○", "□", "◇"], random);
-    const cipherModes = this.state.difficulty === "STANDARD" ? ["LTR", "RTL"] : this.state.difficulty === "HARD" ? ["LTR", "RTL", "PAIRS"] : ["LTR", "RTL", "PAIRS", "OUTSIDE"];
+    const cipherModes = this.state.difficulty === "TUTORIAL" || this.state.difficulty === "STANDARD" ? ["LTR", "RTL"] : this.state.difficulty === "HARD" ? ["LTR", "RTL", "PAIRS"] : ["LTR", "RTL", "PAIRS", "OUTSIDE"];
     const cipherDirection = randomItem(cipherModes, random);
     const digits = patternCode.split("-");
     let patternTarget = digits.map((digit) => cipherMap[Number(digit) - 1]).join("");
@@ -695,7 +699,7 @@ export class TriFusalRoom extends Room<MissionState> {
       const fullSequence = [start];
       for (let index = 1; index < 7; index += 1) fullSequence.push(index % 2 === 1 ? fullSequence[index - 1] + addStep : fullSequence[index - 1] * multiplier);
       visibleSequence = fullSequence.slice(0, 5);
-      matrixAnswers = fullSequence.slice(5, this.state.difficulty === "STANDARD" ? 6 : 7);
+      matrixAnswers = fullSequence.slice(5, this.state.difficulty === "TUTORIAL" ? 6 : 7);
       matrixRule = `ALTERNATING SERIES: +${addStep}, THEN ×${multiplier}`;
       const numericAnswers = matrixAnswers.map(Number);
       const firstAnswer = numericAnswers[0] ?? 0;
@@ -862,9 +866,9 @@ export class TriFusalRoom extends Room<MissionState> {
     this.state.bombStatus = "ready";
     this.state.strikes = 0;
     this.state.crisisActive = false;
-    // Standard is the onboarding path: keep the core cross-role chain, but
+    // Tutorial is the onboarding path: keep the core cross-role chain, but
     // pre-clear the seven advanced auxiliary checks used by Hard and Extreme.
-    this.state.crisisSeconds = this.state.difficulty === "STANDARD" ? 127 : 0;
+    this.state.crisisSeconds = this.state.difficulty === "TUTORIAL" ? 127 : 0;
     this.state.crisisCooldown = 0;
     if (preserveRun) {
       this.state.seconds = preservedSeconds;

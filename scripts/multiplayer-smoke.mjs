@@ -74,7 +74,7 @@ const solveBoard = async (rooms, solo = false) => {
   operator.send("puzzleAction", { action: "order", value: mission.orderTarget.split("|")[0] });
   if (modules.includes("WIRES")) {
     const targetIds = mission.safeWireIds.split("");
-    const expectedTargetCount = { STANDARD: 1, HARD: 2, EXTREME: 3 }[mission.difficulty];
+    const expectedTargetCount = { TUTORIAL: 1, STANDARD: 1, HARD: 2, EXTREME: 3 }[mission.difficulty];
     if (targetIds.length !== expectedTargetCount) throw new Error(`Expected ${expectedTargetCount} ${mission.difficulty} targets, received ${targetIds.length}`);
     for (const id of targetIds) technician.send("puzzleAction", { action: "wire", value: id });
   }

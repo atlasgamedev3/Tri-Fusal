@@ -47,7 +47,7 @@
     .mission-shell input, .mission-shell button, .mission-shell [role="button"] { touch-action: manipulation; }
     .mission-heading { min-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .team-flow, .objective-count, .operator-objectives { display: none !important; }
-    .standard-mode .advanced-puzzle { display: none !important; }
+    .tutorial-mode .advanced-puzzle { display: none !important; }
     @media (max-width: 719px) {
       body { min-width: 0; }
       .terminal-root { width: 100vw !important; max-width: none !important; height: 100dvh !important; }
@@ -263,8 +263,9 @@
         <div style="margin-bottom: 22px;">
           <div style="font-size: 10px; letter-spacing: 0.15em; color: rgba(216,163,74,0.6); margin-bottom: 8px; text-align: center;">DIFFICULTY — HOST ONLY</div>
           <div style="display: flex; border: 1px solid rgba(216,163,74,0.4);">
-            <div onclick="{{ setStandard }}" style="flex: 1; text-align: center; padding: 7px 0; font-size: 10px; letter-spacing: 0.1em; cursor: pointer; {{ standardStyle }}">STANDARD</div>
-            <div onclick="{{ setHard }}" style="flex: 1; text-align: center; padding: 7px 0; font-size: 10px; letter-spacing: 0.1em; cursor: pointer; border-left: 1px solid rgba(216,163,74,0.4); border-right: 1px solid rgba(216,163,74,0.4); {{ hardStyle }}">HARD</div>
+            <div onclick="{{ setTutorial }}" style="flex: 1; text-align: center; padding: 7px 0; font-size: 9px; letter-spacing: 0.06em; cursor: pointer; {{ tutorialStyle }}">TUTORIAL</div>
+            <div onclick="{{ setStandard }}" style="flex: 1; text-align: center; padding: 7px 0; font-size: 9px; letter-spacing: 0.06em; cursor: pointer; border-left: 1px solid rgba(216,163,74,0.4); {{ standardStyle }}">STANDARD</div>
+            <div onclick="{{ setHard }}" style="flex: 1; text-align: center; padding: 7px 0; font-size: 9px; letter-spacing: 0.06em; cursor: pointer; border-left: 1px solid rgba(216,163,74,0.4); border-right: 1px solid rgba(216,163,74,0.4); {{ hardStyle }}">HARD</div>
             <div onclick="{{ setExtreme }}" style="flex: 1; text-align: center; padding: 7px 0; font-size: 10px; letter-spacing: 0.1em; cursor: pointer; {{ extremeStyle }}">EXTREME</div>
           </div>
         <div style="border: 1px solid rgba(216,163,74,0.2); border-top: none; padding: 9px 11px; background: rgba(216,163,74,0.025);">
@@ -325,7 +326,7 @@
     </div>
   </div>
 
-  <sc-if value="{{ isGuidedStandard }}" hint-placeholder-val="{{ false }}">
+  <sc-if value="{{ isGuidedTutorial }}" hint-placeholder-val="{{ false }}">
     <div style="flex-shrink:0;background:linear-gradient(90deg,rgba(196,168,79,.16),rgba(196,168,79,.06));border-bottom:1px solid rgba(196,168,79,.5);padding:9px 16px;color:#FFF4D8;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
       <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.14em;color:#C4A84F;white-space:nowrap;">GUIDED STEP {{ guidedStep }} / 7</div>
       <div style="font-size:11px;line-height:1.45;flex:1;min-width:240px;"><strong style="color:{{ guidedColor }};">{{ guidedTitle }}</strong> — {{ guidedInstruction }}</div>
@@ -1107,14 +1108,15 @@ const WIRES_POOL = [
   { id: "F", label: "CIRCUIT F", sublabel: "COOLANT SENSOR LINE", color: "#8A9430", safe: false },
   { id: "G", label: "CIRCUIT G", sublabel: "BACKUP TRIGGER", color: "#C48A6A", safe: false },
 ];
-const DIFFICULTY_WIRES = { STANDARD: 3, HARD: 5, EXTREME: 7 };
-const DIFFICULTY_SECONDS = { STANDARD: 480, HARD: 390, EXTREME: 240 };
-const DIFFICULTY_RELAY_REQUIRED = { STANDARD: false, HARD: true, EXTREME: true };
-const DIFFICULTY_MODULES = { STANDARD: 6, HARD: 6, EXTREME: 6 };
+const DIFFICULTY_WIRES = { TUTORIAL: 3, STANDARD: 3, HARD: 5, EXTREME: 7 };
+const DIFFICULTY_SECONDS = { TUTORIAL: 600, STANDARD: 900, HARD: 1080, EXTREME: 1200 };
+const DIFFICULTY_RELAY_REQUIRED = { TUTORIAL: false, STANDARD: false, HARD: true, EXTREME: true };
+const DIFFICULTY_MODULES = { TUTORIAL: 6, STANDARD: 6, HARD: 6, EXTREME: 6 };
 const DIFFICULTY_DETAILS = {
-  STANDARD: { specs: "08:00 // 1 GUIDED BOARD", description: "Clear prompts, automatic station handoffs in solo play, and no advanced side puzzles." },
-  HARD: { specs: "06:30 // 3 DISTINCT PUZZLE BOARDS", description: "Three unique puzzle families with six linked tasks on each board." },
-  EXTREME: { specs: "04:00 // 4 DISTINCT PUZZLE BOARDS", description: "All four unique puzzle families; six linked tasks per board." },
+  TUTORIAL: { specs: "10:00 // 1 GUIDED BOARD", description: "Guided prompts for teams or solo play, simplified puzzles, and automatic solo station handoffs." },
+  STANDARD: { specs: "15:00 // 2 MULTI-MODULE BOARDS", description: "The normal unguided team mission across two puzzle families." },
+  HARD: { specs: "18:00 // 3 DISTINCT PUZZLE BOARDS", description: "Three unique puzzle families with six linked tasks on each board." },
+  EXTREME: { specs: "20:00 // 4 DISTINCT PUZZLE BOARDS", description: "All four unique puzzle families; six linked tasks per board." },
 };
 const OBJECTIVE_DEFS = {
   contact: { id: "contact", label: "DESIGNATE THE TARGET RADAR CONTACT" },
@@ -1126,6 +1128,7 @@ const OBJECTIVE_DEFS = {
   wire: { id: "wire", label: "COMPLETE THE BOARD-SPECIFIC ORDNANCE ACTION" },
 };
 const DIFFICULTY_OBJECTIVE_IDS = {
+  TUTORIAL: ["contact", "frequency", "pattern", "auth", "order", "wire"],
   STANDARD: ["contact", "frequency", "pattern", "auth", "order", "wire"],
   HARD: ["contact", "frequency", "pattern", "auth", "order", "wire"],
   EXTREME: ["contact", "frequency", "pattern", "auth", "order", "wire"],
@@ -1676,7 +1679,7 @@ class Component extends DCLogic {
       isWin: s.screen === "win",
       isLose: s.screen === "lose",
       isSoloDemo: s.soloDemo,
-      isGuidedStandard: s.difficulty === "STANDARD",
+      isGuidedTutorial: s.difficulty === "TUTORIAL",
       guidedStep,
       guidedTitle,
       guidedInstruction,
@@ -1966,7 +1969,7 @@ class Component extends DCLogic {
                 ? `TECHNICIAN ACTION: CUT ${targetWireInstruction} NOW - ${s.relayWindow}s WINDOW`
                 : "TECHNICIAN ACTION: CUT WINDOW STANDBY",
       relayTargetHintText: !relayRequired
-        ? (s.orderSolved ? (s.relayWindowActive ? `STANDARD MODE - CUT THE RELAYED TARGET NOW (${s.relayWindow}s LEFT).` : "STANDARD MODE - THE STABILIZER IS BYPASSED.") : "STANDARD MODE - WAIT FOR THE OPERATOR TO CLEAR THE CUT.")
+        ? (s.orderSolved ? (s.relayWindowActive ? `${s.difficulty} MODE - CUT THE RELAYED TARGET NOW (${s.relayWindow}s LEFT).` : `${s.difficulty} MODE - THE STABILIZER IS BYPASSED.`) : `${s.difficulty} MODE - WAIT FOR THE OPERATOR TO CLEAR THE CUT.`)
         : !s.orderSolved
           ? "PRESET BOTH RELAYS NOW. COMMIT AFTER OPERATOR CLEARS THE PROTOCOL."
           : s.relayWindowActive
@@ -2014,7 +2017,7 @@ class Component extends DCLogic {
       relayCommitBg: "transparent",
       toggleRelay1: () => {
         if (!relayRequired) {
-          this.notifyLocked("STANDARD LOADOUT - STABILIZER BYPASS ACTIVE");
+          this.notifyLocked(`${s.difficulty} LOADOUT - STABILIZER BYPASS ACTIVE`);
           return;
         }
         const relay1 = !this.state.relay1;
@@ -2023,7 +2026,7 @@ class Component extends DCLogic {
       },
       toggleRelay2: () => {
         if (!relayRequired) {
-          this.notifyLocked("STANDARD LOADOUT - STABILIZER BYPASS ACTIVE");
+          this.notifyLocked(`${s.difficulty} LOADOUT - STABILIZER BYPASS ACTIVE`);
           return;
         }
         const relay2 = !this.state.relay2;
@@ -2091,15 +2094,17 @@ class Component extends DCLogic {
       },
       difficulty: s.difficulty,
       cycleDifficulty: () => {
-        const order = ["STANDARD", "HARD", "EXTREME"];
+        const order = ["TUTORIAL", "STANDARD", "HARD", "EXTREME"];
         const next = order[(order.indexOf(this.state.difficulty) + 1) % order.length];
         this.changeDifficulty(next);
       },
+      setTutorial: () => this.changeDifficulty("TUTORIAL"),
       setStandard: () => this.changeDifficulty("STANDARD"),
       setHard: () => this.changeDifficulty("HARD"),
       setExtreme: () => this.changeDifficulty("EXTREME"),
       difficultySpecs: DIFFICULTY_DETAILS[s.difficulty].specs,
       difficultyDescription: DIFFICULTY_DETAILS[s.difficulty].description,
+      tutorialStyle: s.difficulty === "TUTORIAL" ? "background:#D8A34A;color:#0A0804;font-weight:700;" : "color:rgba(216,163,74,0.6);",
       standardStyle: s.difficulty === "STANDARD" ? "background:#D8A34A;color:#0A0804;font-weight:700;" : "color:rgba(216,163,74,0.6);",
       hardStyle: s.difficulty === "HARD" ? "background:#D8A34A;color:#0A0804;font-weight:700;" : "color:rgba(216,163,74,0.6);",
       extremeStyle: s.difficulty === "EXTREME" ? "background:#D8A34A;color:#0A0804;font-weight:700;" : "color:rgba(216,163,74,0.6);",
@@ -2117,7 +2122,7 @@ class Component extends DCLogic {
       leaderboardStandardStyle: s.leaderboardDifficulty === "STANDARD" ? "background:#D8A34A;color:#0A0703;" : "color:#D8A34A;",
       leaderboardHardStyle: s.leaderboardDifficulty === "HARD" ? "background:#D8A34A;color:#0A0703;" : "color:#D8A34A;",
       leaderboardExtremeStyle: s.leaderboardDifficulty === "EXTREME" ? "background:#D8A34A;color:#0A0703;" : "color:#D8A34A;",
-      terminalClass: `${s.scanlinesOn ? "" : "scanlines-off"} ${s.motionOn ? "" : "motion-off"} ${s.difficulty === "STANDARD" ? "standard-mode" : ""}`.trim(),
+      terminalClass: `${s.scanlinesOn ? "" : "scanlines-off"} ${s.motionOn ? "" : "motion-off"} ${s.difficulty === "TUTORIAL" ? "tutorial-mode" : ""}`.trim(),
       analystSlotLabel: a.label, analystSlotStatus: a.status, analystSlotStatusColor: a.color, analystSlotBorder: a.border,
       technicianSlotLabel: t.label, technicianSlotStatus: t.status, technicianSlotStatusColor: t.color, technicianSlotBorder: t.border,
       operatorSlotLabel: o.label, operatorSlotStatus: o.status, operatorSlotStatusColor: o.color, operatorSlotBorder: o.border,
@@ -2694,7 +2699,7 @@ class Component extends DCLogic {
       next.role = assignedPlayer.role;
       next.lobbyClaimed = assignedPlayer.role;
     }
-    if (this.state.soloDemo && roomState.difficulty === "STANDARD" && roomState.gameStarted && !roomState.isGameOver) {
+    if (this.state.soloDemo && roomState.difficulty === "TUTORIAL" && roomState.gameStarted && !roomState.isGameOver) {
       const frequencyLocked = Math.abs(Number(roomState.frequency) - Number(roomState.targetFrequency)) < 0.06;
       next.role = !roomState.radarSolved || !frequencyLocked
         ? "analyst"
@@ -3179,8 +3184,8 @@ class Component extends DCLogic {
   }
 
   checkRelays() {
-    if (this.state.difficulty === "STANDARD") {
-      this.notifyLocked("STANDARD LOADOUT - STABILIZER BYPASS ACTIVE");
+    if (!DIFFICULTY_RELAY_REQUIRED[this.state.difficulty]) {
+      this.notifyLocked(`${this.state.difficulty} LOADOUT - STABILIZER BYPASS ACTIVE`);
       return;
     }
     if (!this.state.orderSolved) {
