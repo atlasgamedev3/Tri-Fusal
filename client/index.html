@@ -1032,7 +1032,7 @@
 <div style="position: fixed; inset: 0; pointer-events: none; z-index: 61; mix-blend-mode: overlay; background: radial-gradient(ellipse at center, rgba(255,255,255,0.12) 0%, transparent 65%); animation: scanGlow 2.6s ease-in-out infinite reverse;"></div>
 <div style="position: fixed; inset: 0; pointer-events: none; z-index: 62; background: #fff; mix-blend-mode: overlay; animation: randomFlicker 26s linear infinite;"></div>
 <div style="position: fixed; inset: 0; pointer-events: none; z-index: 62; background: #000; opacity: 0; animation: randomFlicker 34s linear infinite 11s both;"></div>
-<sc-if value="{{ crisisActive }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ crisisVisible }}" hint-placeholder-val="{{ false }}">
   <div style="position:fixed;top:78px;left:50%;transform:translateX(-50%);z-index:68;width:min(560px,86vw);border:2px solid {{ crisisColor }};background:rgba(7,3,2,.97);color:#E8DFC4;box-shadow:0 0 30px {{ crisisColor }};padding:12px 15px;animation:popIn .2s ease-out;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;"><span style="font-family:'Oswald',sans-serif;color:{{ crisisColor }};font-size:15px;letter-spacing:.14em;">⚠ {{ crisisLabel }}</span><span style="font-family:'DM Mono',monospace;color:#E05A3E;font-size:18px;">{{ crisisSeconds }}s</span></div>
     <div style="font-size:9px;letter-spacing:.14em;margin-bottom:9px;color:rgba(232,220,196,.68);">EMERGENCY CHANNEL // {{ crisisRoleLabel }} RESPONSE REQUIRED</div>
@@ -1781,7 +1781,7 @@ class Component extends DCLogic {
       timerPct: `${Math.max(0, Math.min(100, (s.seconds / (DIFFICULTY_SECONDS[s.difficulty] || 540)) * 100))}%`,
       strikeText: `PROTOCOL STRIKES: ${s.strikes} / ${s.maxStrikes}`,
       strikeColor: s.strikes > 0 ? "#E05A3E" : "rgba(232,220,196,0.35)",
-      crisisActive: s.crisisActive,
+      crisisVisible: s.screen === "mission" && s.crisisActive,
       crisisLabel: s.crisisLabel,
       crisisRoleLabel: s.crisisRole.toUpperCase(),
       crisisAction: s.crisisAction,
@@ -2131,7 +2131,7 @@ class Component extends DCLogic {
         this.stopMusic();
         if (this._room) { this._room.leave(); this._room = null; }
         this.disconnectVoiceSession();
-        this.setState({ screen: "menu", role: "analyst", lobbyClaimed: null, players: [], roomName: "", connectionStatus: "OFFLINE", soloDemo: false, connectionError: "", checkedObjectives: [], authInput: "", authStatus: "idle" });
+        this.setState({ screen: "menu", role: "analyst", lobbyClaimed: null, players: [], roomName: "", connectionStatus: "OFFLINE", soloDemo: false, connectionError: "", checkedObjectives: [], authInput: "", authStatus: "idle", crisisActive: false, crisisSeconds: 0, flashActive: false, eventBanner: "" });
       },
       goRoster: () => { this.beep(500, 0.08, "square"); this.setState({ screen: "roster" }); },
       goArchive: () => { this.beep(500, 0.08, "square"); this.setState({ screen: "archive" }, () => this.loadLeaderboard(this.state.leaderboardDifficulty)); },
@@ -2146,6 +2146,10 @@ class Component extends DCLogic {
           checkedObjectives: [],
           authInput: "",
           authStatus: "idle",
+          crisisActive: false,
+          crisisSeconds: 0,
+          flashActive: false,
+          eventBanner: "",
           connectionStatus: enteredCode ? "SELECT A ROLE TO JOIN" : "HOST LOBBY READY — SELECT A ROLE",
           connectionError: "",
           roomCodeCopied: false,
@@ -2627,7 +2631,7 @@ class Component extends DCLogic {
       strikes: Number(roomState.strikes || 0),
       penaltyLog: (() => { try { const value = JSON.parse(String(roomState.penaltyLog || "[]")); return Array.isArray(value) ? value : []; } catch (e) { return []; } })(),
       maxStrikes: Number(roomState.maxStrikes || 3),
-      crisisActive: Boolean(roomState.crisisActive),
+      crisisActive: Boolean(roomState.gameStarted && !roomState.isGameOver && roomState.crisisActive),
       crisisRole: String(roomState.crisisRole || "analyst"),
       crisisLabel: String(roomState.crisisLabel || "SIGNAL PHASE COLLAPSE"),
       crisisAction: String(roomState.crisisAction || "RECALIBRATE ARRAY"),

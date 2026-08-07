@@ -571,6 +571,10 @@ export class TriFusalRoom extends Room<MissionState> {
   }
 
   private resetMission(preserveRun = false) {
+    if (!preserveRun && this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
     const preservedSeconds = this.state.seconds;
     const preservedStrikes = this.state.strikes;
     const preservedBoardNumber = this.state.boardNumber;
@@ -876,6 +880,7 @@ export class TriFusalRoom extends Room<MissionState> {
   private startTimer() {
     if (this.timer) clearInterval(this.timer);
     this.timer = setInterval(() => {
+      if (!this.state.gameStarted || this.state.isGameOver || this.state.bombStatus !== "running") return;
       this.state.seconds = Math.max(0, this.state.seconds - 1);
       if (this.state.relayWindowActive) {
         this.state.relayWindow = Math.max(0, this.state.relayWindow - 1);
