@@ -35,12 +35,12 @@
     .wire-row:hover { background: rgba(126,200,227,0.09) !important; border-color: rgba(126,200,227,0.62) !important; }
     .scanlines-off [style*="repeating-linear-gradient(0deg"] { background: none !important; }
     @media (min-width: 721px) {
-      .mission-shell { zoom: .84; width: 119.05%; height: 119.05%; }
+      .mission-shell { zoom: .84; width: 100%; height: 119.05%; }
       .role-column { overflow: hidden !important; }
       .role-column-left svg[viewBox="0 0 240 160"] { max-height: 140px; }
     }
     @media (min-width: 721px) and (min-height: 900px) {
-      .mission-shell { zoom: .9; width: 111.12%; height: 111.12%; }
+      .mission-shell { zoom: .9; width: 100%; height: 111.12%; }
     }
     @media (min-width: 721px) and (min-height: 1200px) {
       .mission-shell { zoom: 1; width: 100%; height: 100%; }
@@ -1481,6 +1481,8 @@ class Component extends DCLogic {
     const s = this.state;
     const a = this.slotInfo("analyst"), t = this.slotInfo("technician"), o = this.slotInfo("operator");
     const isNarrow = s.viewportWidth < 720;
+    const connectedPlayerCount = s.players.filter((player) => player.connected).length;
+    const fallbackActive = s.screen === "mission" && !s.soloDemo && connectedPlayerCount <= 2;
     const moduleCount = DIFFICULTY_MODULES[s.difficulty] || 7;
     const freqDiff = Math.abs(s.frequency - s.targetFrequency);
     const freqLocked = freqDiff < 0.06;
@@ -1751,8 +1753,8 @@ class Component extends DCLogic {
       guidedInstruction,
       guidedRoleLabel: this.roleTheme(guidedRole).label,
       guidedColor,
-      canViewStations: s.soloDemo || (s.players.length === 2 && s.screen === "mission"),
-      stationSwitchLabel: "SWITCH STATION",
+      canViewStations: s.soloDemo || fallbackActive,
+      stationSwitchLabel: fallbackActive ? "COVER EMPTY ROLE" : "SWITCH STATION",
       showSoloSwapHint: false,
       soloSwapHint: "",
       isAnalyst: s.role === "analyst",
@@ -2839,6 +2841,10 @@ class Component extends DCLogic {
     if (assignedPlayer && roomState.gameStarted && this.state.screen !== "mission") {
       next.role = assignedPlayer.role;
       next.lobbyClaimed = assignedPlayer.role;
+    }
+    const connectedPlayerCount = players.filter((player) => player.connected).length;
+    if (assignedPlayer && roomState.gameStarted && connectedPlayerCount >= 3) {
+      next.role = assignedPlayer.role;
     }
     if (this.state.soloDemo && roomState.difficulty === "TUTORIAL" && roomState.gameStarted && !roomState.isGameOver) {
       const frequencyLocked = Math.abs(Number(roomState.frequency) - Number(roomState.targetFrequency)) < 0.06;

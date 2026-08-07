@@ -571,7 +571,8 @@ export class TriFusalRoom extends Room<MissionState> {
   private canAct(client: Client, action?: string) {
     const player = this.state.players.get(client.sessionId);
     if (!player || !this.state.gameStarted || this.state.paused || this.state.isGameOver || this.state.bombStatus !== "running") return false;
-    if (this.isSoloDemo || this.state.players.size === 2) {
+    const connectedPlayerCount = Array.from(this.state.players.values()).filter((candidate) => candidate.connected).length;
+    if (this.isSoloDemo || connectedPlayerCount <= 2) {
       return ["radar", "frequency", "analystCheck", "analystCheck2", "analystCheck3", "pattern", "calibration", "technicianCheck", "technicianCheck2", "verification", "operatorCheck2", "operatorCheck3", "relaySet", "relay", "wire", "auth", "order"].includes(String(action));
     }
     return ROLE_ACTIONS[player.role].has(String(action));
